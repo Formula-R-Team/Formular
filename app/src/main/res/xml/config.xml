@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<widget>
+    <content src="index.html" />
+    <feature name="Formular">
+        <param name="android-package" value="io.github.formular_team.formular.Formular" />
+        <param name="onload" value="true"/>
+    </feature>
+</widget>

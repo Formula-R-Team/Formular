@@ -1,0 +1,26 @@
+<ons-page id="home">
+  <div style="width: 80%; display: block; margin: 0 auto;">
+    <h1 style="text-transform: uppercase; text-align: center; font-size: 38px; font-weight: bold; margin: 1em auto;">Formula&nbsp;&#x00B7;&nbsp;R</h1>
+    <ons-button id="create-race" class="button--large--cta" style="width: 95%; margin: 1em auto; max-width: 400px; display: block;">Create Race</ons-button>
+    <ons-button id="join-race" class="button--large--cta" style="width: 95%; margin: 1em auto; max-width: 400px; display: block;">Join Race</ons-button>
+  </div>
+  <ons-bottom-toolbar></ons-bottom-toolbar>
+  <!--<div style="position:absolute;top:15%;left:25%;right:25%;bottom:15%;">
+    <center>
+      <ons-button id="race">Race</ons-button><br/><br/>
+      <ons-button id="spectate">Spectate</ons-button><br/><br/>
+      <ons-button id="customize">Customize</ons-button><br/><br/>
+      <ons-button id="course_library">Course Library</ons-button>
+    </center>
+  </div>-->
+  <script type="text/javascript">
+    ons.getScriptPage().onInit = function() {
+      this.querySelector('#create-race').onclick = function() {
+        document.querySelector('#nav').pushPage('screen/create_race.html');
+      };
+      this.onShow = function() {};
+      this.onHide = function() {};
+      this.onDestroy = function() {};
+    };
+  </script>
+</ons-page>
