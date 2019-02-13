@@ -2,7 +2,7 @@
     function stroke(path, offset) {
         const outerPath = OffsetUtils.offsetPath(path, offset, true);
         const innerPath = OffsetUtils.offsetPath(path, -offset, true);
-        return OffsetUtils.joinOffsets(outerPath.clone(), innerPath.clone(), path, offset).unite();
+        return [ outerPath, innerPath ];//OffsetUtils.joinOffsets(outerPath.clone(), innerPath.clone(), path, offset).unite();
     }
     function aspect() {
         return window.innerWidth / window.innerHeight;
@@ -102,32 +102,46 @@
             const cp2 = curve.point2.add(curve.handle2);
             threePath.bezierCurveTo(cp1.x, cp1.y, cp2.x, cp2.y, curve.point2.x, curve.point2.y);
         });
+        if (paperPath.closed) {
+            threePath.closePath();
+        }
         return threePath;
     }
     const bezierPath = paperToThreePath(pathCurve);
 
     // Add Bezier
    	const bezierGeom = new THREE.Geometry().setFromPoints(bezierPath.getPoints(50).map(vec2 => new THREE.Vector3(vec2.x, 0.0, vec2.y)));
-   	bezierGeom.computeBoundingBox();
    	scene.add(new THREE.Line(bezierGeom, new THREE.LineBasicMaterial({ color: 0xffff00, depthTest: false, transparent: true })));
-    const bezierMesh = new MeshLine();
-    bezierMesh.setGeometry(bezierGeom);
-    const surface = new THREE.Mesh(bezierMesh.geometry, new MeshLineMaterial({ color: 0x2c2f33, sizeAttenuation: true, lineWidth: 0.75, outline: true }));
-    scene.add(surface);
-    /*const curveStroke = stroke(pathCurve, 0.375);
-    const surfaceGeom = new THREE.ShapePath();
-    curveStroke.children.forEach(child => {
-        //paperToThreePath(child);
-        surfaceGeom.moveTo(child.firstCurve.point1.x, child.firstCurve.point1.y);
+    //const bezierMesh = new MeshLine();
+    //bezierMesh.setGeometry(bezierGeom);
+    //const surface = new THREE.Mesh(bezierMesh.geometry, new MeshLineMaterial({ color: 0x2c2f33, sizeAttenuation: true, lineWidth: 0.75, outline: true }));
+    //scene.add(surface);
+    const stroked = stroke(pathCurve, 0.375);
+    const shape = new THREE.Shape();
+    stroked[0].curves.forEach((curve) => {
+        const cp1 = curve.point1.add(curve.handle1);
+        const cp2 = curve.point2.add(curve.handle2);
+        shape.bezierCurveTo(cp1.x, cp1.y, cp2.x, cp2.y, curve.point2.x, curve.point2.y);
+    });
+    shape.holes.push(paperToThreePath(stroked[1]));
+    stroked.forEach(child => {
+        const p = paperToThreePath(child);
+        const g = new THREE.Geometry().setFromPoints(p.getPoints(50).map(vec2 => new THREE.Vector3(vec2.x, 0.0, vec2.y)));
+        scene.add(new THREE.Line(g, new THREE.LineBasicMaterial({ color: 0x7f7f00, depthTest: false, transparent: true })));
+        /*shape.moveTo(child.firstCurve.point1.x, child.firstCurve.point1.y);
         child.curves.forEach((curve) => {
             const cp1 = curve.point1.add(curve.handle1);
             const cp2 = curve.point2.add(curve.handle2);
-            surfaceGeom.bezierCurveTo(cp1.x, cp1.y, cp2.x, cp2.y, curve.point2.x, curve.point2.y);
-        });
+            shape.bezierCurveTo(cp1.x, cp1.y, cp2.x, cp2.y, curve.point2.x, curve.point2.y);
+        });*/
     });
-    console.log(surfaceGeom.toShapes(false, false));
-    scene.add(new THREE.Mesh(new THREE.ShapeGeometry(surfaceGeom.toShapes(false, false)), new THREE.MeshBasicMaterial({ color: 0x2c2f33 })));*/
+    const mm = new THREE.ShapeGeometry(shape);
+    mm.rotateX(0.5 * Math.PI);
+    scene.add(new THREE.Mesh(mm, new THREE.MeshBasicMaterial({ color: 0x2c2f33, side: THREE.BackSide })));
+    //const mm = new THREE.ExtrudeGeometry(shape, { steps: 1, bevelEnabled: false, depth: 0.175 });
+    //mm.rotateX(0.5 * Math.PI);
 
+    scene.add(new THREE.Mesh(mm, new THREE.MeshBasicMaterial({ color: 0x2c2f33 })));
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setPixelRatio(window.devicePixelRatio);
