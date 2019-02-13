@@ -54,7 +54,7 @@ public final class Formular extends CordovaPlugin {
     public void pluginInitialize() {
         super.pluginInitialize();
         final Activity activity = this.cordova.getActivity();
-        textureView = activity.findViewById(R.id.camera_view);
+        this.textureView = activity.findViewById(R.id.camera_view);
     }
 
     @Override
