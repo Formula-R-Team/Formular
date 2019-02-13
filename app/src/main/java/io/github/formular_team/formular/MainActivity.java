@@ -13,13 +13,13 @@ public class MainActivity extends CordovaActivity  {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        loadUrl(launchUrl);
+        this.setContentView(R.layout.activity_main);
+        this.loadUrl(this.launchUrl);
     }
 
     @Override
     protected CordovaWebView makeWebView() {
-        SystemWebView webView = findViewById(R.id.web_view);
+        SystemWebView webView = this.findViewById(R.id.web_view);
         webView.setBackgroundColor(Color.TRANSPARENT);
         return new CordovaWebViewImpl(new SystemWebViewEngine(webView));
     }
