@@ -106,16 +106,46 @@
         threePath.closed = paperPath.closed;
         return threePath;
     }
-    const bezierPath = paperToThreePath(pathCurve);
+    function paperToThreeCurve(paperPath) {
+        const threeCurve = new THREE.CurvePath();
+        paperPath.curves.forEach((curve) => {
+            const cp1 = curve.point1.add(curve.handle1);
+            const cp2 = curve.point2.add(curve.handle2);
+            threeCurve.add(new THREE.CubicBezierCurve3(
+                new THREE.Vector3(curve.point1.x, 0, curve.point1.y),
+                new THREE.Vector3(cp1.x, 0, cp1.y),
+                new THREE.Vector3(cp2.x, 0, cp2.y),
+                new THREE.Vector3(curve.point2.x, 0, curve.point2.y)
+            ));
+        });
+        return threeCurve;
+    }
+    const bezierPath = paperToThreeCurve(pathCurve);
 
-    // Add Bezier
-   	const bezierGeom = new THREE.BufferGeometry().setFromPoints(bezierPath.getPoints(50).map(vec2 => new THREE.Vector3(vec2.x, 0.0, vec2.y)));
+    const roadHeight = 0.075;
+    const roadWidth = 0.5;
+
+    // Extrude Road Path
+    const shape = new THREE.Shape();
+    shape.moveTo(0, -roadWidth);
+    shape.lineTo(-roadHeight, -roadWidth);
+    shape.lineTo(-roadHeight, roadWidth);
+    shape.lineTo(0, roadWidth);
+    shape.lineTo(0, -roadWidth);
+    const roadGeometry = new THREE.ExtrudeGeometry(shape, {
+        steps: (bezierPath.getLength() * 4) | 0,
+        bevelEnabled: false,
+        extrudePath: bezierPath
+    });
+    // Extrude Road Up
+    /*
+   	const bezierGeom = new THREE.BufferGeometry().setFromPoints(bezierPath.getPoints().map(vec2 => new THREE.Vector3(vec2.x, 0.0, vec2.y)));
    	//scene.add(new THREE.Line(bezierGeom, new THREE.LineBasicMaterial({ color: 0xffff00, depthTest: false, transparent: true })));
     //const bezierMesh = new MeshLine();
     //bezierMesh.setGeometry(bezierGeom);
     //const surface = new THREE.Mesh(bezierMesh.geometry, new MeshLineMaterial({ color: 0x2c2f33, sizeAttenuation: true, lineWidth: 0.75, outline: true }));
     //scene.add(surface);
-    const stroked = stroke(pathCurve, 0.5);
+    const stroked = stroke(pathCurve, roadWidth);
     const shape = new THREE.Shape();
     shape.moveTo(stroked[0].firstCurve.point1.x, stroked[0].firstCurve.point1.y);
     stroked[0].curves.forEach((curve) => {
@@ -125,34 +155,31 @@
     });
     shape.closed = true;
     shape.holes.push(paperToThreePath(stroked[1]));
-    /*stroked.forEach(child => {
-        const p = paperToThreePath(child);
-        const g = new THREE.Geometry().setFromPoints(p.getPoints(50).map(vec2 => new THREE.Vector3(vec2.x, 0.0, vec2.y)));
-        scene.add(new THREE.Line(g, new THREE.LineBasicMaterial({ color: 0x7f7f00, depthTest: false, transparent: true })));
-    });*/
+    //stroked.forEach(child => {
+    //    const p = paperToThreePath(child);
+    //    const g = new THREE.Geometry().setFromPoints(p.getPoints(50).map(vec2 => new THREE.Vector3(vec2.x, 0.0, vec2.y)));
+    //    scene.add(new THREE.Line(g, new THREE.LineBasicMaterial({ color: 0x7f7f00, depthTest: false, transparent: true })));
+    //});
     //const mm = new THREE.ShapeGeometry(shape);
     //mm.rotateX(0.5 * Math.PI);
     //scene.add(new THREE.Mesh(mm, new THREE.MeshBasicMaterial({ color: 0x2c2f33, side: THREE.BackSide })));
-    const roadHeight = 0.075;
-    const mm = new THREE.ExtrudeGeometry(shape, {
-        steps: 1,
+    const roadGeometry = new THREE.ExtrudeGeometry(shape, {
         bevelEnabled: false,
         depth: roadHeight
     });
-    mm.rotateX(0.5 * Math.PI);
-    mm.translate(0, roadHeight, 0);
-    //const outsideRail = new THREE.ExtrudeGeometry(new );
+    roadGeometry.rotateX(0.5 * Math.PI);
+    roadGeometry.translate(0, roadHeight, 0);*/
 
     const tex = new THREE.TextureLoader().load('images/road_surface.png');
     tex.wrapS = THREE.RepeatWrapping;
     tex.wrapT = THREE.RepeatWrapping;
     tex.repeat.set(0.4, 0.4);
-    const roadMesh = new THREE.Mesh(mm, new THREE.MeshStandardMaterial({
-                             color: 0xffffff,//color: 0x2c2f33,
-                             roughness : 0.7,
-                             map: tex
-                             //,wireframe: true
-                         }));
+    const roadMesh = new THREE.Mesh(roadGeometry, new THREE.MeshStandardMaterial({
+         color: 0xffffff,//color: 0x2c2f33,
+         roughness : 0.7,
+         //map: tex,
+         wireframe: true
+     }));
     roadMesh.receiveShadow = true;
     scene.add(roadMesh);
 
@@ -189,8 +216,9 @@
         requestAnimationFrame(animate);
         //arm.rotateY(0.33 * delta);
         const point = bezierPath.getPointAt(upos);
-        teapot.position.set(point.x, roadHeight + teapotSize, point.y);
-        teapot.rotation.y = -bezierPath.getTangentAt(upos).angle();
+        teapot.position.set(point.x, roadHeight + teapotSize, point.z);
+        teapot.lookAt(teapot.position.clone().add(bezierPath.getTangent(upos)));
+        teapot.rotateOnAxis(teapot.up, -0.5 * Math.PI);
         upos = (upos + delta * 0.1) % 1.0;
         renderer.render(scene, camera);
     })();
