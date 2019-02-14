@@ -11,6 +11,7 @@
     camera.position.set(10, 5, 0);
     camera.lookAt(new THREE.Vector3(0, 0, 0));
     const arm = new THREE.Object3D();
+    arm.rotateY(Math.PI / 4 + Math.PI);
     arm.add(camera);
     const scene = new THREE.Scene();
     scene.add(arm);
@@ -102,21 +103,19 @@
             const cp2 = curve.point2.add(curve.handle2);
             threePath.bezierCurveTo(cp1.x, cp1.y, cp2.x, cp2.y, curve.point2.x, curve.point2.y);
         });
-        if (paperPath.closed) {
-            threePath.closePath();
-        }
+        threePath.closed = paperPath.closed;
         return threePath;
     }
     const bezierPath = paperToThreePath(pathCurve);
 
     // Add Bezier
-   	const bezierGeom = new THREE.Geometry().setFromPoints(bezierPath.getPoints(50).map(vec2 => new THREE.Vector3(vec2.x, 0.0, vec2.y)));
+   	const bezierGeom = new THREE.BufferGeometry().setFromPoints(bezierPath.getPoints(50).map(vec2 => new THREE.Vector3(vec2.x, 0.0, vec2.y)));
    	//scene.add(new THREE.Line(bezierGeom, new THREE.LineBasicMaterial({ color: 0xffff00, depthTest: false, transparent: true })));
     //const bezierMesh = new MeshLine();
     //bezierMesh.setGeometry(bezierGeom);
     //const surface = new THREE.Mesh(bezierMesh.geometry, new MeshLineMaterial({ color: 0x2c2f33, sizeAttenuation: true, lineWidth: 0.75, outline: true }));
     //scene.add(surface);
-    const stroked = stroke(pathCurve, 0.375);
+    const stroked = stroke(pathCurve, 0.5);
     const shape = new THREE.Shape();
     shape.moveTo(stroked[0].firstCurve.point1.x, stroked[0].firstCurve.point1.y);
     stroked[0].curves.forEach((curve) => {
@@ -124,7 +123,7 @@
         const cp2 = curve.point2.add(curve.handle2);
         shape.bezierCurveTo(cp1.x, cp1.y, cp2.x, cp2.y, curve.point2.x, curve.point2.y);
     });
-    shape.closePath();
+    shape.closed = true;
     shape.holes.push(paperToThreePath(stroked[1]));
     /*stroked.forEach(child => {
         const p = paperToThreePath(child);
@@ -134,35 +133,49 @@
     //const mm = new THREE.ShapeGeometry(shape);
     //mm.rotateX(0.5 * Math.PI);
     //scene.add(new THREE.Mesh(mm, new THREE.MeshBasicMaterial({ color: 0x2c2f33, side: THREE.BackSide })));
+    const roadHeight = 0.075;
     const mm = new THREE.ExtrudeGeometry(shape, {
         steps: 1,
         bevelEnabled: false,
-        depth: 0.075
+        depth: roadHeight
     });
     mm.rotateX(0.5 * Math.PI);
-    mm.translate(0, 0.075, 0);
+    mm.translate(0, roadHeight, 0);
     //const outsideRail = new THREE.ExtrudeGeometry(new );
 
     const tex = new THREE.TextureLoader().load('images/road_surface.png');
     tex.wrapS = THREE.RepeatWrapping;
     tex.wrapT = THREE.RepeatWrapping;
     tex.repeat.set(0.4, 0.4);
-    scene.add(new THREE.Mesh(mm, new THREE.MeshStandardMaterial({
-        color: 0xffffff,//color: 0x2c2f33,
-        roughness : 0.7,
-        map: tex
-    })));
+    const roadMesh = new THREE.Mesh(mm, new THREE.MeshStandardMaterial({
+                             color: 0xffffff,//color: 0x2c2f33,
+                             roughness : 0.7,
+                             map: tex
+                             //,wireframe: true
+                         }));
+    roadMesh.receiveShadow = true;
+    scene.add(roadMesh);
 
+    const teapotSize = 0.175;
+    const teapot = new THREE.Mesh(
+        new THREE.TeapotBufferGeometry(teapotSize, 8),
+        new THREE.MeshPhongMaterial({ side: THREE.DoubleSide })
+    );
+    teapot.castShadow = true;
+    scene.add(teapot);
     // Lights
-    const light = new THREE.PointLight(0xffffff, 1, 300, 2);
+    scene.add(new THREE.AmbientLight(0xaaaaaa));
+    const light = new THREE.DirectionalLight(0xccccff, 0.3, 100);
+    light.position.set(30, 40, -60);
     light.castShadow = true;
-    light.position.set(-24, 32, 5);
     scene.add(light);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setClearColor(0x000000, 0.0);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     window.addEventListener('resize', function() {
             camera.aspect = aspect();
             camera.updateProjectionMatrix();
@@ -170,10 +183,15 @@
         });
     document.body.appendChild(renderer.domElement);
     const clock = new THREE.Clock();
+    let upos = 0.0;
     (function animate() {
         const delta = clock.getDelta();
         requestAnimationFrame(animate);
-        arm.rotateY(0.33 * delta);
+        //arm.rotateY(0.33 * delta);
+        const point = bezierPath.getPointAt(upos);
+        teapot.position.set(point.x, roadHeight + teapotSize, point.y);
+        teapot.rotation.y = -bezierPath.getTangentAt(upos).angle();
+        upos = (upos + delta * 0.1) % 1.0;
         renderer.render(scene, camera);
     })();
 })();
