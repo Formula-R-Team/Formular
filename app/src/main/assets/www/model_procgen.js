@@ -134,15 +134,28 @@
     //const mm = new THREE.ShapeGeometry(shape);
     //mm.rotateX(0.5 * Math.PI);
     //scene.add(new THREE.Mesh(mm, new THREE.MeshBasicMaterial({ color: 0x2c2f33, side: THREE.BackSide })));
-    const mm = new THREE.ExtrudeGeometry(shape, { steps: 1, bevelEnabled: false, depth: 0.075 });
+    const mm = new THREE.ExtrudeGeometry(shape, {
+        steps: 1,
+        bevelEnabled: false,
+        depth: 0.075
+    });
     mm.rotateX(0.5 * Math.PI);
     mm.translate(0, 0.075, 0);
     //const outsideRail = new THREE.ExtrudeGeometry(new );
 
-    scene.add(new THREE.Mesh(mm, new THREE.MeshPhongMaterial({ color: 0x2c2f33, flatShading: true })));
+    const tex = new THREE.TextureLoader().load('images/road_surface.png');
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(0.4, 0.4);
+    scene.add(new THREE.Mesh(mm, new THREE.MeshStandardMaterial({
+        color: 0xffffff,//color: 0x2c2f33,
+        roughness : 0.7,
+        map: tex
+    })));
 
     // Lights
     const light = new THREE.PointLight(0xffffff, 1, 300, 2);
+    light.castShadow = true;
     light.position.set(-24, 32, 5);
     scene.add(light);
 
