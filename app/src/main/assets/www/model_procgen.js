@@ -86,7 +86,7 @@
     // Add Segments
    	const geom = new THREE.BufferGeometry().setFromPoints(path.getPoints().map(vec2 => new THREE.Vector3(vec2.x, 0.0, vec2.y)));
    	geom.computeBoundingBox();
-   	scene.add(new THREE.Line(geom, new THREE.LineBasicMaterial({ color: 0xffffff, depthTest: false, transparent: true, opacity: 0.75 })));
+   	//scene.add(new THREE.Line(geom, new THREE.LineBasicMaterial({ color: 0xffffff, depthTest: false, transparent: true, opacity: 0.75 })));
 
     // Simplify
     paper.setup();
@@ -111,37 +111,40 @@
 
     // Add Bezier
    	const bezierGeom = new THREE.Geometry().setFromPoints(bezierPath.getPoints(50).map(vec2 => new THREE.Vector3(vec2.x, 0.0, vec2.y)));
-   	scene.add(new THREE.Line(bezierGeom, new THREE.LineBasicMaterial({ color: 0xffff00, depthTest: false, transparent: true })));
+   	//scene.add(new THREE.Line(bezierGeom, new THREE.LineBasicMaterial({ color: 0xffff00, depthTest: false, transparent: true })));
     //const bezierMesh = new MeshLine();
     //bezierMesh.setGeometry(bezierGeom);
     //const surface = new THREE.Mesh(bezierMesh.geometry, new MeshLineMaterial({ color: 0x2c2f33, sizeAttenuation: true, lineWidth: 0.75, outline: true }));
     //scene.add(surface);
     const stroked = stroke(pathCurve, 0.375);
     const shape = new THREE.Shape();
+    shape.moveTo(stroked[0].firstCurve.point1.x, stroked[0].firstCurve.point1.y);
     stroked[0].curves.forEach((curve) => {
         const cp1 = curve.point1.add(curve.handle1);
         const cp2 = curve.point2.add(curve.handle2);
         shape.bezierCurveTo(cp1.x, cp1.y, cp2.x, cp2.y, curve.point2.x, curve.point2.y);
     });
+    shape.closePath();
     shape.holes.push(paperToThreePath(stroked[1]));
-    stroked.forEach(child => {
+    /*stroked.forEach(child => {
         const p = paperToThreePath(child);
         const g = new THREE.Geometry().setFromPoints(p.getPoints(50).map(vec2 => new THREE.Vector3(vec2.x, 0.0, vec2.y)));
         scene.add(new THREE.Line(g, new THREE.LineBasicMaterial({ color: 0x7f7f00, depthTest: false, transparent: true })));
-        /*shape.moveTo(child.firstCurve.point1.x, child.firstCurve.point1.y);
-        child.curves.forEach((curve) => {
-            const cp1 = curve.point1.add(curve.handle1);
-            const cp2 = curve.point2.add(curve.handle2);
-            shape.bezierCurveTo(cp1.x, cp1.y, cp2.x, cp2.y, curve.point2.x, curve.point2.y);
-        });*/
-    });
-    const mm = new THREE.ShapeGeometry(shape);
-    mm.rotateX(0.5 * Math.PI);
-    scene.add(new THREE.Mesh(mm, new THREE.MeshBasicMaterial({ color: 0x2c2f33, side: THREE.BackSide })));
-    //const mm = new THREE.ExtrudeGeometry(shape, { steps: 1, bevelEnabled: false, depth: 0.175 });
+    });*/
+    //const mm = new THREE.ShapeGeometry(shape);
     //mm.rotateX(0.5 * Math.PI);
+    //scene.add(new THREE.Mesh(mm, new THREE.MeshBasicMaterial({ color: 0x2c2f33, side: THREE.BackSide })));
+    const mm = new THREE.ExtrudeGeometry(shape, { steps: 1, bevelEnabled: false, depth: 0.075 });
+    mm.rotateX(0.5 * Math.PI);
+    mm.translate(0, 0.075, 0);
+    //const outsideRail = new THREE.ExtrudeGeometry(new );
 
-    scene.add(new THREE.Mesh(mm, new THREE.MeshBasicMaterial({ color: 0x2c2f33 })));
+    scene.add(new THREE.Mesh(mm, new THREE.MeshPhongMaterial({ color: 0x2c2f33, flatShading: true })));
+
+    // Lights
+    const light = new THREE.PointLight(0xffffff, 1, 300, 2);
+    light.position.set(-24, 32, 5);
+    scene.add(light);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setPixelRatio(window.devicePixelRatio);

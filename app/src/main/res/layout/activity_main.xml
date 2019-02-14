@@ -5,13 +5,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
-    <TextureView
-        android:id="@+id/camera_view"
+    <fragment android:name="com.google.ar.sceneform.ux.ArFragment"
+        android:id="@+id/ux_fragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
-    <org.apache.cordova.engine.SystemWebView
+    <!--<org.apache.cordova.engine.SystemWebView
         android:id="@+id/web_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@android:color/transparent" />
+        android:background="@android:color/transparent" />-->
 </android.support.constraint.ConstraintLayout>
