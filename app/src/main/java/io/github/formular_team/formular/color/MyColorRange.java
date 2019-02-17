@@ -2,80 +2,127 @@ package io.github.formular_team.formular.color;
 
 import com.google.common.collect.Range;
 
-public final class MyColorRange implements PaletteFactory.ColorRange{
+import static com.google.common.base.Preconditions.checkNotNull;
+import static io.github.formular_team.formular.util.MorePreconditions.checkBounded;
 
-    private Range<Float> _red;
-    private Range<Float> _green;
-    private Range<Float> _blue;
-    private Range<Float> _hue;
-    private Range<Float> _saturation;
-    private Range<Float> _value;
+public final class MyColorRange implements PaletteFactory.ColorRange {
+    private final Range<Float> red;
 
-    public MyColorRange(Range<Float> red, Range<Float> green,Range<Float> blue, Range<Float> hue,Range<Float> saturation, Range<Float> value){
-        _red = red;
-        _green = green;
-        _blue = blue;
-        _hue = hue;
-        _saturation = saturation;
-        _value = value;
+    private final Range<Float> green;
+
+    private final Range<Float> blue;
+
+    private final Range<Float> hue;
+
+    private final Range<Float> saturation;
+
+    private final Range<Float> value;
+
+    private MyColorRange(final ColorRangeBuilder builder) {
+        this.red = builder.red;
+        this.green = builder.green;
+        this.blue = builder.blue;
+        this.hue = builder.hue;
+        this.saturation = builder.saturation;
+        this.value = builder.value;
     }
 
-    public Range<Float> red(){return _red;}
-    public Range<Float> green(){return _green;}
-    public Range<Float> blue(){return _blue;}
-    public Range<Float> hue(){return _hue;}
-    public Range<Float> saturation(){return _saturation;}
-    public Range<Float> value(){return _value;}
+    @Override
+    public Range<Float> red() {
+        return this.red;
+    }
 
-    public static ColorRangeBuilder builder(){
+    @Override
+    public Range<Float> green() {
+        return this.green;
+    }
+
+    @Override
+    public Range<Float> blue() {
+        return this.blue;
+    }
+
+    @Override
+    public Range<Float> hue() {
+        return this.hue;
+    }
+
+    @Override
+    public Range<Float> saturation() {
+        return this.saturation;
+    }
+
+    @Override
+    public Range<Float> value() {
+        return this.value;
+    }
+
+    public static ColorRangeBuilder builder() {
         return new ColorRangeBuilder();
     }
 
-    public final static class ColorRangeBuilder implements PaletteFactory.ColorRange.Builder{
+    public final static class ColorRangeBuilder implements PaletteFactory.ColorRange.Builder {
+        private static final Range<Float> RANGE_ZERO_ONE = Range.closed(0.0F, 1.0F);
 
-        private Range<Float> _red;
-        private Range<Float> _green;
-        private Range<Float> _blue;
-        private Range<Float> _hue;
-        private Range<Float> _saturation;
-        private Range<Float> _value;
+        private Range<Float> red = RANGE_ZERO_ONE;
 
-        private ColorRangeBuilder(){}
+        private Range<Float> green = RANGE_ZERO_ONE;
 
-        public Builder red(final Range<Float> red){
-            _red = red;
+        private Range<Float> blue = RANGE_ZERO_ONE;
+
+        private Range<Float> hue = Range.closedOpen(0.0F, 360.0F);
+
+        private Range<Float> saturation = RANGE_ZERO_ONE;
+
+        private Range<Float> value = RANGE_ZERO_ONE;
+
+        private ColorRangeBuilder() {}
+
+        @Override
+        public Builder red(final Range<Float> red) {
+            checkNotNull(red);
+            this.red = checkBounded(red);
             return this;
         }
 
-        public Builder green(final Range<Float> green){
-            _green = green;
+        @Override
+        public Builder green(final Range<Float> green) {
+            checkNotNull(green);
+            this.green = checkBounded(green);
             return this;
         }
 
-        public Builder blue(final Range<Float> blue){
-            _blue = blue;
+        @Override
+        public Builder blue(final Range<Float> blue) {
+            checkNotNull(blue);
+            this.blue = checkBounded(blue);
             return this;
         }
 
-        public Builder hue(final Range<Float> hue){
-            _hue = hue;
+        @Override
+        public Builder hue(final Range<Float> hue) {
+            checkNotNull(hue);
+            this.hue = checkBounded(hue);
             return this;
         }
 
-        public Builder saturation(final Range<Float> saturation){
-            _saturation = saturation;
+        @Override
+        public Builder saturation(final Range<Float> saturation) {
+            checkNotNull(saturation);
+            this.saturation = checkBounded(saturation);
             return this;
         }
 
-        public Builder value(final Range<Float> value){
-            _value = value;
+        @Override
+        public Builder value(final Range<Float> value) {
+            checkNotNull(value);
+            this.value = checkBounded(value);
             return this;
         }
 
-        public PaletteFactory.ColorRange build(){
-            return new MyColorRange(_red,_green,_blue,_hue,_saturation,_value);
+        @Override
+        public PaletteFactory.ColorRange build() {
+            return new MyColorRange(this);
         }
-
     }
-
 }
