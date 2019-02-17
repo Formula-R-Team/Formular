@@ -1,35 +1,35 @@
 package io.github.formular_team.formular.color;
 
+import java.util.Arrays;
 import java.util.stream.IntStream;
 
+import static com.google.common.base.Preconditions.checkElementIndex;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 public final class MyColorPalette implements ColorPalette {
+    private final int[] palette;
 
-    private int [] _palette;
-
-    MyColorPalette (int [] palette){
-        _palette = palette;
+    MyColorPalette(final int[] palette){
+        this.palette = checkNotNull(palette);
     }
 
     @Override
     public int size() {
-        return _palette.length;
+        return this.palette.length;
     }
 
     @Override
     public boolean isEmpty() {
-        if(_palette.length == 0 || _palette == null){
-            return true;
-        }
-        return false;
+        return this.size() == 0;
     }
 
     @Override
-    public int get(int index) {
-        return _palette[index];
+    public int get(final int index) {
+        return this.palette[checkElementIndex(index, this.size())];
     }
 
     @Override
     public IntStream stream() {
-        return null;
+        return Arrays.stream(this.palette);
     }
 }
