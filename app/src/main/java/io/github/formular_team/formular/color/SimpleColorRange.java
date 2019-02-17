@@ -5,7 +5,7 @@ import com.google.common.collect.Range;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static io.github.formular_team.formular.util.MorePreconditions.checkBounded;
 
-public final class MyColorRange implements PaletteFactory.ColorRange {
+public final class SimpleColorRange implements ColorRange {
     private final Range<Float> red;
 
     private final Range<Float> green;
@@ -18,7 +18,7 @@ public final class MyColorRange implements PaletteFactory.ColorRange {
 
     private final Range<Float> value;
 
-    private MyColorRange(final ColorRangeBuilder builder) {
+    private SimpleColorRange(final Builder builder) {
         this.red = builder.red;
         this.green = builder.green;
         this.blue = builder.blue;
@@ -57,11 +57,11 @@ public final class MyColorRange implements PaletteFactory.ColorRange {
         return this.value;
     }
 
-    public static ColorRangeBuilder builder() {
-        return new ColorRangeBuilder();
+    public static Builder builder() {
+        return new Builder();
     }
 
-    public final static class ColorRangeBuilder implements PaletteFactory.ColorRange.Builder {
+    public final static class Builder implements ColorRange.Builder {
         private static final Range<Float> RANGE_ZERO_ONE = Range.closed(0.0F, 1.0F);
 
         private Range<Float> red = RANGE_ZERO_ONE;
@@ -76,53 +76,53 @@ public final class MyColorRange implements PaletteFactory.ColorRange {
 
         private Range<Float> value = RANGE_ZERO_ONE;
 
-        private ColorRangeBuilder() {}
+        private Builder() {}
 
         @Override
-        public Builder red(final Range<Float> red) {
+        public ColorRange.Builder red(final Range<Float> red) {
             checkNotNull(red);
             this.red = checkBounded(red);
             return this;
         }
 
         @Override
-        public Builder green(final Range<Float> green) {
+        public ColorRange.Builder green(final Range<Float> green) {
             checkNotNull(green);
             this.green = checkBounded(green);
             return this;
         }
 
         @Override
-        public Builder blue(final Range<Float> blue) {
+        public ColorRange.Builder blue(final Range<Float> blue) {
             checkNotNull(blue);
             this.blue = checkBounded(blue);
             return this;
         }
 
         @Override
-        public Builder hue(final Range<Float> hue) {
+        public ColorRange.Builder hue(final Range<Float> hue) {
             checkNotNull(hue);
             this.hue = checkBounded(hue);
             return this;
         }
 
         @Override
-        public Builder saturation(final Range<Float> saturation) {
+        public ColorRange.Builder saturation(final Range<Float> saturation) {
             checkNotNull(saturation);
             this.saturation = checkBounded(saturation);
             return this;
         }
 
         @Override
-        public Builder value(final Range<Float> value) {
+        public ColorRange.Builder value(final Range<Float> value) {
             checkNotNull(value);
             this.value = checkBounded(value);
             return this;
         }
 
         @Override
-        public PaletteFactory.ColorRange build() {
-            return new MyColorRange(this);
+        public ColorRange build() {
+            return new SimpleColorRange(this);
         }
     }
 }

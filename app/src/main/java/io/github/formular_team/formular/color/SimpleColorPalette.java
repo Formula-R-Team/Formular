@@ -6,10 +6,10 @@ import java.util.stream.IntStream;
 import static com.google.common.base.Preconditions.checkElementIndex;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public final class MyColorPalette implements ColorPalette {
+public final class SimpleColorPalette implements ColorPalette {
     private final int[] palette;
 
-    MyColorPalette(final int[] palette){
+    SimpleColorPalette(final int[] palette){
         this.palette = checkNotNull(palette);
     }
 

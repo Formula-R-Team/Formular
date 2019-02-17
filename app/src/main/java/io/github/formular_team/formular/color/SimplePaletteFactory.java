@@ -10,22 +10,22 @@ import java.util.Random;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static io.github.formular_team.formular.util.MorePreconditions.checkBounded;
 
-public final class MyPaletteFactory implements PaletteFactory {
+public final class SimplePaletteFactory implements PaletteFactory {
     private final Range<Integer> size;
 
     private final ColorRange color;
 
-    private MyPaletteFactory(final PaletteFactoryBuilder builder) {
+    private SimplePaletteFactory(final Builder builder) {
         this.size = builder.size;
         this.color = builder.color;
     }
 
-    public static PaletteFactoryBuilder builder(){
-        return new PaletteFactoryBuilder();
+    public static Builder builder(){
+        return new Builder();
     }
 
     @Override
-    public MyColorPalette create(final Random rng){
+    public SimpleColorPalette create(final Random rng){
         final int size = this.nextInt(rng, this.size);
         final int[] palette = new int[size];
         final float[] hsv = new float[3];
@@ -35,7 +35,7 @@ public final class MyPaletteFactory implements PaletteFactory {
             hsv[2] = this.nextFloat(rng, this.color.value());
             palette[i] = Color.HSVToColor(hsv);
         }
-        return new MyColorPalette(palette);
+        return new SimpleColorPalette(palette);
     }
 
     private int nextInt(final Random rng, final Range<Integer> range) {
@@ -54,15 +54,15 @@ public final class MyPaletteFactory implements PaletteFactory {
         return rng.nextFloat() * (range.upperEndpoint() - range.lowerEndpoint()) + range.lowerEndpoint();
     }
 
-    public final static class PaletteFactoryBuilder implements PaletteFactory.Builder {
+    public final static class Builder implements PaletteFactory.Builder {
         private Range<Integer> size;
 
         private ColorRange color;
 
-        private PaletteFactoryBuilder() {}
+        private Builder() {}
 
         @Override
-        public Builder size(final Range<Integer> size) {
+        public PaletteFactory.Builder size(final Range<Integer> size) {
             checkNotNull(size);
             checkBounded(size);
             this.size = size;
@@ -70,13 +70,13 @@ public final class MyPaletteFactory implements PaletteFactory {
         }
 
         @Override
-        public Builder color(final ColorRange color) {
+        public PaletteFactory.Builder color(final ColorRange color) {
             this.color = checkNotNull(color);
             return this;
         }
 
         public PaletteFactory build(){
-            return new MyPaletteFactory(this);
+            return new SimplePaletteFactory(this);
         }
     }
 }
