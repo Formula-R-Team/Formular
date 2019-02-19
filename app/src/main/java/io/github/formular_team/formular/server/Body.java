@@ -34,13 +34,13 @@ public class Body {
 
     public void applyImpulse(final Vector2 force, final Vector2 point) {
         this.applyImpulse(force);
-        final Vector2 moment = point.clone();
+        final Vector2 moment = point.copy();
         moment.sub(this.center());
         this.applyImpulse(moment.cross(force));
     }
 
     public void applyImpulse(final Vector2 impulse) {
-        final Vector2 v = impulse.clone();
+        final Vector2 v = impulse.copy();
         v.multiplyScalar(1.0F / this.mass);
         this.velocity.add(v);
     }
@@ -51,7 +51,7 @@ public class Body {
 
     public void applyForce(final Vector2 force, final Vector2 point) {
         this.applyForce(force);
-        final Vector2 moment = point.clone();
+        final Vector2 moment = point.copy();
         moment.sub(this.center());
         this.applyTorque(moment.cross(force));
     }
@@ -68,7 +68,7 @@ public class Body {
         final Matrix3 m = new Matrix3();
         this.force.multiplyScalar(delta);
         this.velocity.add(this.force);
-        final Vector2 stepVelocity = this.velocity.clone();
+        final Vector2 stepVelocity = this.velocity.copy();
         stepVelocity.multiplyScalar(delta);
         m.set(
             1.0F, 0.0F, stepVelocity.x(),

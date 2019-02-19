@@ -44,9 +44,9 @@ public final class Race {
         }
 
         private boolean test(final Vector2 p, final Vector2 i0, final Vector2 i1) {
-            final Vector2 edge = i1.clone();
+            final Vector2 edge = i1.copy();
             edge.sub(i0);
-            final Vector2 beta = p.clone();
+            final Vector2 beta = p.copy();
             beta.sub(i0);
             return edge.cross(beta) > 0.0F;
         }
