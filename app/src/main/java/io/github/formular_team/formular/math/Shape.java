@@ -1,4 +1,4 @@
 package io.github.formular_team.formular.math;
 
-public interface Shape {
+public interface Shape extends Path {
 }

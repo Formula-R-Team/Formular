@@ -137,6 +137,10 @@
         bevelEnabled: false,
         extrudePath: bezierPath
     });
+
+   	const pathMesh = new THREE.Line(new THREE.BufferGeometry().setFromPoints(bezierPath.getPoints()), new THREE.LineBasicMaterial({ color: 0xffff00/*, depthTest: false, transparent: true*/ }));
+    pathMesh.position.setY(roadHeight);
+   	scene.add(pathMesh);
     // Extrude Road Up
     /*
    	const bezierGeom = new THREE.BufferGeometry().setFromPoints(bezierPath.getPoints().map(vec2 => new THREE.Vector3(vec2.x, 0.0, vec2.y)));
@@ -177,8 +181,8 @@
     const roadMesh = new THREE.Mesh(roadGeometry, new THREE.MeshStandardMaterial({
          color: 0xffffff,//color: 0x2c2f33,
          roughness : 0.7,
-         //map: tex,
-         wireframe: true
+         map: tex,
+         //wireframe: true
      }));
     roadMesh.receiveShadow = true;
     scene.add(roadMesh);

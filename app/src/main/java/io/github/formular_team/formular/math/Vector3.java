@@ -438,7 +438,7 @@ public class Vector3
         this.multiplyScalar( l );
     }
 
-    public void setScalar(Float scalar)
+    public void setScalar(float scalar)
     {
         this.x=scalar;
         this.y=scalar;

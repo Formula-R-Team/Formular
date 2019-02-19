@@ -1,6 +1,6 @@
 package io.github.formular_team.formular.state;
 
-import io.github.formular_team.formular.engine.Race;
+import io.github.formular_team.formular.server.Race;
 
 public interface InTournamentState extends GameState {
     interface State {}

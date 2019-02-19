@@ -50,7 +50,7 @@ public class Vector2 {
         this.y += v.height();
     }
 
-    public void addScalar(Float s)
+    public void addScalar(float s)
     {
         this.x += s;
         this.y += s;
