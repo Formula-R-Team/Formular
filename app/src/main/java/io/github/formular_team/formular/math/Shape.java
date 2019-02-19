@@ -4,7 +4,7 @@ public interface Shape extends Path {
     @Override
     Shape copy();
 
-    Path holes();
+    Path[] holes();
 
     Vector2[] getPointsHoles(final int divisions);
 
