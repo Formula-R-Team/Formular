@@ -1,6 +1,9 @@
 package io.github.formular_team.formular.math;
 
-public interface Path {
+public interface Path extends Curve {
+    @Override
+    Path copy();
+
     void visit(final Builder visitor);
 
     interface Builder {

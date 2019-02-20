@@ -1,17 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<android.support.constraint.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
     <fragment android:name="com.google.ar.sceneform.ux.ArFragment"
-        android:id="@+id/ux_fragment"
+        android:id="@+id/ar"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
-    <!--<org.apache.cordova.engine.SystemWebView
-        android:id="@+id/web_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@android:color/transparent" />-->
 </android.support.constraint.ConstraintLayout>

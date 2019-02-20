@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="first_word">
+        <item>Spokane's</item>
+        <item>Seattle's</item>
+        <item>Seattle's</item>
+        <item>Seattle's</item>
+        <item>Portland's</item>
+        <item>The Mazda</item>
+        <item>Thunderhill</item>
+        <item>Daytona</item>
+        <item>Virginia</item>
+        <item>Michelin</item>
+        <item>Watkins</item>
+        <item>Monza</item>
+        <item>Silverstone</item>
+        <item>Autodrome</item>
+        <item>Tsukuba</item>
+        <item>Suzuka</item>
+        <item>Monaco</item>
+        <item>Hallett</item>
+        <item>Nurburgring</item>
+    </array>
+    <array name="second_word">
+        <item>Circuit</item>
+        <item>Raceway Park</item>
+        <item>International Speedway</item>
+        <item>Laguna Seca</item>
+        <item>Rock Park</item>
+        <item>Silverstone</item>
+        <item>Circuit</item>
+        <item>Speedway</item>
+        <item>Raceway</item>
+        <item>Monaco</item>
+        <item>Hallett</item>
+        <item>Nurburgring</item>
+        <item>Track</item>
+        <item>Track</item>
+    </array>
+    <array name="famous_track_name">
+        <item>Pacific Raceways</item>
+        <item>Pacific Raceways</item>
+        <item>Seatac Offroad Track</item>
+        <item>Sonoma Raceway</item>
+        <item>Daytona International Speedway</item>
+        <item>Thunderhill Raceway</item>
+        <item>Tsukuba Circuit</item>
+        <item>Sonoma Raceway</item>
+        <item>Imola Circuit</item>
+        <item>Mount Panorama Circuit</item>
+        <item>Virginia International Raceway</item>
+        <item>Autodromo Nazionale Monza</item>
+        <item>Sebring International Raceway</item>
+        <item>Indianapolis Motor Speedways</item>
+        <item>Watkins Glen International Raceway</item>
+        <item>WeatherTech Raceway Laguna Seca</item>
+        <item>Monaco GP Circuit</item>
+        <item>Interlagos</item>
+        <item>Silverstone Circuit</item>
+        <item>Circuit de la Sarthe</item>
+        <item>Nurburgring Nordschleife</item>
+        <item>Suzuka Circuit</item>
+        <item>Bremerton Raceway</item>
+    </array>
+</resources>
