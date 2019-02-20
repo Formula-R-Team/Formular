@@ -54,7 +54,7 @@ public class Quaternion
 
     public float angleTo(Quaternion q)
     {
-        return (float) (2 * Math.acos( Math.abs( clamp( this.dot( q ), - 1, 1 ) ) ));
+        return 2f * Mth.acos( Math.abs( Mth.clamp( this.dot( q ), - 1, 1 ) ) );
     }
 
     public Quaternion clone()
@@ -108,7 +108,7 @@ public class Quaternion
 
     public float length()
     {
-        return (float) Math.sqrt( this.x * this.x + this.y * this.y + this.z * this.z + this.w * this.w );
+        return Mth.sqrt( this.x * this.x + this.y * this.y + this.z * this.z + this.w * this.w );
     }
 
     public float lengthSq()
@@ -223,10 +223,10 @@ public class Quaternion
 
         }
 
-        float sinHalfTheta = (float) Math.sqrt( sqrSinHalfTheta );
-        float halfTheta = (float) Math.atan2( sinHalfTheta, cosHalfTheta );
-        float ratioA = (float) Math.sin( ( 1 - t ) * halfTheta ) / sinHalfTheta,
-                ratioB = (float) Math.sin( t * halfTheta ) / sinHalfTheta;
+        float sinHalfTheta = Mth.sqrt( sqrSinHalfTheta );
+        float halfTheta =  Mth.atan2( sinHalfTheta, cosHalfTheta );
+        float ratioA = Mth.sin( ( 1 - t ) * halfTheta ) / sinHalfTheta,
+                ratioB = Mth.sin( t * halfTheta ) / sinHalfTheta;
 
         this.w = ( w * ratioA + this.w * ratioB );
         this.x = ( x * ratioA + this.x * ratioB );
@@ -244,12 +244,12 @@ public class Quaternion
 
     public void setFromAxisAngle(Vector3 axis, float angle)
     {
-        float halfAngle = (angle / 2.0f), s  = (float) Math.sin( halfAngle );
+        float halfAngle = (angle / 2.0f), s  = Mth.sin( halfAngle );
 
         this.x = axis.x() * s;
         this.y = axis.y() * s;
         this.z = axis.z() * s;
-        this.w = (float) Math.cos( halfAngle );
+        this.w = Mth.cos( halfAngle );
     }
 
     public void setFromRotationMatrix(Matrix4 m)
@@ -265,7 +265,7 @@ public class Quaternion
 
         if ( trace > 0 ) {
 
-            s = (float) (0.5f / Math.sqrt( trace + 1.0 ));
+            s = 0.5f / Mth.sqrt( trace + 1.0f );
 
             this.w = 0.25f / s;
             this.x = ( m32 - m23 ) * s;
@@ -274,7 +274,7 @@ public class Quaternion
 
         } else if ( m11 > m22 && m11 > m33 ) {
 
-            s = (float) (2.0f * Math.sqrt( 1.0 + m11 - m22 - m33 ));
+            s = 2.0f * Mth.sqrt( 1.0f + m11 - m22 - m33 );
 
             this.w = ( m32 - m23 ) / s;
             this.x =  0.25f * s;
@@ -283,7 +283,7 @@ public class Quaternion
 
         } else if ( m22 > m33 ) {
 
-            s = (float) (2.0 * Math.sqrt( 1.0 + m22 - m11 - m33 ));
+            s = 2.0f * Mth.sqrt( 1.0f + m22 - m11 - m33 );
 
             this.w = ( m13 - m31 ) / s;
             this.x = ( m12 + m21 ) / s;
@@ -292,7 +292,7 @@ public class Quaternion
 
         } else {
 
-            s =(float) (2.0f * Math.sqrt( 1.0 + m33 - m11 - m22 ));
+            s = 2.0f * Mth.sqrt( 1.0f + m33 - m11 - m22 );
 
             this.w = ( m21 - m12 ) / s;
             this.x = ( m13 + m31 ) / s;
@@ -387,11 +387,11 @@ public class Quaternion
             // Skip the Slerp for tiny steps to avoid numeric problems:
             if ( sqrSin > Math.ulp(1.0f) ) {
 
-                float sin = (float) Math.sqrt( sqrSin ),
-                        len = (float) Math.atan2( sin, cos * dir );
+                float sin = Mth.sqrt( sqrSin ),
+                        len = Mth.atan2( sin, cos * dir );
 
-                s = (float) Math.sin( s * len ) / sin;
-                t = (float) Math.sin( t * len ) / sin;
+                s = Mth.sin( s * len ) / sin;
+                t = Mth.sin( t * len ) / sin;
 
             }
 
@@ -405,7 +405,7 @@ public class Quaternion
             // Normalize in case we just did a lerp:
             if ( s == 1 - t ) {
 
-                float f = (float)(1.0f / Math.sqrt( x0 * x0 + y0 * y0 + z0 * z0 + w0 * w0 ));
+                float f = 1.0f / Mth.sqrt( x0 * x0 + y0 * y0 + z0 * z0 + w0 * w0 );
 
                 x0 *= f;
                 y0 *= f;
@@ -422,9 +422,5 @@ public class Quaternion
         dst[ dstOffset + 3 ] = w0;
     }
 
-    private static float clamp(float value, float min, float max)
-    {
-        return Math.max( min, Math.min( max, value ) );
-    }
 
 }

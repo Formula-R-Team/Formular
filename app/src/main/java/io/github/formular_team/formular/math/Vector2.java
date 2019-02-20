@@ -70,7 +70,7 @@ public class Vector2 {
 
     public float angle()
     {
-        float angle = (float) Math.atan2(this.y, this.x);
+        float angle = Mth.atan2(this.y, this.x);
 
         if(angle<0)
             angle+= 2* Math.PI;
@@ -92,8 +92,8 @@ public class Vector2 {
 
     public void ceil()
     {
-        this.x = (float) Math.ceil(this.x);
-        this.y = (float) Math.ceil(this.y);
+        this.x = Mth.ceil(this.x);
+        this.y = Mth.ceil(this.y);
     }
 
     public void clamp(Vector2 min, Vector2 max)
@@ -133,7 +133,7 @@ public class Vector2 {
     public float distanceTo(Vector2 v)
     {
 
-        return (float) Math.sqrt( this.distanceToSquared( v ) );
+        return Mth.sqrt( this.distanceToSquared( v ) );
     }
 
     public float manhattanDistanceTo(Vector2 v)
@@ -181,8 +181,8 @@ public class Vector2 {
 
     public void floor()
     {
-        this.x = (float) Math.floor(this.x);
-        this.y = (float) Math.floor(this.y);
+        this.x = Mth.floor(this.x);
+        this.y = Mth.floor(this.y);
     }
 
     public void fromArray(float[] array, int offset)
@@ -211,7 +211,7 @@ public class Vector2 {
 
     public float length()
     {
-        return (float) Math.sqrt( this.x * this.x + this.y * this.y );
+        return Mth.sqrt( this.x * this.x + this.y * this.y );
     }
 
     public float manhattanLength()
@@ -278,8 +278,8 @@ public class Vector2 {
 
     public void rotateAround(Vector2 center, float angle)
     {
-        float c = (float) Math.cos( angle );
-        float s = (float) Math.sin( angle );
+        float c = Mth.cos( angle );
+        float s = Mth.sin( angle );
 
         float x = this.x - center.width();
         float y = this.y - center.height();
@@ -297,14 +297,14 @@ public class Vector2 {
     public void roundToZero()
     {
         if(this.x <0.0f)
-            this.x = (float) Math.ceil(this.x);
+            this.x = Mth.ceil(this.x);
         else
-            this.x = (float) Math.floor(this.x);
+            this.x = Mth.floor(this.x);
 
         if(this.y <0.0f)
-            this.y = (float) Math.ceil(this.y);
+            this.y = Mth.ceil(this.y);
         else
-            this.y = (float) Math.floor(this.y);
+            this.y = Mth.floor(this.y);
     }
 
     public void set(float x, float y)

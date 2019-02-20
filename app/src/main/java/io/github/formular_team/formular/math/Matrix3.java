@@ -239,8 +239,8 @@ public class Matrix3
 
     public void setUvTransform(float tx, float ty, float sx, float sy, float rotation, float cx, float cy)
     {
-        float c = (float) Math.cos( rotation );
-        float s = (float) Math.sin( rotation );
+        float c =  Mth.cos( rotation );
+        float s =  Mth.sin( rotation );
 
         this.set(
                 sx * c, sx * s, - sx * ( c * cx + s * cy ) + cx + tx,
