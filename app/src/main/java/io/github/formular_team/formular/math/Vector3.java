@@ -103,17 +103,17 @@ public final class Vector3 {
     }
 
     public float angleTo(final Vector3 v) {
-        final float theta = (float) (this.dot(v) / (Math.sqrt(this.lengthSq() * v.lengthSq())));
+        final float theta = this.dot(v) / (Mth.sqrt(this.lengthSq() * v.lengthSq()));
 
         // clamp, to handle numerical problems
 
-        return (float) Math.acos(clamp(theta, -1.0f, 1.0f));
+        return Mth.acos(Mth.clamp(theta, -1.0f, 1.0f));
     }
 
     public void ceil() {
-        this.x = (float) Math.ceil(this.x);
-        this.y = (float) Math.ceil(this.y);
-        this.z = (float) Math.ceil(this.z);
+        this.x = Mth.ceil(this.x);
+        this.y = Mth.ceil(this.y);
+        this.z = Mth.ceil(this.z);
     }
 
     public void clamp(final Vector3 min, final Vector3 max) {
@@ -167,7 +167,7 @@ public final class Vector3 {
     }
 
     public float distanceTo(final Vector3 v) {
-        return (float) Math.sqrt(this.distanceToSquared(v));
+        return Mth.sqrt(this.distanceToSquared(v));
     }
 
     public float manhattanDistanceTo(final Vector3 v) {
@@ -214,9 +214,9 @@ public final class Vector3 {
     }
 
     public void floor() {
-        this.x = (float) Math.floor(this.x);
-        this.y = (float) Math.floor(this.y);
-        this.z = (float) Math.floor(this.z);
+        this.x = Mth.floor(this.x);
+        this.y = Mth.floor(this.y);
+        this.z = Mth.floor(this.z);
     }
 
     public void fromArray(final float[] array) {
@@ -245,7 +245,7 @@ public final class Vector3 {
     }
 
     public float length() {
-        return (float) Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
+        return Mth.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
     }
 
     public float manhattanLength() {
@@ -339,19 +339,19 @@ public final class Vector3 {
     public void roundToZero() {
 
         if (this.x < 0.0f) {
-            this.x = (float) Math.ceil(this.x);
+            this.x = Mth.ceil(this.x);
         } else {
-            this.x = (float) Math.floor(this.x);
+            this.x = Mth.floor(this.x);
         }
         if (this.y < 0.0f) {
-            this.y = (float) Math.ceil(this.y);
+            this.y = Mth.ceil(this.y);
         } else {
-            this.y = (float) Math.floor(this.y);
+            this.y = Mth.floor(this.y);
         }
         if (this.z < 0.0f) {
-            this.z = (float) Math.ceil(this.z);
+            this.z = Mth.ceil(this.z);
         } else {
-            this.z = (float) Math.floor(this.z);
+            this.z = Mth.floor(this.z);
         }
     }
 
@@ -380,9 +380,9 @@ public final class Vector3 {
     }
 
     public void setFromCylindricalCoords(final float radius, final float theta, final float y) {
-        this.x = (float) (radius * Math.sin(theta));
+        this.x = radius * Mth.sin(theta);
         this.y = y;
-        this.z = (float) (radius * Math.cos(theta));
+        this.z = radius * Mth.cos(theta);
     }
 
 
@@ -415,11 +415,11 @@ public final class Vector3 {
 
 
     public void setFromSphericalCoords(final float radius, final float phi, final float theta) {
-        final float sinPhiRadius = (float) Math.sin(phi) * radius;
+        final float sinPhiRadius = Mth.sin(phi) * radius;
 
-        this.x = (float) (sinPhiRadius * Math.sin(theta));
-        this.y = (float) (Math.cos(phi) * radius);
-        this.z = (float) (sinPhiRadius * Math.cos(theta));
+        this.x = sinPhiRadius * Mth.sin(theta);
+        this.y = Mth.cos(phi) * radius;
+        this.z = sinPhiRadius * Mth.cos(theta);
     }
 
     public void setLength(final float l) {
@@ -493,7 +493,4 @@ public final class Vector3 {
         this.normalize();
     }
 
-    private static float clamp(final float value, final float min, final float max) {
-        return Math.max(min, Math.min(max, value));
-    }
 }
