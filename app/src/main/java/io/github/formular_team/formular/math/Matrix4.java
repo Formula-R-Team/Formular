@@ -305,7 +305,7 @@ public class Matrix4
         float scaleYSq = te[ 4 ] * te[ 4 ] + te[ 5 ] * te[ 5 ] + te[ 6 ] * te[ 6 ];
         float scaleZSq = te[ 8 ] * te[ 8 ] + te[ 9 ] * te[ 9 ] + te[ 10 ] * te[ 10 ];
 
-        return (float) Math.sqrt(Math.max( Math.max( scaleXSq, scaleYSq),scaleZSq ));
+        return Mth.sqrt(Math.max( Math.max( scaleXSq, scaleYSq),scaleZSq ));
     }
 
     public void identity()
@@ -369,9 +369,9 @@ public class Matrix4
     {
         // Based on http://www.gamedev.net/reference/articles/article1199.asp
 
-        float c = (float) Math.cos( angle );
-        float s = (float) Math.sin( angle );
-        float t = (float) 1 - c;
+        float c = Mth.cos( angle );
+        float s = Mth.sin( angle );
+        float t = 1f - c;
         float x = axis.x(), y = axis.y(), z = axis.z();
         float tx = t * x, ty = t * y;
 
@@ -439,7 +439,7 @@ public class Matrix4
 
     public void makeRotationX(float theta)
     {
-        float c = (float) Math.cos( theta ), s = (float) Math.sin( theta );
+        float c = Mth.cos( theta ), s = Mth.sin( theta );
 
         this.set(
 
@@ -453,7 +453,7 @@ public class Matrix4
 
     public void makeRotationY(float theta)
     {
-        float c = (float) Math.cos( theta ), s = (float) Math.sin( theta );
+        float c = Mth.cos( theta ), s = Mth.sin( theta );
 
         this.set(
 
@@ -467,7 +467,7 @@ public class Matrix4
 
     public void makeRotationZ(float theta)
     {
-        float c = (float) Math.cos( theta ), s = (float) Math.sin( theta );
+        float c = Mth.cos( theta ), s = Mth.sin( theta );
 
         this.set(
 
