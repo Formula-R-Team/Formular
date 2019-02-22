@@ -24,17 +24,17 @@ public class NameProvider implements NameSuggestionProvider {
 
     @Override
     public String create(final SceneEnvironment environment, final Path road) {
-        // 75% chance color and second word combined.  20% random first and random second word are combined. 5% a famous race track name will be spit out.
+        // 75% chance color word and second word combined.  20% random first and random second word are combined. 5% a famous race track name will be spit out.
         float lotteryNumber = rand.nextFloat();
 
         if(lotteryNumber < 0.50f)
-            return new ColorName(environment.foreground()).getName() + secondWord[rand.nextInt(secondWord.length)];
+            return new ColorName(environment.foreground()).getName() + " " + secondWord[rand.nextInt(secondWord.length)];
 
         else if(lotteryNumber < 0.75f)
-            return new ColorName(environment.background()).getName() + secondWord[rand.nextInt(secondWord.length)];
+            return new ColorName(environment.background()).getName() + " " + secondWord[rand.nextInt(secondWord.length)];
 
         else if(lotteryNumber < 0.95f)
-            return firstWord[rand.nextInt(firstWord.length)] + secondWord[rand.nextInt(secondWord.length)];
+            return firstWord[rand.nextInt(firstWord.length)] + " " + secondWord[rand.nextInt(secondWord.length)];
 
         else
             return famousTrackNames[rand.nextInt(famousTrackNames.length)];
