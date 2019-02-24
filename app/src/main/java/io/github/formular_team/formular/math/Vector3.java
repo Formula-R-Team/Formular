@@ -31,10 +31,11 @@ public final class Vector3 {
         return this.z;
     }
 
-    public void add(final Vector3 v) {
+    public Vector3 add(final Vector3 v) {
         this.x += v.x();
         this.y += v.y();
         this.z += v.z();
+        return this;
     }
 
     public void addScalar(final float s) {
@@ -49,13 +50,14 @@ public final class Vector3 {
         this.z = a.z() + b.z();
     }
 
-    public void applyAxisAngle(final Vector3 axis, final float angle) {
+    public Vector3 applyAxisAngle(final Vector3 axis, final float angle) {
         final Quaternion quaternion = new Quaternion();
         quaternion.setFromAxisAngle(axis, angle);
         this.applyQuaternion(quaternion);
+        return this;
     }
 
-    public void applyMatrix3(final Matrix3 m) {
+    public Vector3 applyMatrix3(final Matrix3 m) {
         final float x = this.x;
         final float y = this.y;
         final float z = this.z;
@@ -64,9 +66,10 @@ public final class Vector3 {
         this.x = e[0] * x + e[3] * y + e[6] * z;
         this.y = e[1] * x + e[4] * y + e[7] * z;
         this.z = e[2] * x + e[5] * y + e[8] * z;
+        return this;
     }
 
-    public void applyMatrix4(final Matrix4 m) {
+    public Vector3 applyMatrix4(final Matrix4 m) {
         final float x = this.x;
         final float y = this.y;
         final float z = this.z;
@@ -77,9 +80,10 @@ public final class Vector3 {
         this.x = (e[0] * x + e[4] * y + e[8] * z + e[12]) * w;
         this.y = (e[1] * x + e[5] * y + e[9] * z + e[13]) * w;
         this.z = (e[2] * x + e[6] * y + e[10] * z + e[14]) * w;
+        return this;
     }
 
-    public void applyQuaternion(final Quaternion q) {
+    public Vector3 applyQuaternion(final Quaternion q) {
         final float x = this.x;
         final float y = this.y;
         final float z = this.z;
@@ -100,6 +104,7 @@ public final class Vector3 {
         this.x = ix * qw + iw * -qx + iy * -qz - iz * -qy;
         this.y = iy * qw + iw * -qy + iz * -qx - ix * -qz;
         this.z = iz * qw + iw * -qz + ix * -qy - iy * -qx;
+        return this;
     }
 
     public float angleTo(final Vector3 v) {
@@ -143,14 +148,16 @@ public final class Vector3 {
         return new Vector3(this.x, this.y, this.z);
     }
 
-    public void copy(final Vector3 v) {
+    public Vector3 copy(final Vector3 v) {
         this.x = v.x();
         this.y = v.y();
         this.z = v.z();
+        return this;
     }
 
-    public void cross(final Vector3 v) {
+    public Vector3 cross(final Vector3 v) {
         this.crossVectors(this, v);
+        return this;
     }
 
     public void crossVectors(final Vector3 a, final Vector3 b) {
@@ -286,10 +293,11 @@ public final class Vector3 {
         this.z *= v.z();
     }
 
-    public void multiplyScalar(final float scalar) {
+    public Vector3 multiplyScalar(final float scalar) {
         this.x *= scalar;
         this.y *= scalar;
         this.z *= scalar;
+        return this;
     }
 
     public void multiplyVectors(final Vector3 a, final Vector3 b) {
@@ -298,14 +306,16 @@ public final class Vector3 {
         this.z = a.z() * b.z();
     }
 
-    public void negate() {
+    public Vector3 negate() {
         this.x = -this.x;
         this.y = -this.y;
         this.z = -this.z;
+        return this;
     }
 
-    public void normalize() {
+    public Vector3 normalize() {
         this.divideScalar(this.length());
+        return this;
     }
 
     public void projectOnPlane(final Vector3 planeNormal) {
@@ -445,10 +455,11 @@ public final class Vector3 {
         this.z = z;
     }
 
-    public void sub(final Vector3 v) {
+    public Vector3 sub(final Vector3 v) {
         this.x -= v.x();
         this.y -= v.y();
         this.z -= v.z();
+        return this;
     }
 
     public void subScalar(final float s) {
@@ -480,17 +491,15 @@ public final class Vector3 {
     }
 
 
-    public void transformDirection(final Matrix4 m) {
+    public Vector3 transformDirection(final Matrix4 m) {
         final float x = this.x;
         final float y = this.y;
         final float z = this.z;
         final float[] e = m.elements();
-
         this.x = e[0] * x + e[4] * y + e[8] * z;
         this.y = e[1] * x + e[5] * y + e[9] * z;
         this.z = e[2] * x + e[6] * y + e[10] * z;
-
-        this.normalize();
+        return this.normalize();
     }
 
 }
