@@ -63,6 +63,13 @@
                  1.0 - 2.0 * event.clientY / window.innerHeight
             );
         });
+    {
+        const viewProjMtx = new THREE.Matrix4();
+        viewProjMtx.makePerspective(-1.0, 1.0, -1.0, 1.0, 0.2, 10.0);
+        const test = new THREE.Vector3(0.25, 0.0, 0.75).applyMatrix4(viewProjMtx);
+        const invertedProjectionMatrix = new THREE.Matrix4().getInverse(viewProjMtx, true);
+        console.log(test.applyMatrix4(invertedProjectionMatrix));
+    }
     (function animate() {
         requestAnimationFrame(animate);
         renderer.render(scene, camera);

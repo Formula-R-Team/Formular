@@ -17,6 +17,10 @@ public final class Ray {
         this.direction = direction;
     }
 
+    public Vector3 direction() {
+        return this.direction;
+    }
+
     public Ray set(final Vector3 origin, final Vector3 direction) {
         this.origin.copy(origin);
         this.direction.copy(direction);
