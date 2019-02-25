@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <array name="first_word">
-        <item>Seattle's</item>
-        <item>Seattle's</item>
-        <item>Portland's</item>
+        <item>Seattle\'s</item>
+        <item>Seattle\'s</item>
+        <item>Portland\'s</item>
         <item>Thunderhill</item>
         <item>Daytona</item>
         <item>Virginia</item>
