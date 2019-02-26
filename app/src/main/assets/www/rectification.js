@@ -59,8 +59,8 @@
     const coords = new THREE.Vector2();
     window.addEventListener('mousemove', (event) => {
             coords.set(
-                -1.0 + 2.0 * event.clientX / window.innerWidth,
-                 1.0 - 2.0 * event.clientY / window.innerHeight
+                2.0 * event.clientX / window.innerWidth - 1.0,
+                1.0 - 2.0 * event.clientY / window.innerHeight
             );
         });
     {
@@ -102,8 +102,8 @@
             output((x, y) => {
                 const point = planeObj.localToWorld(new THREE.Vector3(x * scale, y * scale, 0.0)).add(hit)
                 const ndc = point.project(camera);
-                const pixelX = ((1.0 + ndc.x) * window.innerWidth / 2.0) | 0;
-                const pixelY = ((1.0 - ndc.y) * window.innerHeight / 2.0) | 0;
+                const pixelX = ((1.0 + ndc.x) * window.innerWidth * window.devicePixelRatio / 2.0) | 0;
+                const pixelY = ((1.0 - ndc.y) * window.innerHeight * window.devicePixelRatio / 2.0) | 0;
                 return display(pixelX, pixelY);
             });
         }
