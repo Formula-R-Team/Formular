@@ -9,6 +9,7 @@ import android.util.Log;
 import android.view.MotionEvent;
 
 import com.google.ar.core.Camera;
+import com.google.ar.core.Coordinates2d;
 import com.google.ar.core.Frame;
 import com.google.ar.core.HitResult;
 import com.google.ar.core.Plane;
@@ -109,20 +110,19 @@ public class MainActivity extends AppCompatActivity {
                         camera.getViewMatrix(viewMat.elements(), 0);
 
                         final float[] imageCoords = new float[2];
-//                        frame.transformCoordinates2d(
-//                            Coordinates2d.VIEW, new float[] { event.getX(), event.getY() },
-//                            Coordinates2d.OPENGL_NORMALIZED_DEVICE_COORDINATES, imageCoords
-//                        );
-//                        Log.i("waldo", Arrays.toString(imageCoords));
+                        frame.transformCoordinates2d(
+                            Coordinates2d.VIEW, new float[] { event.getX(), event.getY() },
+                            Coordinates2d.OPENGL_NORMALIZED_DEVICE_COORDINATES, imageCoords
+                        );
 //                        final int[] imageDim = camera.getImageIntrinsics().getImageDimensions();
                         final Ray r = Projection.unproject(
                             new Vector2(imageCoords[0], imageCoords[1]),
                             projMat,
                             viewMat
                         );
-                        Log.i("waldo", "cam z: " + Arrays.toString(camera.getDisplayOrientedPose().getTransformedAxis(2, -1.0F)) + " my ray: " + r.direction());
+//                        Log.i("waldo", "cam z: " + Arrays.toString(camera.getDisplayOrientedPose().getTransformedAxis(2, -1.0F)) + " my ray: " + r.direction());
                         r.intersectPlane(fplane, new io.github.formular_team.formular.math.Vector3()).ifPresent(
-                            v -> Log.i("waldo", "" + Arrays.toString(pose.getTranslation()) + ", " + v.toString()));
+                            v -> Log.i(TAG, "" + Arrays.toString(pose.getTranslation()) + ", " + v.toString()));
 
                         final Bitmap map;
                         final int size;
@@ -167,7 +167,10 @@ public class MainActivity extends AppCompatActivity {
                                         .setTriangleIndices(ImmutableList.of(3, 1, 0, 3, 2, 1))
                                         .setMaterial(material)
                                         .build();
-                                    final RenderableDefinition def = RenderableDefinition.builder().setVertices(vertices).setSubmeshes(Collections.singletonList(mesh)).build();
+                                    final RenderableDefinition def = RenderableDefinition.builder()
+                                        .setVertices(vertices)
+                                        .setSubmeshes(Collections.singletonList(mesh))
+                                        .build();
                                     final CompletableFuture<ModelRenderable> future = ModelRenderable.builder().setSource(def).build();
                                     final ModelRenderable renderable;
                                     try {

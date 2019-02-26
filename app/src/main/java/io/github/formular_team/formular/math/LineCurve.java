@@ -1,10 +1,6 @@
 package io.github.formular_team.formular.math;
 
-public class Path implements Curve {
-    Path(final Builder builder) {
-
-    }
-
+public final class LineCurve implements Curve {
     @Override
     public Vector2 getPoint(final float t) {
         return null;
@@ -46,37 +42,7 @@ public class Path implements Curve {
     }
 
     @Override
-    public Path copy() {
+    public Curve copy() {
         return null;
-    }
-
-    public void visit(final Builder visitor) {}
-
-    public static Builder builder() {
-        return new Builder();
-    }
-
-    public static class Builder {
-        Builder() {}
-
-        public Builder moveTo(final Vector2 point) {
-            return this;
-        }
-
-        public Builder lineTo(final Vector2 point) {
-            return this;
-        }
-
-        public Builder bezierCurveTo(final Vector2 controlA, final Vector2 controlB, final Vector2 point) {
-            return this;
-        }
-
-        public Builder closed(final boolean closed) {
-            return this;
-        }
-
-        public Path build() {
-            return new Path(this);
-        }
     }
 }

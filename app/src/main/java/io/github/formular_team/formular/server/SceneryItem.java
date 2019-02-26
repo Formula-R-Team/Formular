@@ -1,11 +1,9 @@
 package io.github.formular_team.formular.server;
 
-import io.github.formular_team.formular.math.Vector2;
+import io.github.formular_team.formular.math.Matrix3;
 
 public interface SceneryItem {
     NamespacedString type();
 
-    Vector2 position();
-
-    float rotationY();
+    Matrix3 transform();
 }

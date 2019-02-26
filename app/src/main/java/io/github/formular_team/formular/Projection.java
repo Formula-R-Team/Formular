@@ -1,7 +1,5 @@
 package io.github.formular_team.formular;
 
-import android.util.Log;
-
 import io.github.formular_team.formular.math.Matrix4;
 import io.github.formular_team.formular.math.Ray;
 import io.github.formular_team.formular.math.Vector2;
@@ -32,15 +30,6 @@ public final class Projection {
         final Matrix4 invertedProjectionMatrix = new Matrix4().getInverse(viewProjMtx, true);
         final Vector3 origin = nearScreenPoint.copy().applyMatrix4(invertedProjectionMatrix);
         final Vector3 direction = farScreenPoint.copy().applyMatrix4(invertedProjectionMatrix);
-        test();
         return new Ray(origin, direction.sub(origin).normalize());
-    }
-
-    public static void test() {
-        final Matrix4 viewProjMtx = new Matrix4();
-        viewProjMtx.makePerspective(-1.0F, 1.0F, -1.0F, 1.0F, 0.2F, 10.0F);
-        final Vector3 test = new Vector3(0.25F, 0.0F, 0.75F).applyMatrix4(viewProjMtx);
-        final Matrix4 invertedProjectionMatrix = new Matrix4().getInverse(viewProjMtx, true);
-        Log.i("waldo", "test inverse " + test.applyMatrix4(invertedProjectionMatrix));
     }
 }

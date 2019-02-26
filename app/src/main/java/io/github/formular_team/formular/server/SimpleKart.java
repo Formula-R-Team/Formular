@@ -22,6 +22,13 @@ public final class SimpleKart extends Body implements Kart {
     }
 
     @Override
+    public void steer(final float angle) {
+
+    }
+
+    @Override
     public void step(final float delta) {
+
+        super.step(delta);
     }
 }

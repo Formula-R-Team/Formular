@@ -12,21 +12,6 @@ public interface Server extends Runnable {
         return Futures.getUnchecked(this.submitJob(job));
     }
 
-    /**
-     * <pre>
-     *  while (this.game.isRunning()) {
-     *      synchronized (this.pendingTasks) {
-     *          for (FutureTask<?> task; (task = this.pendingTasks.poll()) != null; ) {
-     *              this.runTask(task);
-     *          }
-     *      }
-     *      final float delta = ...;
-     *      final float idle = ...;
-     *      this.game.step(delta);
-     *      Thread.sleep(idle);
-     *  }
-     *  </pre>
-     */
     @Override
     void run();
 
