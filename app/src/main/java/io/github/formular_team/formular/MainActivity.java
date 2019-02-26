@@ -1,11 +1,8 @@
 package io.github.formular_team.formular;
 
 import android.graphics.Bitmap;
-import android.graphics.Rect;
-import android.media.Image;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.MotionEvent;
 
 import com.google.ar.core.Camera;
@@ -16,7 +13,6 @@ import com.google.ar.core.Plane;
 import com.google.ar.core.Pose;
 import com.google.ar.core.Session;
 import com.google.ar.core.exceptions.CameraNotAvailableException;
-import com.google.ar.core.exceptions.NotYetAvailableException;
 import com.google.ar.sceneform.AnchorNode;
 import com.google.ar.sceneform.ArSceneView;
 import com.google.ar.sceneform.FrameTime;
@@ -34,16 +30,10 @@ import com.google.ar.sceneform.rendering.Texture;
 import com.google.ar.sceneform.rendering.Vertex;
 import com.google.ar.sceneform.ux.ArFragment;
 import com.google.common.collect.ImmutableList;
-import com.google.common.primitives.Ints;
+import com.google.common.util.concurrent.Futures;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.FloatBuffer;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 
 import io.github.formular_team.formular.math.Matrix4;
 import io.github.formular_team.formular.math.Ray;
@@ -114,20 +104,19 @@ public class MainActivity extends AppCompatActivity {
                             Coordinates2d.VIEW, new float[] { event.getX(), event.getY() },
                             Coordinates2d.OPENGL_NORMALIZED_DEVICE_COORDINATES, imageCoords
                         );
-//                        final int[] imageDim = camera.getImageIntrinsics().getImageDimensions();
                         final Ray r = Projection.unproject(
                             new Vector2(imageCoords[0], imageCoords[1]),
                             projMat,
                             viewMat
                         );
-//                        Log.i("waldo", "cam z: " + Arrays.toString(camera.getDisplayOrientedPose().getTransformedAxis(2, -1.0F)) + " my ray: " + r.direction());
-                        r.intersectPlane(fplane, new io.github.formular_team.formular.math.Vector3()).ifPresent(
-                            v -> Log.i(TAG, "" + Arrays.toString(pose.getTranslation()) + ", " + v.toString()));
+                        r.intersectPlane(fplane, new io.github.formular_team.formular.math.Vector3())
+                            .ifPresent(v -> {
 
-                        final Bitmap map;
-                        final int size;
+                            });
+                        final int size = 128;
+                        final Bitmap map = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
 //                        Log.i("waldo", "img int " + Arrays.toString(frame.getCamera().getImageIntrinsics().getImageDimensions()) + ", " + Arrays.toString(frame.getCamera().getTextureIntrinsics().getImageDimensions()));
-                        try (final Image image = frame.acquireCameraImage()) {
+                        /*try (final Image image = frame.acquireCameraImage()) {
                             // TODO: crop?
                             final float normalizedX = event.getX() / view.getWidth();
                             final float normalizedY = event.getY() / view.getHeight();
@@ -147,7 +136,7 @@ public class MainActivity extends AppCompatActivity {
                             map = Images.yuvToBitmap(image, rect); // new Rect(0, 0, Math.min(image.getWidth(), image.getHeight()), Math.min(image.getWidth(), image.getHeight()))
                         } catch (final NotYetAvailableException e) {
                             throw new RuntimeException(e);
-                        }
+                        }*/
                         Texture.builder().setSource(map).build().thenAccept(texture -> {
                             MaterialFactory.makeOpaqueWithTexture(MainActivity.this, texture)
                                 .thenAccept(material -> {
@@ -171,13 +160,7 @@ public class MainActivity extends AppCompatActivity {
                                         .setVertices(vertices)
                                         .setSubmeshes(Collections.singletonList(mesh))
                                         .build();
-                                    final CompletableFuture<ModelRenderable> future = ModelRenderable.builder().setSource(def).build();
-                                    final ModelRenderable renderable;
-                                    try {
-                                        renderable = future.get();
-                                    } catch (final InterruptedException | ExecutionException e) {
-                                        throw new AssertionError(e);
-                                    }
+                                    final ModelRenderable renderable = Futures.getUnchecked(ModelRenderable.builder().setSource(def).build());
                                     renderable.setShadowReceiver(false);
                                     renderable.setShadowCaster(false);
                                     this.overlay.setRenderable(renderable);
