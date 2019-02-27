@@ -18,7 +18,7 @@ public final class Images {
     private Images() {}
 
     public static Bitmap yuvToBitmap(final Image image) {
-        return yuvToBitmap(image, image.getCropRect());
+        return yuvToBitmap(image, new Rect(0, 0, image.getWidth(), image.getHeight()));
     }
 
     public static Bitmap yuvToBitmap(final Image image, final Rect rect) {

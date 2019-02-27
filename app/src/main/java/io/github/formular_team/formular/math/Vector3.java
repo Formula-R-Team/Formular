@@ -484,7 +484,6 @@ public final class Vector3 {
         array[offset] = this.x;
         array[offset + 1] = this.y;
         array[offset + 2] = this.z;
-
         return array;
     }
 

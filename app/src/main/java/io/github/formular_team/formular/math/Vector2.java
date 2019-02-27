@@ -171,22 +171,21 @@ public final class Vector2 {
         this.y = array[offset + 1];
     }
 
-    public void fromArray(final float[] array) {
+    public Vector2 fromArray(final float[] array) {
         this.x = array[0];
         this.y = array[1];
+        return this;
     }
 
 
     public float getComponent(final int index) {
         switch (index) {
-
         case 0:
             return this.x;
         case 1:
             return this.y;
         default:
-            throw new Error("index is out of range: " + index);
-
+            throw new IllegalArgumentException("index is out of range: " + index);
         }
     }
 

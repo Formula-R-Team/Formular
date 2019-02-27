@@ -8,7 +8,7 @@ public class Matrix4 {
             1, 0, 0, 0,
             0, 1, 0, 0,
             0, 0, 1, 0,
-            0, 0, 0, 0
+            0, 0, 0, 1
         };
     }
 
@@ -492,55 +492,50 @@ public class Matrix4 {
     public void makeRotationFromQuaternion(final Quaternion q) {
         final Vector3 zero = new Vector3(0, 0, 0);
         final Vector3 one = new Vector3(1, 1, 1);
-
         this.compose(zero, q, one);
     }
 
-    public void makeRotationX(final float theta) {
+    public Matrix4 makeRotationX(final float theta) {
         final float c = Mth.cos(theta);
         final float s = Mth.sin(theta);
-
         this.set(
-
             1, 0, 0, 0,
             0, c, -s, 0,
             0, s, c, 0,
             0, 0, 0, 1
 
         );
+        return this;
     }
 
-    public void makeRotationY(final float theta) {
+    public Matrix4 makeRotationY(final float theta) {
         final float c = Mth.cos(theta);
         final float s = Mth.sin(theta);
-
         this.set(
-
             c, 0, s, 0,
             0, 1, 0, 0,
             -s, 0, c, 0,
             0, 0, 0, 1
 
         );
+        return this;
     }
 
-    public void makeRotationZ(final float theta) {
+    public Matrix4 makeRotationZ(final float theta) {
         final float c = Mth.cos(theta);
         final float s = Mth.sin(theta);
-
         this.set(
-
             c, -s, 0, 0,
             s, c, 0, 0,
             0, 0, 1, 0,
             0, 0, 0, 1
 
         );
+        return this;
     }
 
     public void makeScale(final float x, final float y, final float z) {
         this.set(
-
             x, 0, 0, 0,
             0, y, 0, 0,
             0, 0, z, 0,
@@ -551,7 +546,6 @@ public class Matrix4 {
 
     public void makeShear(final float x, final float y, final float z) {
         this.set(
-
             1, y, z, 0,
             x, 1, z, 0,
             x, y, 1, 0,
@@ -560,15 +554,15 @@ public class Matrix4 {
         );
     }
 
-    public void makeTranslation(final float x, final float y, final float z) {
+    public Matrix4 makeTranslation(final float x, final float y, final float z) {
         this.set(
-
             1, 0, 0, x,
             0, 1, 0, y,
             0, 0, 1, z,
             0, 0, 0, 1
 
         );
+        return this;
     }
 
     public Matrix4 multiply(final Matrix4 m) {

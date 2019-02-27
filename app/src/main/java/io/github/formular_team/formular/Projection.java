@@ -12,9 +12,10 @@ public final class Projection {
         return model.copy().multiply(view).multiply(projection);
     }
 
-    public static Vector2 project(final Matrix4 mvp, final Vector2 viewport, final Vector3 point) {
+    // return new Vector2((coords.x() + 1.0F) / 2.0F * viewport.width(), (1.0F - coords.y()) / 2.0F * viewport.height());
+    public static Vector2 project(final Matrix4 mvp, final Vector3 point) {
         final Vector3 coords = point.copy().applyMatrix4(mvp);
-        return new Vector2((coords.x() + 1.0F) / 2.0F * viewport.width(), (1.0F - coords.y()) / 2.0F * viewport.height());
+        return new Vector2(coords.x(), coords.y());
     }
 
     public static Ray unproject(final Vector2 point, final Matrix4 projectionMatrix, final Matrix4 viewMatrix) {

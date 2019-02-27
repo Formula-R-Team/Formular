@@ -1,6 +1,7 @@
 package io.github.formular_team.formular;
 
 import android.graphics.Bitmap;
+import android.media.Image;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MotionEvent;
@@ -13,7 +14,7 @@ import com.google.ar.core.Plane;
 import com.google.ar.core.Pose;
 import com.google.ar.core.Session;
 import com.google.ar.core.exceptions.CameraNotAvailableException;
-import com.google.ar.sceneform.AnchorNode;
+import com.google.ar.core.exceptions.NotYetAvailableException;
 import com.google.ar.sceneform.ArSceneView;
 import com.google.ar.sceneform.FrameTime;
 import com.google.ar.sceneform.HitTestResult;
@@ -77,44 +78,79 @@ public class MainActivity extends AppCompatActivity {
                     if (result.getTrackable() instanceof Plane) {
                         final Plane plane = (Plane) result.getTrackable();
                         final Pose pose = result.getHitPose();
-                        final AnchorNode node = new AnchorNode(plane.createAnchor(pose));
+                        /*final AnchorNode node = new AnchorNode(plane.createAnchor(pose));
                         MaterialFactory.makeOpaqueWithColor(MainActivity.this, new Color(0x0F42DA))
                             .thenAccept(material -> node.setRenderable(
                                 ShapeFactory.makeCube(new Vector3(0.15F, 0.15F, 0.15F), new Vector3(0.0F, 0.15F / 2.0F, 0.0F), material)
                             ));
-                        node.setParent(view.getScene());
+                        node.setParent(view.getScene());*/
 
-                        final float[] planeNormal = plane.getCenterPose().getYAxis();
-                        final float[] planeTranslation = plane.getCenterPose().getTranslation();
+                        final Pose planePose = plane.getCenterPose();
+                        final float[] planeNormal = planePose.getYAxis();
+                        final float[] planeTranslation = planePose.getTranslation();
                         final io.github.formular_team.formular.math.Plane fplane = new io.github.formular_team.formular.math.Plane();
                         fplane.setFromNormalAndCoplanarPoint(
                             new io.github.formular_team.formular.math.Vector3(planeNormal[0], planeNormal[1], planeNormal[2]),
                             new io.github.formular_team.formular.math.Vector3(planeTranslation[0], planeTranslation[1], planeTranslation[2])
                         );
                         final Camera camera = frame.getCamera();
-                        final Matrix4 modelMat = new Matrix4();
-                        pose.toMatrix(modelMat.elements(), 0);
                         final Matrix4 projMat = new Matrix4();
                         camera.getProjectionMatrix(projMat.elements(), 0, 0.01F, 10.0F);
                         final Matrix4 viewMat = new Matrix4();
                         camera.getViewMatrix(viewMat.elements(), 0);
 
-                        final float[] imageCoords = new float[2];
+                        final float[] in2 = new float[2];
+                        final float[] out2 = new float[2];
+                        in2[0] = event.getX();
+                        in2[1] = event.getY();
                         frame.transformCoordinates2d(
-                            Coordinates2d.VIEW, new float[] { event.getX(), event.getY() },
-                            Coordinates2d.OPENGL_NORMALIZED_DEVICE_COORDINATES, imageCoords
+                            Coordinates2d.VIEW, in2,
+                            Coordinates2d.OPENGL_NORMALIZED_DEVICE_COORDINATES, out2
                         );
-                        final Ray r = Projection.unproject(
-                            new Vector2(imageCoords[0], imageCoords[1]),
+                        final Ray pickRay = Projection.unproject(
+                            new Vector2().fromArray(out2),
                             projMat,
                             viewMat
                         );
-                        r.intersectPlane(fplane, new io.github.formular_team.formular.math.Vector3())
-                            .ifPresent(v -> {
-
-                            });
                         final int size = 128;
+                        final float scale = 0.25F;
                         final Bitmap map = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+                        pickRay.intersectPlane(fplane, new io.github.formular_team.formular.math.Vector3())
+                            .ifPresent(v -> {
+                                final Bitmap image;
+                                try (final Image cameraImage = frame.acquireCameraImage()) {
+                                    image = Images.yuvToBitmap(cameraImage);
+                                } catch (final NotYetAvailableException e) {
+                                    throw new RuntimeException(e);
+                                }
+//                                Function<Vector2, Vector2> project = in -> {
+//                                    return in;
+//                                };
+                                final float[] point = new float[3];
+                                v.toArray(point);
+                                final Pose pp = Pose.makeTranslation(point).compose(planePose.extractRotation());
+                                final Matrix4 modelMat = new Matrix4();
+                                pp.toMatrix(modelMat.elements(), 0);
+                                final Matrix4 mvp = Projection.projection(modelMat, viewMat, projMat);
+                                for (int y = 0; y < size; y++) {
+                                    for (int x = 0; x < size; x++) {
+                                        final io.github.formular_team.formular.math.Vector3 ndc = new io.github.formular_team.formular.math.Vector3(
+                                            scale * (2.0F * x / size - 1.0F),
+                                            0,
+                                            -scale * (2.0F * y / size - 1.0F)
+                                        ).applyMatrix4(modelMat).applyMatrix4(viewMat).applyMatrix4(projMat);
+                                        in2[0] = ndc.x();
+                                        in2[1] = ndc.y();
+                                        frame.transformCoordinates2d(
+                                            Coordinates2d.OPENGL_NORMALIZED_DEVICE_COORDINATES, in2,
+                                            Coordinates2d.IMAGE_PIXELS, out2
+                                        );
+                                        final int px = (int) out2[0];
+                                        final int py = (int) out2[1];
+                                        map.setPixel(x, y, px >= 0 && py >= 0 && px < image.getWidth() && py < image.getHeight() ? image.getPixel(px, py) : android.graphics.Color.TRANSPARENT);
+                                    }
+                                }
+                            });
 //                        Log.i("waldo", "img int " + Arrays.toString(frame.getCamera().getImageIntrinsics().getImageDimensions()) + ", " + Arrays.toString(frame.getCamera().getTextureIntrinsics().getImageDimensions()));
                         /*try (final Image image = frame.acquireCameraImage()) {
                             // TODO: crop?
