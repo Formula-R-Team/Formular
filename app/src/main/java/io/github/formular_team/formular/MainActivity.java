@@ -1,6 +1,7 @@
 package io.github.formular_team.formular;
 
 import android.graphics.Bitmap;
+import android.graphics.Rect;
 import android.media.Image;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -35,6 +36,7 @@ import com.google.common.util.concurrent.Futures;
 
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.function.Function;
 
 import io.github.formular_team.formular.math.Matrix4;
 import io.github.formular_team.formular.math.Ray;
@@ -117,37 +119,42 @@ public class MainActivity extends AppCompatActivity {
                         final Bitmap map = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
                         pickRay.intersectPlane(fplane, new io.github.formular_team.formular.math.Vector3())
                             .ifPresent(v -> {
+                                final Pose planeAtPick = Pose.makeTranslation(v.toArray(new float[3])).compose(planePose.extractRotation());
+                                final Matrix4 planeModelMatrix = new Matrix4();
+                                planeAtPick.toMatrix(planeModelMatrix.elements(), 0);
+                                final Function<Vector2, Vector2> project = in -> {
+                                    final io.github.formular_team.formular.math.Vector3 ndc = new io.github.formular_team.formular.math.Vector3(
+                                        scale * (2.0F * in.x() / size - 1.0F),
+                                        0,
+                                        -scale * (2.0F * in.y() / size - 1.0F)
+                                    ).applyMatrix4(planeModelMatrix).applyMatrix4(viewMat).applyMatrix4(projMat);
+                                    in2[0] = ndc.x();
+                                    in2[1] = ndc.y();
+                                    frame.transformCoordinates2d(
+                                        Coordinates2d.OPENGL_NORMALIZED_DEVICE_COORDINATES, in2,
+                                        Coordinates2d.IMAGE_PIXELS, out2
+                                    );
+                                    return new Vector2().fromArray(out2);
+                                };
+                                final Vector2 b00 = project.apply(new Vector2(0, 0));
+                                final Vector2 b01 = project.apply(new Vector2(0, size - 1));
+                                final Vector2 b10 = project.apply(new Vector2(size - 1, 0));
+                                final Vector2 b11 = project.apply(new Vector2(size - 1, size - 1));
+                                final Vector2 imageMin = b00.copy().min(b01).min(b10).min(b11).floor();
+                                final Vector2 imageMax = b00.copy().max(b01).max(b10).max(b11).ceil();
+                                final Rect imageBounds = new Rect((int) imageMin.x(), (int) imageMin.y(), (int) imageMax.x(), (int) imageMax.y());
                                 final Bitmap image;
                                 try (final Image cameraImage = frame.acquireCameraImage()) {
-                                    image = Images.yuvToBitmap(cameraImage);
+                                    image = Images.yuvToBitmap(cameraImage, imageBounds);
                                 } catch (final NotYetAvailableException e) {
                                     throw new RuntimeException(e);
                                 }
-//                                Function<Vector2, Vector2> project = in -> {
-//                                    return in;
-//                                };
-                                final float[] point = new float[3];
-                                v.toArray(point);
-                                final Pose pp = Pose.makeTranslation(point).compose(planePose.extractRotation());
-                                final Matrix4 modelMat = new Matrix4();
-                                pp.toMatrix(modelMat.elements(), 0);
-                                final Matrix4 mvp = Projection.projection(modelMat, viewMat, projMat);
+                                final Vector2 outputPos = new Vector2();
                                 for (int y = 0; y < size; y++) {
                                     for (int x = 0; x < size; x++) {
-                                        final io.github.formular_team.formular.math.Vector3 ndc = new io.github.formular_team.formular.math.Vector3(
-                                            scale * (2.0F * x / size - 1.0F),
-                                            0,
-                                            -scale * (2.0F * y / size - 1.0F)
-                                        ).applyMatrix4(modelMat).applyMatrix4(viewMat).applyMatrix4(projMat);
-                                        in2[0] = ndc.x();
-                                        in2[1] = ndc.y();
-                                        frame.transformCoordinates2d(
-                                            Coordinates2d.OPENGL_NORMALIZED_DEVICE_COORDINATES, in2,
-                                            Coordinates2d.IMAGE_PIXELS, out2
-                                        );
-                                        final int px = (int) out2[0];
-                                        final int py = (int) out2[1];
-                                        map.setPixel(x, y, px >= 0 && py >= 0 && px < image.getWidth() && py < image.getHeight() ? image.getPixel(px, py) : android.graphics.Color.TRANSPARENT);
+                                        final Vector2 imagePos = project.apply(outputPos.set(x, y)).sub(imageMin);
+                                        final boolean inImage = imagePos.x() >= 0.0F && imagePos.y() >= 0.0F && imagePos.x() < image.getWidth() && imagePos.y() < image.getHeight();
+                                        map.setPixel(x, y, inImage ? image.getPixel((int) imagePos.x(), (int) imagePos.y()) : android.graphics.Color.TRANSPARENT);
                                     }
                                 }
                             });
