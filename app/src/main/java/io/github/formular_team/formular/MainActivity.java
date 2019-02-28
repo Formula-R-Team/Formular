@@ -114,7 +114,7 @@ public class MainActivity extends AppCompatActivity {
                             projMat,
                             viewMat
                         );
-                        final int size = 128;
+                        final int size = 256;
                         final float scale = 0.25F;
                         final Bitmap map = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
                         pickRay.intersectPlane(fplane, new io.github.formular_team.formular.math.Vector3())
@@ -140,12 +140,13 @@ public class MainActivity extends AppCompatActivity {
                                 final Vector2 b01 = project.apply(new Vector2(0, size - 1));
                                 final Vector2 b10 = project.apply(new Vector2(size - 1, 0));
                                 final Vector2 b11 = project.apply(new Vector2(size - 1, size - 1));
-                                final Vector2 imageMin = b00.copy().min(b01).min(b10).min(b11).floor();
-                                final Vector2 imageMax = b00.copy().max(b01).max(b10).max(b11).ceil();
-                                final Rect imageBounds = new Rect((int) imageMin.x(), (int) imageMin.y(), (int) imageMax.x(), (int) imageMax.y());
+                                final Vector2 imageMin;
+                                final Vector2 imageMax;
                                 final Bitmap image;
                                 try (final Image cameraImage = frame.acquireCameraImage()) {
-                                    image = Images.yuvToBitmap(cameraImage, imageBounds);
+                                    imageMin = b00.copy().min(b01).min(b10).min(b11).floor().max(new Vector2(0, 0));
+                                    imageMax = b00.copy().max(b01).max(b10).max(b11).ceil().min(new Vector2(cameraImage.getWidth() - 1, cameraImage.getHeight() - 1));
+                                    image = Images.yuvToBitmap(cameraImage, new Rect((int) imageMin.x(), (int) imageMin.y(), (int) imageMax.x(), (int) imageMax.y()));
                                 } catch (final NotYetAvailableException e) {
                                     throw new RuntimeException(e);
                                 }
@@ -249,10 +250,6 @@ public class MainActivity extends AppCompatActivity {
                 return null;
             });*/
 
-    }
-
-    private static Vector3 createVector3(final float[] xyz) {
-        return new Vector3(xyz[0], xyz[1], xyz[2]);
     }
 
     @Override
