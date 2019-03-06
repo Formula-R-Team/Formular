@@ -1,6 +1,6 @@
 package io.github.formular_team.formular.trace;
 
-import io.github.formular_team.formular.math.Path;
+import io.github.formular_team.formular.math.PathVisitor;
 import io.github.formular_team.formular.math.Vector2;
 
 public class PathReader {
@@ -13,11 +13,11 @@ public class PathReader {
 		this.orientFunc = orientFunc;
 	}
 
-	public boolean read(final Mapper map, final Path.Builder path) {
+	public boolean read(final Mapper map, final PathVisitor visitor) {
 		final Vector2 pos = new Vector2(0.0F, 0.0F);
 		float rotation = 0.0F;
 		final TransformMapper view = new TransformMapper(map, pos.x(), pos.y(), rotation);
-		path.moveTo(pos);
+		visitor.moveTo(pos);
 		for (int stepNo = 0;; stepNo++) {
 			if (stepNo >= 128) {
 				break; // too long
@@ -32,10 +32,10 @@ public class PathReader {
 			view.setX(pos.x());
 			view.setY(pos.y());
 			if (stepNo > 0 && pos.length() <= this.stepFunc.getSize()) {
-				path.closePath();
+				visitor.closePath();
 				break;
 			}
-			path.lineTo(pos);
+			visitor.lineTo(pos);
 		}
 		return true;
 	}
