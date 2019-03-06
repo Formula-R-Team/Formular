@@ -47,7 +47,7 @@ public final class LineCurve implements Curve {
 
         for ( int d = 0; d <= divisions; d ++ ) {
 
-            points.push( this.getPoint( d / divisions ) );
+            points.push( this.getPoint( (float) d / divisions ) );
 
         }
 
@@ -66,7 +66,7 @@ public final class LineCurve implements Curve {
 
         for ( int d = 0; d <= divisions; d ++ ) {
 
-            points.push( this.getPoint( d / divisions ) );
+            points.push( this.getPoint( (float) d / divisions ) );
 
         }
 

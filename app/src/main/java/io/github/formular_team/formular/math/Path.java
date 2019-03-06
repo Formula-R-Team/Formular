@@ -109,7 +109,7 @@ public class Path implements Curve{
 
         for ( int d = 0; d <= divisions; d ++ ) {
 
-            points.add(0, this.getPointAt( d / divisions ) );
+            points.add(0, this.getPointAt( (float) d / divisions ) );
 
         }
 
