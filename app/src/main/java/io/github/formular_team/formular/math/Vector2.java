@@ -1,5 +1,6 @@
 package io.github.formular_team.formular.math;
 
+import java.util.Locale;
 import java.util.Objects;
 
 public final class Vector2 {
@@ -157,6 +158,11 @@ public final class Vector2 {
         return Objects.hash(this.x, this.y);
     }
 
+    @Override
+    public String toString() {
+        return String.format(Locale.ROOT, "(%.2f,%.2f)", this.x, this.y);
+    }
+
     public Vector2 floor() {
         this.x = Mth.floor(this.x);
         this.y = Mth.floor(this.y);
@@ -220,22 +226,14 @@ public final class Vector2 {
     }
 
     public Vector2 max(final Vector2 v) {
-        if (this.x < v.width()) {
-            this.x = v.width();
-        }
-        if (this.y < v.height()) {
-            this.y = v.height();
-        }
+        this.x = Math.max(this.x, v.x);
+        this.y = Math.max(this.y, v.y);
         return this;
     }
 
     public Vector2 min(final Vector2 v) {
-        if (this.x > v.width()) {
-            this.x = v.width();
-        }
-        if (this.y > v.height()) {
-            this.y = v.height();
-        }
+        this.x = Math.min(this.x, v.x);
+        this.y = Math.min(this.y, v.y);
         return this;
     }
 

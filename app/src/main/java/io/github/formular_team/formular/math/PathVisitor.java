@@ -1,12 +1,6 @@
 package io.github.formular_team.formular.math;
 
-import java.util.ArrayList;
-
-public interface PathVisitor
-{
-
-    ArrayList<Curve> getCurves();
-
+public interface PathVisitor {
     PathVisitor moveTo(final Vector2 point);
 
     PathVisitor lineTo(final Vector2 point);
