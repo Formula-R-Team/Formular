@@ -64,6 +64,7 @@ public class Path implements Curve{
 
         }
 
+        // TODO: squash null returning
         return null;
     }
 
@@ -179,26 +180,13 @@ public class Path implements Curve{
     }
 
     public float[] getCurveLengths(){
-
-
-        // Get length of sub-curve
-        // Push sums into cached array
-
-        LinkedList<Float> lengths = new LinkedList<>();
-        float sums = 0;
-
-        for ( int i = 0, l = this.curves.size(); i < l; i ++ ) {
-
+        final float[] lengths = new float[this.curves.size()];
+        float sums = 0.0F;
+        for (int i = 0; i < this.curves.size(); i++) {
             sums += this.curves.get(i).getLength();
-            lengths.push( sums );
-
+            lengths[i] = sums;
         }
-        Float[] array = lengths.toArray(new Float[0]);
-        float[] temp = new float[array.length-1];
-        for(int i=0;i<array.length-1;i++)
-            temp[i] = array[i];
-
-        return temp;
+        return lengths;
     }
 
     public void copy(Path path) {

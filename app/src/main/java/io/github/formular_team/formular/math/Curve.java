@@ -17,7 +17,9 @@ public interface Curve {
 
     float[] getLengths(final int divisions);
 
-    float[] getLengths();
+    default float[] getLengths() {
+        return this.getLengths(200);
+    }
 
     Vector2 getTangent(final float t);
 

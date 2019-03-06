@@ -5,11 +5,14 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.media.Image;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.widget.ImageView;
 
+import com.google.ar.core.Anchor;
 import com.google.ar.core.Camera;
 import com.google.ar.core.Coordinates2d;
 import com.google.ar.core.Frame;
@@ -19,18 +22,24 @@ import com.google.ar.core.Pose;
 import com.google.ar.core.Session;
 import com.google.ar.core.exceptions.CameraNotAvailableException;
 import com.google.ar.core.exceptions.NotYetAvailableException;
+import com.google.ar.sceneform.AnchorNode;
 import com.google.ar.sceneform.ArSceneView;
 import com.google.ar.sceneform.FrameTime;
+import com.google.ar.sceneform.Node;
 import com.google.ar.sceneform.Scene;
+import com.google.ar.sceneform.rendering.ModelRenderable;
 import com.google.ar.sceneform.ux.ArFragment;
+import com.google.common.collect.Lists;
 
 import java.util.Comparator;
+import java.util.List;
 import java.util.function.Function;
 
 import io.github.formular_team.formular.math.Matrix4;
 import io.github.formular_team.formular.math.Path;
 import io.github.formular_team.formular.math.Ray;
 import io.github.formular_team.formular.math.Vector2;
+import io.github.formular_team.formular.math.Vector3;
 import io.github.formular_team.formular.server.Game;
 import io.github.formular_team.formular.server.ServerController;
 import io.github.formular_team.formular.server.SimpleServer;
@@ -46,13 +55,15 @@ public class MainActivity extends AppCompatActivity {
 
     private ServerController controller;
 
+    private ImageView overlayView;
+
     @Override
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.setContentView(R.layout.activity_main);
+        this.overlayView = this.findViewById(R.id.overlay);
         final ArFragment fragment = (ArFragment) this.getSupportFragmentManager().findFragmentById(R.id.ar);
         final ArSceneView view = fragment.getArSceneView();
-        final ImageView overlayView = this.findViewById(R.id.overlay);
         view.getScene().setOnTouchListener((hit, event) -> {
             if (event.getAction() != MotionEvent.ACTION_UP) {
                 return true;
@@ -100,19 +111,16 @@ public class MainActivity extends AppCompatActivity {
                         projMat,
                         viewMat
                     );
-                    final int captureSize = 128;
-                    final float scale = 0.075F;
                     pickRay.intersectPlane(fplane, new io.github.formular_team.formular.math.Vector3())
                         .ifPresent(v -> {
                             final Pose planeAtPick = Pose.makeTranslation(v.toArray(new float[3])).compose(planePose.extractRotation());
-                            final Matrix4 planeModelMatrix = new Matrix4();
-                            planeAtPick.toMatrix(planeModelMatrix.elements(), 0);
-                            final Function<Vector2, Vector2> project = in -> {
-                                final io.github.formular_team.formular.math.Vector3 ndc = new io.github.formular_team.formular.math.Vector3(
-                                    scale * (2.0F * in.x() / captureSize - 1.0F),
-                                    0,
-                                    -scale * (2.0F * in.y() / captureSize - 1.0F)
-                                ).applyMatrix4(planeModelMatrix).applyMatrix4(viewMat).applyMatrix4(projMat);
+                            final Matrix4 planeAtPickModelMatrix = new Matrix4();
+                            planeAtPick.toMatrix(planeAtPickModelMatrix.elements(), 0);
+                            final Function<Vector3, Vector2> planeToImage = in -> {
+                                // TODO: compose mvp matrix
+                                final io.github.formular_team.formular.math.Vector3 ndc = in.applyMatrix4(planeAtPickModelMatrix)
+                                    .applyMatrix4(viewMat)
+                                    .applyMatrix4(projMat);
                                 in2[0] = ndc.x();
                                 in2[1] = ndc.y();
                                 frame.transformCoordinates2d(
@@ -121,10 +129,10 @@ public class MainActivity extends AppCompatActivity {
                                 );
                                 return new Vector2().fromArray(out2);
                             };
-                            final Vector2 b00 = project.apply(new Vector2(0, 0));
-                            final Vector2 b01 = project.apply(new Vector2(0, captureSize - 1));
-                            final Vector2 b10 = project.apply(new Vector2(captureSize - 1, 0));
-                            final Vector2 b11 = project.apply(new Vector2(captureSize - 1, captureSize - 1));
+                            final Vector2 b00 = planeToImage.apply(new Vector3(-1.0F, 0.0F, 1.0F));
+                            final Vector2 b01 = planeToImage.apply(new Vector3(-1.0F, 0.0F, -1.0F));
+                            final Vector2 b10 = planeToImage.apply(new Vector3(1.0F, 0.0F, 1.0F));
+                            final Vector2 b11 = planeToImage.apply(new Vector3(1.0F, 0.0F, -1.0F));
                             final Vector2 min, max;
                             final Bitmap image;
                             try (final Image cameraImage = frame.acquireCameraImage()) {
@@ -134,27 +142,64 @@ public class MainActivity extends AppCompatActivity {
                             } catch (final NotYetAvailableException e) {
                                 throw new RuntimeException(e);
                             }
-                            final Bitmap capture = Bitmap.createBitmap(captureSize, captureSize, Bitmap.Config.ARGB_8888);
-                            final Vector2 outputPos = new Vector2();
-                            for (int y = 0; y < captureSize; y++) {
-                                for (int x = 0; x < captureSize; x++) {
-                                    final Vector2 p = project.apply(outputPos.set(x, y)).sub(min);
-                                    if (p.x() >= 0.0F && p.y() >= 0.0F && p.x() < image.getWidth() && p.y() < image.getHeight()) {
-                                        // TODO: bilinear interpolation?
-                                        capture.setPixel(x, y, image.getPixel((int) p.x(), (int) p.y()));
+                            if (image != null) {
+                                final int captureSize = 128;
+                                final float worldScale = 0.075F;
+                                final Bitmap capture = Bitmap.createBitmap(captureSize, captureSize, Bitmap.Config.ARGB_8888);
+                                final Vector3 outputPos = new Vector3();
+                                for (int y = 0; y < capture.getHeight(); y++) {
+                                    for (int x = 0; x < capture.getWidth(); x++) {
+                                        outputPos.set(
+                                            worldScale * (2.0F * x / captureSize - 1.0F),
+                                            0,
+                                            -worldScale * (2.0F * y / captureSize - 1.0F)
+                                        );
+                                        final Vector2 p = planeToImage.apply(outputPos).sub(min);
+                                        if (p.x() >= 0.0F && p.y() >= 0.0F && p.x() < image.getWidth() && p.y() < image.getHeight()) {
+                                            // TODO: bilinear interpolation?
+                                            capture.setPixel(x, y, image.getPixel((int) p.x(), (int) p.y()));
+                                        }
                                     }
                                 }
+                                final Path pathInCapture = this.findPath(capture);
+                                this.updateOverlayPath(capture, pathInCapture);
+                                final Path.Builder pathOnPlaneBuilder = Path.builder();
+                                pathInCapture.visit(pathOnPlaneBuilder.transform(in ->
+                                    in.copy()
+                                        .multiplyScalar(2.0F / captureSize)
+                                        .subScalar(1.0F)
+                                        .multiplyScalar(worldScale)
+                                        .multiply(new Vector2(1.0F, -1.0F))
+                                ));
+                                final Path pathOnPlane = pathOnPlaneBuilder.build();
+                                final Anchor planeAnchor = plane.createAnchor(planeAtPick);
+                                final AnchorNode planeAnchorNode = new AnchorNode(planeAnchor);
+                                planeAnchorNode.setParent(view.getScene());
+                                this.anchors.add(planeAnchor);
+                                final com.google.ar.sceneform.math.Vector3 modelScale = com.google.ar.sceneform.math.Vector3.one().scaled(worldScale * 0.15F);
+                                ModelRenderable.builder()
+                                    .setSource(this, Uri.parse("teapot.sfb"))
+                                    .build()
+                                    .thenAccept(renderable -> {
+                                        for (int n = 0; n < 10; n++) {
+                                            final float t = n / 8.0F;
+                                            final Vector2 point = pathOnPlane.getPoint(t);
+                                            final Vector2 tangent = pathOnPlane.getTangent(t).rotateAround(new Vector2(), (float) (-0.5F * Math.PI));
+                                            final Node posNode = new Node();
+                                            posNode.setLocalPosition(new com.google.ar.sceneform.math.Vector3(point.x(), 0.0F, point.y()));
+                                            posNode.setParent(planeAnchorNode);
+                                            final Node modelNode = new Node();
+                                            modelNode.setLocalScale(modelScale);
+                                            modelNode.setLookDirection(new com.google.ar.sceneform.math.Vector3(tangent.x(), 0.0F, tangent.y()));
+                                            modelNode.setParent(posNode);
+                                            modelNode.setRenderable(renderable.makeCopy());
+                                        }
+                                    })
+                                    .exceptionally(throwable -> {
+                                        Log.e(TAG, "Unable to load Renderable.", throwable);
+                                        return null;
+                                    });
                             }
-                            final Path pathInCapture = this.findPath(capture);
-                            final android.graphics.Path gpath = new android.graphics.Path();
-                            pathInCapture.visit(new GraphicsPathVisitor(gpath));
-                            final Canvas canvas = new Canvas(capture);
-                            final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-                            paint.setStyle(Paint.Style.STROKE);
-                            paint.setStrokeWidth(4.0F);
-                            paint.setColor(0x75FF1A52);
-                            canvas.drawPath(gpath, paint);
-                            overlayView.setImageBitmap(capture);
                         });
                     return true;
                 }
@@ -180,20 +225,9 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-        /*ModelRenderable.builder()
-            .setSource(this, Uri.parse("teapot.sfb"))
-            .build()
-            .thenAccept(renderable -> {
-                Node node = new Node();
-                node.setParent(fragment.getArSceneView().getScene());
-                node.setRenderable(renderable);
-            })
-            .exceptionally(throwable -> {
-                Log.e("formular", "Unable to load Renderable.", throwable);
-                return null;
-            });*/
-
     }
+
+    private final List<Anchor> anchors = Lists.newArrayList();
 
     private Path findPath(final Bitmap capture) {
         final TransformMapper mapper = new TransformMapper(new BilinearMapper(new ImageLineMap(new BitmapImageMap(capture))), 0.0F, 0.0F, 0.0F);
@@ -222,6 +256,20 @@ public class MainActivity extends AppCompatActivity {
             new OrientFunction(2)
         ).read(mapper, capturePathBuilder.transform(mapper::transformPoint));
         return capturePathBuilder.build();
+    }
+
+    private void updateOverlayPath(final Bitmap capture, final Path pathInCapture) {
+        if (this.overlayView != null) {
+            final android.graphics.Path graphicPath = new android.graphics.Path();
+            pathInCapture.visit(new GraphicsPathVisitor(graphicPath));
+            final Canvas canvas = new Canvas(capture);
+            final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(4.0F);
+            paint.setColor(0x75FF1A52);
+            canvas.drawPath(graphicPath, paint);
+            this.overlayView.setImageBitmap(capture);
+        }
     }
 
     @Override

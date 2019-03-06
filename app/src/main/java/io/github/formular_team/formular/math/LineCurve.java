@@ -80,56 +80,17 @@ public final class LineCurve implements Curve {
 
     @Override
     public float getLength() {
-
-        float[] lengths =this.getLengths();
-        return lengths[lengths.length-1];
+        return this.v0.distanceTo(this.v1);
     }
 
     @Override
     public float[] getLengths(final int divisions) {
-        LinkedList<Float> cache = new LinkedList<>();
-        Vector2 current, last = this.getPoint(0f);
-        float p, sum=0f;
-
-        for(p=1; p<=divisions; p++)
-        {
-            current = this.getPoint(p/divisions);
-            sum+= current.distanceTo(last);
-            cache.push(sum);
-            last=current;
+        final float[] lengths = new float[divisions];
+        final float length = this.getLength();
+        for (int i = 0; i <= divisions; i++) {
+            lengths[i] = length * i / divisions;
         }
-        Float[] array = new Float[0];
-        array = cache.toArray(array);
-        float[] temp = new float[array.length-1];
-        for(int i=0;i<array.length-1;i++)
-            temp[i] = array[i];
-
-        return temp;
-    }
-
-
-
-    public float[] getLengths() {
-        int divisions = 200;
-
-        LinkedList<Float> cache = new LinkedList<>();
-        Vector2 current, last = this.getPoint(0f);
-        float p, sum=0;
-
-        for(p=1; p<=divisions; p++)
-        {
-            current = this.getPoint(p/divisions);
-            sum+= current.distanceTo(last);
-            cache.push(sum);
-            last=current;
-        }
-        Float[] array = new Float[0];
-        array = cache.toArray(array);
-        float[] temp = new float[array.length-1];
-        for(int i=0;i<array.length-1;i++)
-            temp[i] = array[i];
-
-        return temp;
+        return lengths;
     }
 
     @Override

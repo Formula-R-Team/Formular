@@ -118,31 +118,6 @@ public final class CubicBezierCurve implements Curve {
         return temp;
     }
 
-
-
-    public float[] getLengths() {
-        int divisions = 200;
-
-        LinkedList<Float> cache = new LinkedList<>();
-        Vector2 current, last = this.getPoint(0);
-        float p, sum=0;
-
-        for(p=1; p<=divisions; p++)
-        {
-            current = this.getPoint(p/divisions);
-            sum+= current.distanceTo(last);
-            cache.push(sum);
-            last=current;
-        }
-        Float[] array = new Float[0];
-        array = cache.toArray(array);
-        float[] temp = new float[array.length-1];
-        for(int i=0;i<array.length-1;i++)
-            temp[i] = array[i];
-
-        return temp;
-    }
-
     @Override
     public Vector2 getTangent(final float t) {
         float delta = 0.0001f;
