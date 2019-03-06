@@ -29,7 +29,6 @@ import java.util.function.Function;
 
 import io.github.formular_team.formular.math.Matrix4;
 import io.github.formular_team.formular.math.Path;
-import io.github.formular_team.formular.math.PathVisitor;
 import io.github.formular_team.formular.math.Ray;
 import io.github.formular_team.formular.math.Vector2;
 import io.github.formular_team.formular.server.Game;
@@ -135,97 +134,27 @@ public class MainActivity extends AppCompatActivity {
                             } catch (final NotYetAvailableException e) {
                                 throw new RuntimeException(e);
                             }
-                            final Bitmap map = Bitmap.createBitmap(captureSize, captureSize, Bitmap.Config.ARGB_8888);
+                            final Bitmap capture = Bitmap.createBitmap(captureSize, captureSize, Bitmap.Config.ARGB_8888);
                             final Vector2 outputPos = new Vector2();
                             for (int y = 0; y < captureSize; y++) {
                                 for (int x = 0; x < captureSize; x++) {
                                     final Vector2 p = project.apply(outputPos.set(x, y)).sub(min);
                                     if (p.x() >= 0.0F && p.y() >= 0.0F && p.x() < image.getWidth() && p.y() < image.getHeight()) {
                                         // TODO: bilinear interpolation?
-                                        map.setPixel(x, y, image.getPixel((int) p.x(), (int) p.y()));
+                                        capture.setPixel(x, y, image.getPixel((int) p.x(), (int) p.y()));
                                     }
                                 }
                             }
-                            final TransformMapper mapper = new TransformMapper(new BilinearMapper(new ImageLineMap(new BitmapImageMap(map))), 0.0F, 0.0F, 0.0F);
-
-                            float startX = 0, startY = 0, startLine = Float.NEGATIVE_INFINITY;
-                            // spiral search
-                            /*final int searchSize = captureSize / 4, searchOffset = captureSize / 2 - searchSize / 2, searchRadius = (searchSize + 1) / 2;
-                            for (int i = 0, x = 0, y = 0; i < searchSize * searchSize; i++) {
-                                final float distance = Math.min((float) (x * x + y * y) / (searchRadius * searchRadius), 1.0F);
-                                final float weight = (float) Math.sqrt(1.0F - distance * distance);
-                                final float line = mapper.get(searchOffset + x, searchOffset + y) * weight;
-                                if (line > startLine) {
-                                    startX = searchOffset + x;
-                                    startY = searchOffset + y;
-                                    startLine = line;
-                                }
-                                if (Math.abs(x) <= Math.abs(y) && (x != y || x >= 0)) {
-                                    x += y >= 0 ? 1 : -1;
-                                } else {
-                                    y += x >= 0 ? -1 : 1;
-                                }
-                            }*/
-                            // circle perimeter search
-                            final float radius = 0.125F * captureSize;
-                            final float origin = 0.5F * captureSize;
-                            final int circum = (int) (2.0F * Math.PI * radius);
-                            for (int n = 0; n < circum; n++) {
-                                final float theta = (float) (2.0F * Math.PI * n / circum);
-                                final float x = (float) (origin + radius * Math.cos(theta));
-                                final float y = (float) (origin + radius * Math.sin(theta));
-                                final float line = mapper.get(x, y);
-                                if (line > startLine) {
-                                    startX = x;
-                                    startY = y;
-                                    startLine = line;
-                                }
-                            }
-                            mapper.setX(startX);
-                            mapper.setY(startY);
-                            final Path.Builder path = Path.builder();
-                            new PathReader(
-                                new SimpleStepFunction(5, (float) Math.PI / 2.0F),
-                                new OrientFunction(2)
-                            ).read(mapper, path);
-                            final Path p = path.build();
+                            final Path pathInCapture = this.findPath(capture);
                             final android.graphics.Path gpath = new android.graphics.Path();
-                            p.visit(new PathVisitor() {
-                                @Override
-                                public PathVisitor moveTo(final Vector2 point) {
-                                    final Vector2 p = this.prepare(point);
-                                    gpath.moveTo(p.x(), p.y());
-                                    return this;
-                                }
-
-                                @Override
-                                public PathVisitor lineTo(final Vector2 point) {
-                                    final Vector2 p = this.prepare(point);
-                                    gpath.lineTo(p.x(), p.y());
-                                    return this;
-                                }
-
-                                private Vector2 prepare(final Vector2 point) {
-                                    return mapper.transformPoint(point);
-                                }
-
-                                @Override
-                                public PathVisitor bezierCurveTo(final Vector2 controlA, final Vector2 controlB, final Vector2 point) {
-                                    return this;
-                                }
-
-                                @Override
-                                public PathVisitor closePath() {
-                                    return this;
-                                }
-                            });
-                            final Canvas canvas = new Canvas(map);
+                            pathInCapture.visit(new GraphicsPathVisitor(gpath));
+                            final Canvas canvas = new Canvas(capture);
                             final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
                             paint.setStyle(Paint.Style.STROKE);
                             paint.setStrokeWidth(4.0F);
                             paint.setColor(0x75FF1A52);
                             canvas.drawPath(gpath, paint);
-                            overlayView.setImageBitmap(map);
+                            overlayView.setImageBitmap(capture);
                         });
                     return true;
                 }
@@ -264,6 +193,35 @@ public class MainActivity extends AppCompatActivity {
                 return null;
             });*/
 
+    }
+
+    private Path findPath(final Bitmap capture) {
+        final TransformMapper mapper = new TransformMapper(new BilinearMapper(new ImageLineMap(new BitmapImageMap(capture))), 0.0F, 0.0F, 0.0F);
+        // TODO: use vector2
+        float startX = 0.0F, startY = 0.0F;
+        float startLine = Float.NEGATIVE_INFINITY;
+        final float radius = 0.125F * Math.min(capture.getWidth(), capture.getHeight());
+        final float originX = 0.5F * capture.getWidth(), originY = 0.5F * capture.getHeight();
+        final int circum = (int) (2.0F * Math.PI * radius);
+        for (int n = 0; n < circum; n++) {
+            final float theta = (float) (2.0F * Math.PI * n / circum);
+            final float x = (float) (originX + radius * Math.cos(theta));
+            final float y = (float) (originY + radius * Math.sin(theta));
+            final float line = mapper.get(x, y);
+            if (line > startLine) {
+                startX = x;
+                startY = y;
+                startLine = line;
+            }
+        }
+        mapper.setX(startX);
+        mapper.setY(startY);
+        final Path.Builder capturePathBuilder = Path.builder();
+        new PathReader(
+            new SimpleStepFunction(5, (float) (0.5F * Math.PI)),
+            new OrientFunction(2)
+        ).read(mapper, capturePathBuilder.transform(mapper::transformPoint));
+        return capturePathBuilder.build();
     }
 
     @Override
