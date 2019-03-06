@@ -13,6 +13,10 @@ public class Path implements Curve{
 
     //Not sure if this is how visit should look
     public void visit(final PathVisitor visitor) {
+        if (!this.curves.isEmpty()) {
+            final Curve first = this.curves.get(0);
+            visitor.moveTo(first instanceof LineCurve ? ((LineCurve) first).v0() : ((CubicBezierCurve) first).v0());
+        }
         for (Curve curCurve:curves) {
             if(curCurve instanceof LineCurve){
                 visitor.lineTo(((LineCurve)curCurve).v1());
@@ -361,10 +365,11 @@ public class Path implements Curve{
 
             return this;
         }
-        @Override
+
         public ArrayList<Curve> getCurves(){
             return curves;
         }
+
         @Override
         public Builder moveTo(final Vector2 point) {
 
