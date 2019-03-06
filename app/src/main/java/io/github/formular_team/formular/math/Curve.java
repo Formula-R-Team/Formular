@@ -7,11 +7,17 @@ public interface Curve {
 
     Vector2[] getPoints(final int divisions);
 
+    Vector2[] getPoints();
+
     Vector2[] getSpacedPoints(final int divisions);
+
+    Vector2[] getSpacedPoints();
 
     float getLength();
 
     float[] getLengths(final int divisions);
+
+    float[] getLengths();
 
     Vector2 getTangent(final float t);
 

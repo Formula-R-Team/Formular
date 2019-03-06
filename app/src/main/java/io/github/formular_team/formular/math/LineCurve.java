@@ -4,33 +4,33 @@ import java.util.LinkedList;
 //TODO Please check especially any method that uses divisions and the getUtoTmapping
 //some confusion because of swapping from weakly typed language to strongly typed
 public final class LineCurve implements Curve {
+    private Vector2 v0;
     private Vector2 v1;
-    private Vector2 v2;
 
-    public LineCurve(final Vector2 v1, final Vector2 v2) {
+    public LineCurve(final Vector2 v0, final Vector2 v1) {
+        this.v0 = v0;
         this.v1 = v1;
-        this.v2 = v2;
     }
 
     public LineCurve() {
+        this.v0 = new Vector2();
         this.v1 = new Vector2();
-        this.v2 = new Vector2();
     }
 
+    public Vector2 v0() {return v0;}
     public Vector2 v1() {return v1;}
-    public Vector2 v2() {return v2;}
 
     @Override
     public Vector2 getPoint(final float t) {
         Vector2 point = new Vector2();
 
         if ( t == 1 ) {
-            point.copy( this.v2 );
+            point.copy( this.v1);
         } else {
-            point.copy( this.v2 );
-            point.sub( this.v1 );
+            point.copy( this.v1);
+            point.sub( this.v0);
             point.multiplyScalar( t );
-            point.add( this.v1 );
+            point.add( this.v0);
         }
 
         return point;
@@ -55,6 +55,11 @@ public final class LineCurve implements Curve {
     }
 
     @Override
+    public Vector2[] getPoints() {
+        return getPoints(5);
+    }
+
+    @Override
     public Vector2[] getSpacedPoints(final int divisions) {
 
         LinkedList<Vector2> points = new LinkedList<>();
@@ -66,6 +71,11 @@ public final class LineCurve implements Curve {
         }
 
         return points.toArray(new Vector2[0]);
+    }
+
+    @Override
+    public Vector2[] getSpacedPoints() {
+        return getSpacedPoints(5);
     }
 
     @Override
@@ -124,8 +134,8 @@ public final class LineCurve implements Curve {
 
     @Override
     public Vector2 getTangent(final float t) {
-        Vector2 tangent = this.v2.copy();
-        tangent.sub(this.v1);
+        Vector2 tangent = this.v1.copy();
+        tangent.sub(this.v0);
         tangent.normalize();
         return tangent;
     }
@@ -138,13 +148,13 @@ public final class LineCurve implements Curve {
 
     @Override
     public Curve copy() {
-        return new LineCurve(this.v1.copy(),this.v2.copy());
+        return new LineCurve(this.v0.copy(),this.v1.copy());
     }
 
     public void copy(LineCurve other)
     {
+        this.v0 = other.v0().copy();
         this.v1 = other.v1().copy();
-        this.v2 = other.v2().copy();
     }
 
     private float getUtoTmapping(final float u) {
@@ -205,7 +215,7 @@ public final class LineCurve implements Curve {
 
     }
 
-    public float getUtoTmapping(float u, float distance) {
+    private float getUtoTmapping(float u, float distance) {
         float[] arcLengths = this.getLengths();
         int i, il=arcLengths.length;
         float targetArcLength;
@@ -216,14 +226,14 @@ public final class LineCurve implements Curve {
         float comparison;
 
         while(low < high){
-            i= (int) Math.floor(low+(high-low)/2);
+            i= (int) Math.floor(low+(high-low)/2f);
             comparison = arcLengths[i]-targetArcLength;
 
-            if ( comparison < 0 ) {
+            if ( comparison < 0f ) {
 
                 low = i + 1;
 
-            } else if ( comparison > 0 ) {
+            } else if ( comparison > 0f ) {
 
                 high = i - 1;
 
@@ -259,6 +269,6 @@ public final class LineCurve implements Curve {
 
         // add that fractional amount to t
 
-        return ( i + segmentFraction ) / ( il - 1f );
+        return ( i + segmentFraction ) / ( il - 1 );
     }
 }

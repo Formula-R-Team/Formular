@@ -67,6 +67,11 @@ public final class CubicBezierCurve implements Curve {
     }
 
     @Override
+    public Vector2[] getPoints() {
+        return getPoints(5);
+    }
+
+    @Override
     public Vector2[] getSpacedPoints(final int divisions) {
         LinkedList<Vector2> points = new LinkedList<>();
 
@@ -77,6 +82,11 @@ public final class CubicBezierCurve implements Curve {
         }
 
         return points.toArray(new Vector2[0]);
+    }
+
+    @Override
+    public Vector2[] getSpacedPoints() {
+        return getSpacedPoints(5);
     }
 
     @Override
@@ -235,7 +245,7 @@ public final class CubicBezierCurve implements Curve {
 
     }
 
-    public float getUtoTmapping(float u, float distance) {
+    private float getUtoTmapping(float u, float distance) {
         float[] arcLengths = this.getLengths();
         int i, il=arcLengths.length;
         float targetArcLength;
