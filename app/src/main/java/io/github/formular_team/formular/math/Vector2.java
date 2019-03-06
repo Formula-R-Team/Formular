@@ -1,12 +1,14 @@
 package io.github.formular_team.formular.math;
 
+import com.google.common.math.DoubleMath;
+
 import java.util.Locale;
 import java.util.Objects;
 
-public final class Vector2 {
-    private float x;
+public class Vector2 {
+    protected float x;
 
-    private float y;
+    protected float y;
 
     public Vector2() {
         this(0.0F, 0.0F);
@@ -39,19 +41,19 @@ public final class Vector2 {
         return this;
     }
 
-    public Vector2 addScalar(final float s) {
+    public Vector2 add(final float s) {
         this.x += s;
         this.y += s;
         return this;
     }
 
-    public Vector2 addScaledVector(final Vector2 v, final float s) {
+    public Vector2 add(final Vector2 v, final float s) {
         this.x += v.width() * s;
         this.y += v.height() * s;
         return this;
     }
 
-    public Vector2 addVectors(final Vector2 a, final Vector2 b) {
+    public Vector2 add(final Vector2 a, final Vector2 b) {
         this.x = a.width() + b.width();
         this.y = a.height() + b.height();
         return this;
@@ -63,7 +65,7 @@ public final class Vector2 {
     }
 
 
-    public Vector2 applyMatrix3(final Matrix3 m) {
+    public Vector2 apply(final Matrix3 m) {
         final float x = this.x;
         final float y = this.y;
         final float[] e = m.elements();
@@ -84,9 +86,9 @@ public final class Vector2 {
         return this;
     }
 
-    public Vector2 clampLength(final float min, final float max) {
+    public Vector2 clamp(final float min, final float max) {
         final float length = this.length();
-        return this.divideScalar(length).multiplyScalar(Math.max(min, Math.min(max, length)));
+        return this.divide(length).multiply(Math.max(min, Math.min(max, length)));
     }
 
     public Vector2 clampScalar(final float min, final float max) {
@@ -129,8 +131,8 @@ public final class Vector2 {
         return this;
     }
 
-    public Vector2 divideScalar(final float s) {
-        return this.multiplyScalar(1.0F / s);
+    public Vector2 divide(final float s) {
+        return this.multiply(1.0F / s);
     }
 
     public float dot(final Vector2 v) {
@@ -143,14 +145,11 @@ public final class Vector2 {
 
     @Override
     public boolean equals(final Object o) {
-        if (o == this) {
-            return true;
-        }
-        if (o instanceof Vector2) {
-            final Vector2 other = (Vector2) o;
-            return Float.compare(other.x, this.x) == 0 && Float.compare(other.y, this.y) == 0;
-        }
-        return false;
+        return o == this || o instanceof Vector2 && this.equals((Vector2) o, 0.0F);
+    }
+
+    public boolean equals(final Vector2 other, final float epsilon) {
+        return DoubleMath.fuzzyEquals(other.x, this.x, epsilon) && DoubleMath.fuzzyEquals(other.y, this.y, epsilon);
     }
 
     @Override
@@ -169,18 +168,15 @@ public final class Vector2 {
         return this;
     }
 
+    public Vector2 fromArray(final float[] array) {
+        return this.fromArray(array, 0);
+    }
+
     public Vector2 fromArray(final float[] array, final int offset) {
         this.x = array[offset];
         this.y = array[offset + 1];
         return this;
     }
-
-    public Vector2 fromArray(final float[] array) {
-        this.x = array[0];
-        this.y = array[1];
-        return this;
-    }
-
 
     public float getComponent(final int index) {
         switch (index) {
@@ -194,7 +190,7 @@ public final class Vector2 {
     }
 
     public float length() {
-        return Mth.sqrt(this.x * this.x + this.y * this.y);
+        return Mth.sqrt(this.lengthSq());
     }
 
     public float manhattanLength() {
@@ -211,8 +207,8 @@ public final class Vector2 {
         return this;
     }
 
-    public Vector2 lerpVectors(final Vector2 v1, final Vector2 v2, final float alpha) {
-        return this.subVectors(v2, v1).multiplyScalar(alpha).add(v1);
+    public Vector2 lerp(final Vector2 v1, final Vector2 v2, final float alpha) {
+        return this.subVectors(v2, v1).multiply(alpha).add(v1);
     }
 
     public Vector2 negate() {
@@ -222,7 +218,7 @@ public final class Vector2 {
     }
 
     public Vector2 normalize() {
-        return this.divideScalar(this.length());
+        return this.divide(this.length());
     }
 
     public Vector2 max(final Vector2 v) {
@@ -243,7 +239,7 @@ public final class Vector2 {
         return this;
     }
 
-    public Vector2 multiplyScalar(final float s) {
+    public Vector2 multiply(final float s) {
         this.x *= s;
         this.y *= s;
         return this;
@@ -299,10 +295,10 @@ public final class Vector2 {
     }
 
     public Vector2 setLength(final float l) {
-        return this.normalize().multiplyScalar(l);
+        return this.normalize().multiply(l);
     }
 
-    public Vector2 setScalar(final float scalar) {
+    public Vector2 set(final float scalar) {
         this.x = scalar;
         this.y = scalar;
         return this;
@@ -324,7 +320,7 @@ public final class Vector2 {
         return this;
     }
 
-    public Vector2 subScalar(final float s) {
+    public Vector2 sub(final float s) {
         this.x -= s;
         this.y -= s;
         return this;

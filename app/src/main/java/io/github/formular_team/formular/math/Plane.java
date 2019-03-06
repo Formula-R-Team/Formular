@@ -53,7 +53,7 @@ public final class Plane {
 
     public Plane normalize() {
         final float invNormalLen = 1.0F / this.normal.length();
-        this.normal.multiplyScalar(invNormalLen);
+        this.normal.multiply(invNormalLen);
         this.constant *= invNormalLen;
         return this;
     }
@@ -69,17 +69,17 @@ public final class Plane {
     }
 
     public Vector3 projectPoint(final Vector3 point, final Vector3 target) {
-        return target.copy(this.normal).multiplyScalar(-this.distanceToPoint(point)).add(point);
+        return target.copy(this.normal).multiply(-this.distanceToPoint(point)).add(point);
     }
 
     public Vector3 coplanarPoint(final Vector3 target) {
-        return target.copy(this.normal).multiplyScalar(-this.constant);
+        return target.copy(this.normal).multiply(-this.constant);
     }
 
     public Plane applyMatrix4(final Matrix4 matrix) {
         final Matrix3 normalMatrix = new Matrix3().getNormalMatrix(matrix);
-        final Vector3 referencePoint = this.coplanarPoint(new Vector3()).applyMatrix4(matrix);
-        final Vector3 normal = this.normal.applyMatrix3(normalMatrix).normalize();
+        final Vector3 referencePoint = this.coplanarPoint(new Vector3()).apply(matrix);
+        final Vector3 normal = this.normal.apply(normalMatrix).normalize();
         this.constant =-referencePoint.dot(normal);
         return this;
     }

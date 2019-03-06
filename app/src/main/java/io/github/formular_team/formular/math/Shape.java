@@ -1,5 +1,8 @@
 package io.github.formular_team.formular.math;
 
+import com.google.common.collect.Lists;
+
+import java.util.List;
 import java.util.Random;
 
 public class Shape extends Path {
@@ -9,15 +12,21 @@ public class Shape extends Path {
 
     @Override
     public Shape copy() {
-        return null;
+        final Builder newBuilder = new Builder();
+        super.copy(newBuilder);
+        return newBuilder.build();
     }
 
     public Path[] holes() {
-        return null;
+        return new Path[0];
     }
 
-    public Vector2[] getPointsHoles(final int divisions) {
-        return null;
+    public List<List<Vector2>> getPointsHoles(final int divisions) {
+        return Lists.newArrayList();
+    }
+
+    public List<List<Vector2>> getPointsHoles() {
+        return this.getPointsHoles(200);
     }
 
     public boolean contains(final Vector2 point) {

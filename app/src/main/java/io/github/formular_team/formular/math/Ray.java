@@ -38,7 +38,7 @@ public final class Ray {
     }
 
     public Vector3 at(final float t, final Vector3 target) {
-        return target.copy(this.direction).multiplyScalar(t).add(this.origin);
+        return target.copy(this.direction).multiply(t).add(this.origin);
     }
 
     public Ray lookAt(final Vector3 v) {
@@ -82,7 +82,7 @@ public final class Ray {
     }
 
     public Ray applyMatrix4(final Matrix4 matrix) {
-        this.origin.applyMatrix4(matrix);
+        this.origin.apply(matrix);
         this.direction.transformDirection(matrix);
         return this;
     }

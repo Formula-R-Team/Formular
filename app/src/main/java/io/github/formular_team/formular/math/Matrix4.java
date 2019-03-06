@@ -356,7 +356,7 @@ public class Matrix4 {
 
         final float[] te = this.elements;
 
-        z.subVectors(eye, target);
+        z.sub(eye, target);
 
         if (z.lengthSq() == 0) {
 
@@ -402,26 +402,23 @@ public class Matrix4 {
         te[10] = z.z();
     }
 
-    public void makeRotationAxis(final Vector3 axis, final float angle) {
+    public Matrix4 makeRotationAxis(final Vector3 axis, final float angle) {
         // Based on http://www.gamedev.net/reference/articles/article1199.asp
-
         final float c = Mth.cos(angle);
         final float s = Mth.sin(angle);
-        final float t = 1f - c;
+        final float t = 1.0F - c;
         final float x = axis.x();
         final float y = axis.y();
         final float z = axis.z();
         final float tx = t * x;
         final float ty = t * y;
-
         this.set(
-
-            tx * x + c, tx * y - s * z, tx * z + s * y, 0,
-            tx * y + s * z, ty * y + c, ty * z - s * x, 0,
-            tx * z - s * y, ty * z + s * x, t * z * z + c, 0,
-            0, 0, 0, 1
-
+            tx * x + c, tx * y - s * z, tx * z + s * y, 0.0F,
+            tx * y + s * z, ty * y + c, ty * z - s * x, 0.0F,
+            tx * z - s * y, ty * z + s * x, t * z * z + c, 0.0F,
+            0.0F, 0.0F, 0.0F, 1.0F
         );
+        return this;
     }
 
     public void makeBasis(final Vector3 xAxis, final Vector3 yAxis, final Vector3 zAxis) {

@@ -14,7 +14,7 @@ public final class Projection {
 
     // return new Vector2((coords.x() + 1.0F) / 2.0F * viewport.width(), (1.0F - coords.y()) / 2.0F * viewport.height());
     public static Vector2 project(final Matrix4 mvp, final Vector3 point) {
-        final Vector3 coords = point.copy().applyMatrix4(mvp);
+        final Vector3 coords = point.copy().apply(mvp);
         return new Vector2(coords.x(), coords.y());
     }
 
@@ -29,8 +29,8 @@ public final class Projection {
         final Vector3 farScreenPoint = new Vector3(point.x(), point.y(), 1.0F);
         final Vector3 nearScreenPoint = new Vector3(point.x(), point.y(), -1.0F);
         final Matrix4 invertedProjectionMatrix = new Matrix4().getInverse(viewProjMtx, true);
-        final Vector3 origin = nearScreenPoint.copy().applyMatrix4(invertedProjectionMatrix);
-        final Vector3 direction = farScreenPoint.copy().applyMatrix4(invertedProjectionMatrix);
+        final Vector3 origin = nearScreenPoint.copy().apply(invertedProjectionMatrix);
+        final Vector3 direction = farScreenPoint.copy().apply(invertedProjectionMatrix);
         return new Ray(origin, direction.sub(origin).normalize());
     }
 }

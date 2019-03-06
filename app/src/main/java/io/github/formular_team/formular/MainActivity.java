@@ -5,7 +5,6 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.media.Image;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -27,10 +26,17 @@ import com.google.ar.sceneform.ArSceneView;
 import com.google.ar.sceneform.FrameTime;
 import com.google.ar.sceneform.Node;
 import com.google.ar.sceneform.Scene;
+import com.google.ar.sceneform.rendering.MaterialFactory;
 import com.google.ar.sceneform.rendering.ModelRenderable;
+import com.google.ar.sceneform.rendering.RenderableDefinition;
+import com.google.ar.sceneform.rendering.Texture;
+import com.google.ar.sceneform.rendering.Vertex;
 import com.google.ar.sceneform.ux.ArFragment;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.Futures;
 
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Function;
@@ -94,7 +100,7 @@ public class MainActivity extends AppCompatActivity {
                     );
                     final Camera camera = frame.getCamera();
                     final Matrix4 projMat = new Matrix4();
-                    camera.getProjectionMatrix(projMat.elements(), 0, 0.01F, 10.0F);
+                    camera.getProjectionMatrix(projMat.elements(), 0, 0.1F, 6.0F);
                     final Matrix4 viewMat = new Matrix4();
                     camera.getViewMatrix(viewMat.elements(), 0);
 
@@ -118,9 +124,9 @@ public class MainActivity extends AppCompatActivity {
                             planeAtPick.toMatrix(planeAtPickModelMatrix.elements(), 0);
                             final Function<Vector3, Vector2> planeToImage = in -> {
                                 // TODO: compose mvp matrix
-                                final io.github.formular_team.formular.math.Vector3 ndc = in.applyMatrix4(planeAtPickModelMatrix)
-                                    .applyMatrix4(viewMat)
-                                    .applyMatrix4(projMat);
+                                final io.github.formular_team.formular.math.Vector3 ndc = in.apply(planeAtPickModelMatrix)
+                                    .apply(viewMat)
+                                    .apply(projMat);
                                 in2[0] = ndc.x();
                                 in2[1] = ndc.y();
                                 frame.transformCoordinates2d(
@@ -166,9 +172,9 @@ public class MainActivity extends AppCompatActivity {
                                 final Path.Builder pathOnPlaneBuilder = Path.builder();
                                 pathInCapture.visit(pathOnPlaneBuilder.transform(in ->
                                     in.copy()
-                                        .multiplyScalar(2.0F / captureSize)
-                                        .subScalar(1.0F)
-                                        .multiplyScalar(worldScale)
+                                        .multiply(2.0F / captureSize)
+                                        .sub(1.0F)
+                                        .multiply(worldScale)
                                         .multiply(new Vector2(1.0F, -1.0F))
                                 ));
                                 final Path pathOnPlane = pathOnPlaneBuilder.build();
@@ -176,17 +182,79 @@ public class MainActivity extends AppCompatActivity {
                                 final AnchorNode planeAnchorNode = new AnchorNode(planeAnchor);
                                 planeAnchorNode.setParent(view.getScene());
                                 this.anchors.add(planeAnchor);
+                                /*MaterialFactory.makeOpaqueWithColor(MainActivity.this, new Color(0xFF565E66)).thenAccept(material -> {
+                                    final float roadHeight = 2;
+                                    final float roadSize = 4;
+                                    final Shape.Builder shape = Shape.builder();
+                                    shape.moveTo(new Vector2(0.0F, -roadSize));
+                                    shape.lineTo(new Vector2(-roadHeight, -roadSize));
+                                    shape.lineTo(new Vector2(-roadHeight, roadSize));
+                                    shape.lineTo(new Vector2(0.0F, roadSize));
+                                    shape.lineTo(new Vector2(0.0F, -roadSize));
+                                    final Path.Builder path3d = Path.builder();
+                                    pathOnPlane.visit(path3d.transform(vv -> new Vector3(vv).multiply(100.0F)));
+                                    final ModelRenderable pathmodel = Geometries.extrude(shape.build(), path3d.build(), 16, material);
+                                    final Node n = new Node();
+                                    n.setLocalScale(com.google.ar.sceneform.math.Vector3.one().scaled(1.0F / 100.0F));
+                                    n.setLocalPosition(new com.google.ar.sceneform.math.Vector3(0.0F, 0.001F, 0.0F));
+//                                    n.setLocalRotation(Quaternion.axisAngle(new com.google.ar.sceneform.math.Vector3(1.0F, 0.0F, 0.0F), 0.5F * Mth.PI));
+                                    n.setParent(planeAnchorNode);
+                                    n.setRenderable(pathmodel);
+                                });*/
+                                {
+                                    final Bitmap track = Bitmap.createBitmap(captureSize, captureSize, Bitmap.Config.ARGB_8888);
+                                    final android.graphics.Path graphicPath = new android.graphics.Path();
+                                    pathInCapture.visit(new GraphicsPathVisitor(graphicPath));
+                                    graphicPath.close();
+                                    final Canvas canvas = new Canvas(track);
+                                    final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+                                    paint.setStyle(Paint.Style.STROKE);
+                                    paint.setStrokeWidth(12.0F);
+                                    paint.setColor(0xA0FF1A52);
+                                    canvas.drawPath(graphicPath, paint);
+                                    Texture.builder().setSource(track).build().thenAccept(texture -> {
+                                        MaterialFactory.makeTransparentWithTexture(MainActivity.this, texture).thenAccept(material -> {
+                                            final com.google.ar.sceneform.math.Vector3 extents = new com.google.ar.sceneform.math.Vector3(0.5F, 0.0F, 0.5F).scaled(2.0F * worldScale);
+                                            final com.google.ar.sceneform.math.Vector3 p0 = new com.google.ar.sceneform.math.Vector3(-extents.x, extents.y, -extents.z);
+                                            final com.google.ar.sceneform.math.Vector3 p1 = new com.google.ar.sceneform.math.Vector3(extents.x, extents.y, -extents.z);
+                                            final com.google.ar.sceneform.math.Vector3 p4 = new com.google.ar.sceneform.math.Vector3(-extents.x, extents.y, extents.z);
+                                            final com.google.ar.sceneform.math.Vector3 p5 = new com.google.ar.sceneform.math.Vector3(extents.x, extents.y, extents.z);
+                                            final com.google.ar.sceneform.math.Vector3 front = com.google.ar.sceneform.math.Vector3.up();
+                                            final ImmutableList<Vertex> vertices = ImmutableList.of(
+                                                Vertex.builder().setPosition(p4).setNormal(front).setUvCoordinate(new Vertex.UvCoordinate(0.0F, 1.0F)).build(),
+                                                Vertex.builder().setPosition(p5).setNormal(front).setUvCoordinate(new Vertex.UvCoordinate(1.0F, 1.0F)).build(),
+                                                Vertex.builder().setPosition(p1).setNormal(front).setUvCoordinate(new Vertex.UvCoordinate(1.0F, 0.0F)).build(),
+                                                Vertex.builder().setPosition(p0).setNormal(front).setUvCoordinate(new Vertex.UvCoordinate(0.0F, 0.0F)).build()
+                                            );
+                                            final RenderableDefinition.Submesh mesh = RenderableDefinition.Submesh.builder()
+                                                .setTriangleIndices(ImmutableList.of(3, 0, 1, 3, 1, 2))
+                                                .setMaterial(material)
+                                                .build();
+                                            final RenderableDefinition def = RenderableDefinition.builder()
+                                                .setVertices(vertices)
+                                                .setSubmeshes(Collections.singletonList(mesh))
+                                                .build();
+                                            final ModelRenderable renderable = Futures.getUnchecked(ModelRenderable.builder().setSource(def).build());
+                                            renderable.setShadowCaster(false);
+                                            final Node n = new Node();
+                                            n.setParent(planeAnchorNode);
+                                            n.setRenderable(renderable);
+                                        });
+                                    });
+
+                                }
                                 final com.google.ar.sceneform.math.Vector3 modelScale = com.google.ar.sceneform.math.Vector3.one().scaled(worldScale * 0.15F);
-                                ModelRenderable.builder()
+                                /*ModelRenderable.builder()
                                     .setSource(this, Uri.parse("teapot.sfb"))
                                     .build()
                                     .thenAccept(renderable -> {
-                                        for (int n = 0; n < 10; n++) {
-                                            final float t = n / 8.0F;
+                                        final int c = 10;
+                                        for (int n = 0; n < c; n++) {
+                                            final float t = (float) n / c;
                                             final Vector2 point = pathOnPlane.getPoint(t);
                                             final Vector2 tangent = pathOnPlane.getTangent(t).rotateAround(new Vector2(), (float) (-0.5F * Math.PI));
                                             final Node posNode = new Node();
-                                            posNode.setLocalPosition(new com.google.ar.sceneform.math.Vector3(point.x(), 0.0F, point.y()));
+                                            posNode.setLocalPosition(new com.google.ar.sceneform.math.Vector3(point.x(), 0.0125F, point.y()));
                                             posNode.setParent(planeAnchorNode);
                                             final Node modelNode = new Node();
                                             modelNode.setLocalScale(modelScale);
@@ -198,7 +266,9 @@ public class MainActivity extends AppCompatActivity {
                                     .exceptionally(throwable -> {
                                         Log.e(TAG, "Unable to load Renderable.", throwable);
                                         return null;
-                                    });
+                                    });*/
+                            } else {
+                                Log.i(TAG, "Null image!");
                             }
                         });
                     return true;

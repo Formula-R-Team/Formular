@@ -3,6 +3,8 @@ package io.github.formular_team.formular.math;
 public final class Mth {
     private Mth() {}
 
+    public static final float PI = (float) Math.PI;
+
     public static float sqrt(final float a) {
         return (float) Math.sqrt(a);
     }

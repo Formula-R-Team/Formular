@@ -28,7 +28,7 @@ public class Body {
 
     private Vector2 center() {
         final Vector2 center = new Vector2();
-        center.applyMatrix3(this.transform);
+        center.apply(this.transform);
         return center;
     }
 
@@ -41,7 +41,7 @@ public class Body {
 
     public void applyImpulse(final Vector2 impulse) {
         final Vector2 v = impulse.copy();
-        v.multiplyScalar(1.0F / this.mass);
+        v.multiply(1.0F / this.mass);
         this.velocity.add(v);
     }
 
@@ -66,17 +66,17 @@ public class Body {
 
     public void step(final float delta) {
         final Matrix3 m = new Matrix3();
-        this.force.multiplyScalar(delta);
+        this.force.multiply(delta);
         this.velocity.add(this.force);
         final Vector2 stepVelocity = this.velocity.copy();
-        stepVelocity.multiplyScalar(delta);
+        stepVelocity.multiply(delta);
         m.set(
             1.0F, 0.0F, stepVelocity.x(),
             0.0F, 1.0F, stepVelocity.y(),
             0.0F, 0.0F, 1.0F
         );
         this.transform.multiply(m);
-        this.force.setScalar(0.0F);
+        this.force.set(0.0F);
         this.angularVelocity += this.torque * delta;
         m.set(
             (float) Math.cos(this.angularVelocity * delta), (float) -Math.sin(this.angularVelocity * delta), 0.0F,

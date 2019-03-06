@@ -26,7 +26,7 @@ public final class SimpleStepFunction implements StepFunction {
 		float greatestStrength = Float.NEGATIVE_INFINITY;
 		for (int n = -this.viewHalfLength; n <= this.viewHalfLength; n++) {
 			final Vector2 vec = new Vector2(1.0F, 0.0F).rotateAround(new Vector2(), n * this.viewHalfAngle / this.viewHalfLength);
-			vec.multiplyScalar(this.viewDistance);
+			vec.multiply(this.viewDistance);
 			final float strength = image.get(vec.x(), vec.y());
 			if (strength > 0.15F && strength > greatestStrength) {
 				greatestStrength = strength;

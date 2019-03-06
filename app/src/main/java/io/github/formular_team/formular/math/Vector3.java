@@ -2,29 +2,20 @@ package io.github.formular_team.formular.math;
 
 import java.util.Objects;
 
-public final class Vector3 {
-    private float x;
-
-    private float y;
-
+public final class Vector3 extends Vector2 {
     private float z;
 
     public Vector3() {
         this(0.0F, 0.0F, 0.0F);
     }
 
+    public Vector3(final Vector2 vec) {
+        this(vec.x(), 0.0F, vec.y());
+    }
+
     public Vector3(final float x, final float y, final float z) {
-        this.x = x;
-        this.y = y;
+        super(x, y);
         this.z = z;
-    }
-
-    public float x() {
-        return this.x;
-    }
-
-    public float y() {
-        return this.y;
     }
 
     public float z() {
@@ -32,32 +23,33 @@ public final class Vector3 {
     }
 
     public Vector3 add(final Vector3 v) {
-        this.x += v.x();
-        this.y += v.y();
+        super.add(v);
         this.z += v.z();
         return this;
     }
 
-    public void addScalar(final float s) {
-        this.x += s;
-        this.y += s;
+    @Override
+    public Vector3 add(final float s) {
+        super.add(s);
         this.z += s;
+        return this;
     }
 
-    public void addVectors(final Vector3 a, final Vector3 b) {
-        this.x = a.x() + b.x();
-        this.y = a.y() + b.y();
+    public Vector3 add(final Vector3 a, final Vector3 b) {
+        super.add(a, b);
         this.z = a.z() + b.z();
+        return this;
     }
 
     public Vector3 applyAxisAngle(final Vector3 axis, final float angle) {
         final Quaternion quaternion = new Quaternion();
         quaternion.setFromAxisAngle(axis, angle);
-        this.applyQuaternion(quaternion);
+        this.apply(quaternion);
         return this;
     }
 
-    public Vector3 applyMatrix3(final Matrix3 m) {
+    @Override
+    public Vector3 apply(final Matrix3 m) {
         final float x = this.x;
         final float y = this.y;
         final float z = this.z;
@@ -69,7 +61,7 @@ public final class Vector3 {
         return this;
     }
 
-    public Vector3 applyMatrix4(final Matrix4 m) {
+    public Vector3 apply(final Matrix4 m) {
         final float x = this.x;
         final float y = this.y;
         final float z = this.z;
@@ -81,7 +73,7 @@ public final class Vector3 {
         return this;
     }
 
-    public Vector3 applyQuaternion(final Quaternion q) {
+    public Vector3 apply(final Quaternion q) {
         final float x = this.x;
         final float y = this.y;
         final float z = this.z;
@@ -113,42 +105,41 @@ public final class Vector3 {
         return Mth.acos(Mth.clamp(theta, -1.0f, 1.0f));
     }
 
-    public void ceil() {
-        this.x = Mth.ceil(this.x);
-        this.y = Mth.ceil(this.y);
+    @Override
+    public Vector3 ceil() {
+        super.ceil();
         this.z = Mth.ceil(this.z);
+        return this;
     }
 
-    public void clamp(final Vector3 min, final Vector3 max) {
-        this.x = Math.max(min.x(), Math.min(max.x(), this.x));
-        this.y = Math.max(min.y(), Math.min(max.y(), this.y));
+    public Vector3 clamp(final Vector3 min, final Vector3 max) {
+        super.clamp(min, max);
         this.z = Math.max(min.z(), Math.min(max.z(), this.z));
+        return this;
     }
 
-    public void clampLength(final float min, final float max) {
+    @Override
+    public Vector3 clamp(final float min, final float max) {
         final float length = this.length();
-
-        this.divideScalar(length);
-        this.multiplyScalar(Math.max(min, Math.min(max, length)));
+        return this.divide(length).multiply(Math.max(min, Math.min(max, length)));
     }
 
-    public void clampScalar(final float minVal, final float maxVal) {
+    @Override
+    public Vector3 clampScalar(final float minVal, final float maxVal) {
         final Vector3 min = new Vector3();
         final Vector3 max = new Vector3();
-
         min.set(minVal, minVal, minVal);
         max.set(maxVal, maxVal, maxVal);
-
-        this.clamp(min, max);
+        return this.clamp(min, max);
     }
 
+    @Override
     public Vector3 copy() {
         return new Vector3(this.x, this.y, this.z);
     }
 
     public Vector3 copy(final Vector3 v) {
-        this.x = v.x();
-        this.y = v.y();
+        super.copy(v);
         this.z = v.z();
         return this;
     }
@@ -158,17 +149,17 @@ public final class Vector3 {
         return this;
     }
 
-    public void crossVectors(final Vector3 a, final Vector3 b) {
+    public Vector3 crossVectors(final Vector3 a, final Vector3 b) {
         final float ax = a.x();
         final float ay = a.y();
         final float az = a.z();
         final float bx = b.x();
         final float by = b.y();
         final float bz = b.z();
-
         this.x = ay * bz - az * by;
         this.y = az * bx - ax * bz;
         this.z = ax * by - ay * bx;
+        return this;
     }
 
     public float distanceTo(final Vector3 v) {
@@ -176,29 +167,27 @@ public final class Vector3 {
     }
 
     public float manhattanDistanceTo(final Vector3 v) {
-        return Math.abs(this.x - v.x()) + Math.abs(this.y - v.y()) + Math.abs(this.z - v.z());
+        return super.manhattanDistanceTo(v) + Math.abs(this.z - v.z());
     }
 
     public float distanceToSquared(final Vector3 v) {
-        final float dx = this.x - v.x();
-        final float dy = this.y - v.y();
         final float dz = this.z - v.z();
-
-        return dx * dx + dy * dy + dz * dz;
+        return super.distanceToSquared(v) + dz * dz;
     }
 
-    public void divide(final Vector3 v) {
-        this.x /= v.x();
-        this.y /= v.y();
+    public Vector3 divide(final Vector3 v) {
+        super.divide(v);
         this.z /= v.z();
+        return this;
     }
 
-    public void divideScalar(final float s) {
-        this.multiplyScalar(1f / s);
+    @Override
+    public Vector3 divide(final float s) {
+        return this.multiply(1.0F / s);
     }
 
     public float dot(final Vector3 v) {
-        return this.x * v.x() + this.y * v.y() + this.z * v.z();
+        return super.dot(v) + this.z * v.z();
     }
 
     @Override
@@ -218,25 +207,28 @@ public final class Vector3 {
         return Objects.hash(this.x, this.y, this.z);
     }
 
-    public void floor() {
-        this.x = Mth.floor(this.x);
-        this.y = Mth.floor(this.y);
+    @Override
+    public Vector3 floor() {
+        super.floor();
         this.z = Mth.floor(this.z);
+        return this;
     }
 
-    public void fromArray(final float[] array) {
-        this.fromArray(array, 0);
+    @Override
+    public Vector2 fromArray(final float[] array) {
+        return this.fromArray(array, 0);
     }
 
-    public void fromArray(final float[] array, final int offset) {
-        this.x = array[offset];
-        this.y = array[offset + 1];
+    @Override
+    public Vector3 fromArray(final float[] array, final int offset) {
+        super.fromArray(array, offset);
         this.z = array[offset + 2];
+        return this;
     }
 
+    @Override
     public float getComponent(final int index) {
         switch (index) {
-
         case 0:
             return this.x;
         case 1:
@@ -249,61 +241,56 @@ public final class Vector3 {
         }
     }
 
-    public float length() {
-        return Mth.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
-    }
-
+    @Override
     public float manhattanLength() {
-        return Math.abs(this.x) + Math.abs(this.y) + Math.abs(this.z);
+        return super.manhattanLength() + Math.abs(this.z);
     }
 
+    @Override
     public float lengthSq() {
-        return this.x * this.x + this.y * this.y + this.z * this.z;
+        return super.lengthSq() + this.z * this.z;
     }
 
     public void lerp(final Vector3 v, final float alpha) {
-        this.x += (v.x() - this.x) * alpha;
-        this.y += (v.y() - this.y) * alpha;
+        super.lerp(v, alpha);
         this.z += (v.z() - this.z) * alpha;
     }
 
-    public void lerpVectors(final Vector3 v1, final Vector3 v2, final float alpha) {
-        this.subVectors(v2, v1);
-        this.multiplyScalar(alpha);
+    public void lerp(final Vector3 v1, final Vector3 v2, final float alpha) {
+        this.sub(v2, v1);
+        this.multiply(alpha);
         this.add(v1);
     }
 
     public void max(final Vector3 v) {
-        this.x = Math.max(this.x, v.x());
-        this.y = Math.max(this.y, v.y());
+        super.max(v);
         this.z = Math.max(this.z, v.z());
     }
 
     public void min(final Vector3 v) {
-        this.x = Math.min(this.x, v.x());
-        this.y = Math.min(this.y, v.y());
+        super.min(v);
         this.z = Math.min(this.z, v.z());
     }
 
     public void multiply(final Vector3 v) {
-        this.x *= v.x();
-        this.y *= v.y();
+        super.multiply(v);
         this.z *= v.z();
     }
 
-    public Vector3 multiplyScalar(final float scalar) {
-        this.x *= scalar;
-        this.y *= scalar;
+    @Override
+    public Vector3 multiply(final float scalar) {
+        super.multiply(scalar);
         this.z *= scalar;
         return this;
     }
 
-    public void multiplyVectors(final Vector3 a, final Vector3 b) {
+    public void multiply(final Vector3 a, final Vector3 b) {
         this.x = a.x() * b.x();
         this.y = a.y() * b.y();
         this.z = a.z() * b.z();
     }
 
+    @Override
     public Vector3 negate() {
         this.x = -this.x;
         this.y = -this.y;
@@ -311,8 +298,9 @@ public final class Vector3 {
         return this;
     }
 
+    @Override
     public Vector3 normalize() {
-        this.divideScalar(this.length());
+        this.divide(this.length());
         return this;
     }
 
@@ -320,7 +308,6 @@ public final class Vector3 {
         final Vector3 v1 = new Vector3();
         v1.copy(this);
         v1.projectOnVector(planeNormal);
-
         this.sub(v1);
     }
 
@@ -328,50 +315,42 @@ public final class Vector3 {
         final float scalar = vector.dot(this) / vector.lengthSq();
 
         this.copy(vector);
-        this.multiplyScalar(scalar);
+        this.multiply(scalar);
     }
 
     public void reflect(final Vector3 normal) {
         final Vector3 v1 = new Vector3();
         v1.copy(normal);
-        v1.multiplyScalar(2 * this.dot(normal));
+        v1.multiply(2.0F * this.dot(normal));
         this.sub(v1);
     }
 
-    public void round() {
-        this.x = Math.round(this.x);
-        this.y = Math.round(this.y);
+    @Override
+    public Vector3  round() {
+        super.round();
         this.z = Math.round(this.z);
+        return this;
     }
 
-    public void roundToZero() {
-
-        if (this.x < 0.0f) {
-            this.x = Mth.ceil(this.x);
-        } else {
-            this.x = Mth.floor(this.x);
-        }
-        if (this.y < 0.0f) {
-            this.y = Mth.ceil(this.y);
-        } else {
-            this.y = Mth.floor(this.y);
-        }
-        if (this.z < 0.0f) {
+    @Override
+    public Vector3 roundToZero() {
+        super.roundToZero();
+        if (this.z < 0.0F) {
             this.z = Mth.ceil(this.z);
         } else {
             this.z = Mth.floor(this.z);
         }
+        return this;
     }
 
     public void set(final float x, final float y, final float z) {
-        this.x = x;
-        this.y = y;
+        super.set(x, y);
         this.z = z;
     }
 
+    @Override
     public void setComponent(final int index, final float value) {
         switch (index) {
-
         case 0:
             this.x = value;
             break;
@@ -393,20 +372,16 @@ public final class Vector3 {
         this.z = radius * Mth.cos(theta);
     }
 
-
     public void setFromMatrixColumn(final Matrix4 m, final int index) {
         this.fromArray(m.elements(), index * 4);
     }
 
-
     public void setFromMatrixPosition(final Matrix4 matrix) {
         final float[] e = matrix.elements();
-
         this.x = e[12];
         this.y = e[13];
         this.z = e[14];
     }
-
 
     public void setFromMatrixScale(final Matrix4 m) {
         this.setFromMatrixColumn(m, 0);
@@ -415,7 +390,6 @@ public final class Vector3 {
         final float sy = this.length();
         this.setFromMatrixColumn(m, 2);
         final float sz = this.length();
-
         this.x = sx;
         this.y = sy;
         this.z = sz;
@@ -424,69 +398,77 @@ public final class Vector3 {
 
     public void setFromSphericalCoords(final float radius, final float phi, final float theta) {
         final float sinPhiRadius = Mth.sin(phi) * radius;
-
         this.x = sinPhiRadius * Mth.sin(theta);
         this.y = Mth.cos(phi) * radius;
         this.z = sinPhiRadius * Mth.cos(theta);
     }
 
-    public void setLength(final float l) {
+    @Override
+    public Vector3 setLength(final float l) {
         this.normalize();
-        this.multiplyScalar(l);
+        return this.multiply(l);
     }
 
-    public void setScalar(final float scalar) {
-        this.x = scalar;
-        this.y = scalar;
+    @Override
+    public Vector3 set(final float scalar) {
+        super.set(scalar);
         this.z = scalar;
+        return this;
     }
 
-    public void setX(final float x) {
-        this.x = x;
+    @Override
+    public Vector3 setX(final float x) {
+        super.setX(x);
+        return this;
     }
 
-    public void setY(final float y) {
-        this.y = y;
+    @Override
+    public Vector3 setY(final float y) {
+        super.setY(y);
+        return this;
     }
 
-    public void setZ(final float z) {
+    public Vector3 setZ(final float z) {
         this.z = z;
+        return this;
     }
 
     public Vector3 sub(final Vector3 v) {
-        this.x -= v.x();
-        this.y -= v.y();
+        super.sub(v);
         this.z -= v.z();
         return this;
     }
 
-    public void subScalar(final float s) {
-        this.x -= s;
-        this.y -= s;
+    @Override
+    public Vector3 sub(final float s) {
+        super.sub(s);
         this.z -= s;
+        return this;
     }
 
-    public void subVectors(final Vector3 a, final Vector3 b) {
+    public void sub(final Vector3 a, final Vector3 b) {
         this.x = a.x() - b.x();
         this.y = a.y() - b.y();
         this.z = a.z() - b.z();
     }
 
+    @Override
     public float[] toArray() {
         return this.toArray(new float[3], 0);
     }
 
+    @Override
     public float[] toArray(final float[] array) {
         return this.toArray(array, 0);
     }
 
+    @Override
     public float[] toArray(final float[] array, final int offset) {
         array[offset] = this.x;
         array[offset + 1] = this.y;
         array[offset + 2] = this.z;
         return array;
     }
-
 
     public Vector3 transformDirection(final Matrix4 m) {
         final float x = this.x;
