@@ -9,6 +9,14 @@ public final class Mth {
         return angdeg / 180.0F * PI;
     }
 
+    public static float deltaAngle(final float a, final float b) {
+        return mod(a - b + 180,360) - 180;
+    }
+
+    public static float mod(final float a, final float b) {
+        return (a % b + b) % b;
+    }
+
     public static float sqrt(final float a) {
         return (float) Math.sqrt(a);
     }

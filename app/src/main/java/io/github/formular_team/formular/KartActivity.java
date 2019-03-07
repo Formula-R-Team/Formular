@@ -21,6 +21,8 @@ import com.google.ar.sceneform.rendering.ShapeFactory;
 import com.google.ar.sceneform.ux.ArFragment;
 import com.google.ar.sceneform.ux.TransformableNode;
 
+import io.github.formular_team.formular.math.Mth;
+
 public class KartActivity extends AppCompatActivity {
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final double MIN_OPENGL_VERSION = 3.0;
@@ -30,6 +32,7 @@ public class KartActivity extends AppCompatActivity {
     TransformableNode controlPot;
     Node tireFrontLeft, tireFrontRight, tireBackLeft, tireBackRight;
     final float tireDiameter = 0.25F;
+    private Kart kart;
 
     private boolean isDown = false; //determines if go button is being pressed down
     private boolean isLeftDown = false; // determines if left button is being pressed down
@@ -52,6 +55,11 @@ public class KartActivity extends AppCompatActivity {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 switch(event.getAction()) {
+                    case MotionEvent.ACTION_MOVE:
+                        float x = Mth.clamp(event.getX() / v.getWidth() * 2.0F - 1.0F, -1.0F, 1.0F);
+                        float y = Mth.clamp(event.getY() / v.getHeight() * 2.0F - 1.0F, -1.0F, 1.0F);
+
+                        return true;
                     case MotionEvent.ACTION_DOWN:
                         isDown = true;
                         return true;
@@ -66,43 +74,8 @@ public class KartActivity extends AppCompatActivity {
             }
         });
 
-        Button leftBtn = (Button) findViewById(R.id.leftBtn);
-        leftBtn.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                switch(event.getAction()) {
-                    case MotionEvent.ACTION_DOWN:
-                        isLeftDown = true;
-                        return true;
-                    case MotionEvent.ACTION_UP:
-                        isLeftDown = false;
-                        return true;
-                    case MotionEvent.ACTION_CANCEL:
-                        isLeftDown = false;
-                        return true;
-                }
-                return false;
-            }
-        });
 
-        Button rightBtn = (Button) findViewById(R.id.rightBtn);
-        rightBtn.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                switch(event.getAction()) {
-                    case MotionEvent.ACTION_DOWN:
-                        isRightDown = true;
-                        return true;
-                    case MotionEvent.ACTION_UP:
-                        isRightDown = false;
-                        return true;
-                    case MotionEvent.ACTION_CANCEL:
-                        isRightDown = false;
-                        return true;
-                }
-                return false;
-            }
-        });
+
 
         mTimer = new TimeAnimator();
         mLastTime = System.currentTimeMillis();
@@ -116,14 +89,8 @@ public class KartActivity extends AppCompatActivity {
 //                }
 //                mLastTime = now;
                 float delta = deltaTime / 1000.0f;
-                if(isDown){
-                    movePot(delta);
-                }
-                if(isLeftDown){
-                    turnLeft(delta);
-                }
-                if(isRightDown){
-                    turnRight(delta);
+                if (kart != null) {
+                    kart.step(delta);
                 }
             }
         });
@@ -165,32 +132,29 @@ public class KartActivity extends AppCompatActivity {
                     AnchorNode anchorNode = new AnchorNode(anchor);
                     anchorNode.setParent(arFragment.getArSceneView().getScene());
 
-                    TransformableNode kart = new TransformableNode(arFragment.getTransformationSystem());
-
-                    kart.getScaleController().setMaxScale(1.0f);
-                    kart.getScaleController().setMinScale(0.05f);
-                    kart.setLocalScale(new Vector3(0.15f, 0.15f, 0.15f));
-                    kart.setParent(anchorNode);
-                    kart.setRenderable(kartBody);
+                    Node node = new Node();
+                    node.setLocalScale(new Vector3(0.15f, 0.15f, 0.15f));
+                    node.setParent(anchorNode);
+                    node.setRenderable(kartBody);
                     tireFrontLeft = new Node();
                     tireFrontLeft.setLocalPosition(new Vector3(-tirePos.x, tirePos.y, -tirePos.z));
-                    tireFrontLeft.setParent(kart);
+                    tireFrontLeft.setParent(node);
                     tireFrontLeft.setRenderable(kartTire);
                     tireFrontRight = new Node();
                     tireFrontRight.setLocalPosition(new Vector3(tirePos.x, tirePos.y, -tirePos.z));
                     tireFrontRight.setLocalRotation(Quaternion.axisAngle(Vector3.up(), (float) Math.PI));
-                    tireFrontRight.setParent(kart);
+                    tireFrontRight.setParent(node);
                     tireFrontRight.setRenderable(kartTire);
                     tireBackLeft = new Node();
                     tireBackLeft.setLocalPosition(new Vector3(-tirePos.x, tirePos.y, tirePos.z));
-                    tireBackLeft.setParent(kart);
+                    tireBackLeft.setParent(node);
                     tireBackLeft.setRenderable(kartTire);
                     tireBackRight = new Node();
                     tireBackRight.setLocalPosition(new Vector3(tirePos.x, tirePos.y, tirePos.z));
                     tireBackRight.setLocalRotation(Quaternion.axisAngle(Vector3.up(), (float) Math.PI));
-                    tireBackRight.setParent(kart);
+                    tireBackRight.setParent(node);
                     tireBackRight.setRenderable(kartTire);
-                    controlPot = kart;
+                    this.kart = new Kart(node);
                 }
         );
 
@@ -234,6 +198,23 @@ public class KartActivity extends AppCompatActivity {
 
     private void applyRotation(final Node node, final Quaternion q) {
         node.setLocalRotation(Quaternion.multiply(node.getLocalRotation(), q));
+    }
+
+    public class Kart {
+        final Node body;
+        float controlDirection;
+        float physicalDirection;
+        float controlAngle;
+        float physicalAngle;
+
+        public Kart(Node body) {
+            this.body = body;
+        }
+
+        public void step(final float delta){
+            physicalDirection += (controlDirection - physicalDirection) * 0.5F * delta;
+            physicalAngle += Mth.deltaAngle(controlAngle, physicalAngle) * 0.75F * delta;
+        }
     }
 
 }
