@@ -1,280 +1,127 @@
+/*
+ * Copyright 2012 Alex Usachev, thothbot@gmail.com
+ *
+ * This file is part of Parallax project.
+ *
+ * Parallax is free software: you can redistribute it and/or modify it
+ * under the terms of the Creative Commons Attribution 3.0 Unported License.
+ *
+ * Parallax is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the Creative Commons Attribution
+ * 3.0 Unported License. for more details.
+ *
+ * You should have received a copy of the the Creative Commons Attribution
+ * 3.0 Unported License along with Parallax.
+ * If not, see http://creativecommons.org/licenses/by/3.0/.
+ */
 package io.github.formular_team.formular.math;
 
-import com.google.common.math.DoubleMath;
-
-import java.util.Locale;
-import java.util.Objects;
-
+/**
+ * This class is realization of (X, Y) vector.
+ * Where:
+ * X - x coordinate of the vector.
+ * Y - y coordinate of the vector.
+ *
+ * @author thothbot
+ */
 public class Vector2 {
+    /**
+     * The X-coordinate
+     */
     protected float x;
 
+    /**
+     * The Y-coordinate
+     */
     protected float y;
 
+    // Temporary variables
+    static Vector2 _min = new Vector2();
+
+    static Vector2 _max = new Vector2();
+
+    /**
+     * This default constructor will initialize vector (0, 0);
+     */
     public Vector2() {
-        this(0.0F, 0.0F);
+        this(0, 0);
     }
 
+    /**
+     * This constructor will initialize vector (X, Y) from the specified
+     * X, Y coordinates.
+     *
+     * @param x the X coordinate
+     * @param y the Y coordinate
+     */
     public Vector2(final float x, final float y) {
         this.x = x;
         this.y = y;
     }
 
-    public float height() {
-        return this.y;
+    /**
+     * get X coordinate from the vector
+     *
+     * @return a X coordinate
+     */
+    public float getX() {
+        return x;
     }
 
-    public float y() {
-        return this.y;
+    /**
+     * get Y coordinate from the vector
+     *
+     * @return a Y coordinate
+     */
+    public float getY() {
+        return y;
     }
 
-    public float width() {
-        return this.x;
+    /**
+     * This method will add specified value to X coordinate of the vector.
+     * In another words: x += value.
+     *
+     * @param x the X coordinate
+     */
+    public void addX(final float x) {
+        this.x += x;
     }
 
-    public float x() {
-        return this.x;
+    /**
+     * This method will add specified value to Y coordinate of the vector.
+     * In another words: y += value.
+     *
+     * @param y the Y coordinate
+     */
+    public void addY(final float y) {
+        this.y += y;
     }
 
-    public Vector2 add(final Vector2 v) {
-        this.x += v.width();
-        this.y += v.height();
-        return this;
+    /**
+     * This method sets X coordinate of the vector.
+     *
+     * @param x the X coordinate
+     */
+    public void setX(final float x) {
+        this.x = x;
     }
 
-    public Vector2 add(final float s) {
-        this.x += s;
-        this.y += s;
-        return this;
+    /**
+     * This method sets Y coordinate of the vector.
+     *
+     * @param y the Y coordinate
+     */
+    public void setY(final float y) {
+        this.y = y;
     }
 
-    public Vector2 add(final Vector2 v, final float s) {
-        this.x += v.width() * s;
-        this.y += v.height() * s;
-        return this;
-    }
-
-    public Vector2 add(final Vector2 a, final Vector2 b) {
-        this.x = a.width() + b.width();
-        this.y = a.height() + b.height();
-        return this;
-    }
-
-    public float angle() {
-        final float angle = Mth.atan2(this.y, this.x);
-        return angle < 0.0F ? angle + 2.0F * (float) Math.PI : angle;
-    }
-
-
-    public Vector2 apply(final Matrix3 m) {
-        final float x = this.x;
-        final float y = this.y;
-        final float[] e = m.elements();
-        this.x = e[0] * x + e[3] * y + e[6];
-        this.y = e[1] * x + e[4] * y + e[7];
-        return this;
-    }
-
-    public Vector2 ceil() {
-        this.x = Mth.ceil(this.x);
-        this.y = Mth.ceil(this.y);
-        return this;
-    }
-
-    public Vector2 clamp(final Vector2 min, final Vector2 max) {
-        this.x = Math.max(min.width(), Math.min(max.width(), this.width()));
-        this.y = Math.max(min.height(), Math.min(max.height(), this.height()));
-        return this;
-    }
-
-    public Vector2 clamp(final float min, final float max) {
-        final float length = this.length();
-        return this.divide(length).multiply(Math.max(min, Math.min(max, length)));
-    }
-
-    public Vector2 clampScalar(final float min, final float max) {
-        final Vector2 minV = new Vector2(min, min);
-        final Vector2 maxV = new Vector2(max, max);
-        return this.clamp(minV, maxV);
-    }
-
-    public Vector2 copy() {
-        return new Vector2(this.x, this.y);
-    }
-
-    public Vector2 copy(final Vector2 that) {
-        this.x = that.width();
-        this.y = that.height();
-        return this;
-    }
-
-    public float distanceTo(final Vector2 v) {
-        return Mth.sqrt(this.distanceToSquared(v));
-    }
-
-    public float manhattanDistanceTo(final Vector2 v) {
-        return Math.abs(this.x - v.width()) + Math.abs(this.y - v.height());
-    }
-
-    public float distanceToSquared(final Vector2 v) {
-        final float dx = this.x - v.width();
-        final float dy = this.y - v.height();
-        return dx * dx + dy * dy;
-    }
-
-    public Vector2 divide(final Vector2 v) {
-        if (v.width() != 0.0F) {
-            this.x /= v.width();
-        }
-        if (v.height() != 0.0F) {
-            this.y /= v.height();
-        }
-        return this;
-    }
-
-    public Vector2 divide(final float s) {
-        return this.multiply(1.0F / s);
-    }
-
-    public float dot(final Vector2 v) {
-        return this.x * v.width() + this.y * v.height();
-    }
-
-    public float cross(final Vector2 v) {
-        return this.x * v.height() - this.y * v.width();
-    }
-
-    @Override
-    public boolean equals(final Object o) {
-        return o == this || o instanceof Vector2 && this.equals((Vector2) o, 0.0F);
-    }
-
-    public boolean equals(final Vector2 other, final float epsilon) {
-        return DoubleMath.fuzzyEquals(other.x, this.x, epsilon) && DoubleMath.fuzzyEquals(other.y, this.y, epsilon);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(this.x, this.y);
-    }
-
-    @Override
-    public String toString() {
-        return String.format(Locale.ROOT, "(%.2f,%.2f)", this.x, this.y);
-    }
-
-    public Vector2 floor() {
-        this.x = Mth.floor(this.x);
-        this.y = Mth.floor(this.y);
-        return this;
-    }
-
-    public Vector2 fromArray(final float[] array) {
-        return this.fromArray(array, 0);
-    }
-
-    public Vector2 fromArray(final float[] array, final int offset) {
-        this.x = array[offset];
-        this.y = array[offset + 1];
-        return this;
-    }
-
-    public float getComponent(final int index) {
-        switch (index) {
-        case 0:
-            return this.x;
-        case 1:
-            return this.y;
-        default:
-            throw new IllegalArgumentException("index is out of range: " + index);
-        }
-    }
-
-    public float length() {
-        return Mth.sqrt(this.lengthSq());
-    }
-
-    public float manhattanLength() {
-        return Math.abs(this.x) + Math.abs(this.y);
-    }
-
-    public float lengthSq() {
-        return this.x * this.x + this.y * this.y;
-    }
-
-    public Vector2 lerp(final Vector2 v, final float alpha) {
-        this.x += (v.width() - this.x) * alpha;
-        this.y += (v.height() - this.y) * alpha;
-        return this;
-    }
-
-    public Vector2 lerp(final Vector2 v1, final Vector2 v2, final float alpha) {
-        return this.subVectors(v2, v1).multiply(alpha).add(v1);
-    }
-
-    public Vector2 negate() {
-        this.x = -this.x;
-        this.y = -this.y;
-        return this;
-    }
-
-    public Vector2 normalize() {
-        return this.divide(this.length());
-    }
-
-    public Vector2 max(final Vector2 v) {
-        this.x = Math.max(this.x, v.x);
-        this.y = Math.max(this.y, v.y);
-        return this;
-    }
-
-    public Vector2 min(final Vector2 v) {
-        this.x = Math.min(this.x, v.x);
-        this.y = Math.min(this.y, v.y);
-        return this;
-    }
-
-    public Vector2 multiply(final Vector2 v) {
-        this.x *= v.width();
-        this.y *= v.height();
-        return this;
-    }
-
-    public Vector2 multiply(final float s) {
-        this.x *= s;
-        this.y *= s;
-        return this;
-    }
-
-    public Vector2 rotateAround(final Vector2 center, final float angle) {
-        final float c = Mth.cos(angle);
-        final float s = Mth.sin(angle);
-        final float x = this.x - center.width();
-        final float y = this.y - center.height();
-        this.x = x * c - y * s + center.width();
-        this.y = x * s + y * c + center.height();
-        return this;
-    }
-
-    public Vector2 round() {
-        this.x = Math.round(this.x);
-        this.y = Math.round(this.y);
-        return this;
-    }
-
-    public Vector2 roundToZero() {
-        if (this.x < 0.0F) {
-            this.x = Mth.ceil(this.x);
-        } else {
-            this.x = Mth.floor(this.x);
-        }
-        if (this.y < 0.0F) {
-            this.y = Mth.ceil(this.y);
-        } else {
-            this.y = Mth.floor(this.y);
-        }
-        return this;
-    }
-
+    /**
+     * Set value of the vector to the specified (X, Y, Z) coordinates.
+     *
+     * @param x the X coordinate
+     * @param y the Y coordinate
+     */
     public Vector2 set(final float x, final float y) {
         this.x = x;
         this.y = y;
@@ -290,60 +137,322 @@ public class Vector2 {
             this.y = value;
             break;
         default:
-            throw new IllegalArgumentException("index is out of range: " + index);
+            throw new Error("index is out of range: " + index);
         }
     }
 
-    public Vector2 setLength(final float l) {
-        return this.normalize().multiply(l);
+    public float getComponent(final int index) {
+        switch (index) {
+        case 0:
+            return this.x;
+        case 1:
+            return this.y;
+        default:
+            throw new Error("index is out of range: " + index);
+        }
     }
 
-    public Vector2 set(final float scalar) {
-        this.x = scalar;
-        this.y = scalar;
+    /**
+     * Set value of the vector from another vector.
+     *
+     * @param v the other vector
+     * @return the current vector
+     */
+    public Vector2 copy(final Vector2 v) {
+        return this.set(v.x, v.y);
+    }
+
+    public Vector2 add(final Vector2 v) {
+        return this.add(this, v);
+    }
+
+    public Vector2 add(final Vector2 v1, final Vector2 v2) {
+        this.x = v1.x + v2.x;
+        this.y = v1.y + v2.y;
+
         return this;
     }
 
-    public Vector2 setX(final float x) {
-        this.x = x;
-        return this;
-    }
+    public Vector2 add(final float s) {
+        this.addX(s);
+        this.addY(s);
 
-    public Vector2 setY(final float y) {
-        this.y = y;
         return this;
     }
 
     public Vector2 sub(final Vector2 v) {
-        this.x -= v.width();
-        this.y -= v.height();
+        return this.sub(this, v);
+    }
+
+    public Vector2 sub(final Vector2 v1, final Vector2 v2) {
+        this.x = v1.x - v2.x;
+        this.y = v1.y - v2.y;
+
         return this;
     }
 
-    public Vector2 sub(final float s) {
-        this.x -= s;
-        this.y -= s;
+    public Vector2 multiply(final Vector2 v) {
+        return this.multiply(this, v);
+    }
+
+    public Vector2 multiply(final Vector2 v1, final Vector2 v2) {
+        this.x = v1.x * v2.x;
+        this.y = v1.y * v2.y;
+
         return this;
     }
 
-    public Vector2 subVectors(final Vector2 a, final Vector2 b) {
-        this.x = a.width() - b.width();
-        this.y = a.height() - b.height();
+    public Vector2 multiply(final float s) {
+        this.x *= s;
+        this.y *= s;
+
         return this;
     }
 
-
-    public float[] toArray() {
-        return new float[] { this.x, this.y };
+    public Vector2 divide(final Vector2 v) {
+        return this.divide(this, v);
     }
 
-    public float[] toArray(final float[] array) {
-        return this.toArray(array, 0);
+    public Vector2 divide(final Vector2 v1, final Vector2 v2) {
+        this.x = v1.x / v2.x;
+        this.y = v1.y / v2.y;
+
+        return this;
     }
 
-    public float[] toArray(final float[] array, final int offset) {
-        array[offset] = this.x;
-        array[offset + 1] = this.y;
+    public Vector2 divide(final float s) {
+        if (s != 0) {
+            this.x /= s;
+            this.y /= s;
+        } else {
+            this.set(0, 0);
+        }
+
+        return this;
+    }
+
+    public Vector2 min(final Vector2 v) {
+        if (this.x > v.x) {
+            this.x = v.x;
+        }
+
+        if (this.y > v.y) {
+            this.y = v.y;
+        }
+
+        return this;
+    }
+
+    public Vector2 max(final Vector2 v) {
+        if (this.x < v.x) {
+            this.x = v.x;
+        }
+
+        if (this.y < v.y) {
+            this.y = v.y;
+        }
+
+        return this;
+    }
+
+    /**
+     * This function assumes getMin &#60; max, if this assumption isn't true it will not operate correctly
+     */
+    public Vector2 clamp(final Vector2 min, final Vector2 max) {
+        if (this.x < min.x) {
+            this.x = min.x;
+        } else if (this.x > max.x) {
+            this.x = max.x;
+        }
+
+        if (this.y < min.y) {
+            this.y = min.y;
+        } else if (this.y > max.y) {
+            this.y = max.y;
+        }
+
+        return this;
+    }
+
+    public Vector2 clamp(final float minVal, final float maxVal) {
+        _min.set(minVal, minVal);
+        _max.set(maxVal, maxVal);
+
+        return this.clamp(_min, _max);
+    }
+
+    public Vector2 floor() {
+
+        this.x = Mth.floor(this.x);
+        this.y = Mth.floor(this.y);
+
+        return this;
+
+    }
+
+    public Vector2 ceil() {
+
+        this.x = Mth.ceil(this.x);
+        this.y = Mth.ceil(this.y);
+
+        return this;
+
+    }
+
+    public Vector2 round() {
+
+        this.x = Math.round(this.x);
+        this.y = Math.round(this.y);
+
+        return this;
+
+    }
+
+    public Vector2 roundToZero() {
+
+        this.x = (this.x < 0) ? Mth.ceil(this.x) : Mth.floor(this.x);
+        this.y = (this.y < 0) ? Mth.ceil(this.y) : Mth.floor(this.y);
+
+        return this;
+
+    }
+
+    /**
+     * Negates the value of this vector in place.
+     */
+    public Vector2 negate() {
+        this.x = -this.x;
+        this.y = -this.y;
+
+        return this;
+    }
+
+    /**
+     * Computes the dot product of the this vector and vector v1.
+     *
+     * @param v the other vector
+     */
+    public float dot(final Vector2 v) {
+        return (this.x * v.x + this.y * v.y);
+    }
+
+    /**
+     * Returns the squared length of this vector.
+     *
+     * @return the squared length of this vector
+     */
+    public float lengthSq() {
+        return this.dot(this);
+    }
+
+    /**
+     * Returns the length of this vector.
+     *
+     * @return the length of this vector
+     */
+    public float length() {
+        return Mth.sqrt(this.lengthSq());
+    }
+
+    /**
+     * Normalizes this vector in place.
+     */
+    public Vector2 normalize() {
+        this.divide(this.length());
+        return this;
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see thothbot.parallax.core.shared.core.Vector#distanceToSquared(thothbot.parallax.core.shared.core.Vector)
+     */
+    public float distanceToSquared(final Vector2 v) {
+        final float dx = this.x - v.x;
+        final float dy = this.y - v.y;
+        return (dx * dx + dy * dy);
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see thothbot.parallax.core.shared.core.Vector#distanceTo(thothbot.parallax.core.shared.core.Vector)
+     */
+    public float distanceTo(final Vector2 v1) {
+        return Mth.sqrt(this.distanceToSquared(v1));
+    }
+
+    public Vector2 setLength(final float l) {
+        final float oldLength = this.length();
+
+        if (oldLength != 0 && l != oldLength) {
+            this.multiply(l / oldLength);
+        }
+
+        return this;
+    }
+
+    public Vector2 lerp(final Vector2 v1, final float alpha) {
+        this.x += (v1.x - this.x) * alpha;
+        this.y += (v1.y - this.y) * alpha;
+        return this;
+    }
+
+    public float cross(final Vector2 v) {
+        return this.x * v.y - this.y * v.x;
+    }
+
+    public Vector2 apply(final Matrix3 m) {
+        final float  x = this.x, y = this.y;
+        final Float32Array e = m.getArray();
+        this.x = e.get(0) * x + e.get(3) * y + e.get(6);
+        this.y = e.get(1) * x + e.get(4) * y + e.get(7);
+        return this;
+    }
+
+    public Vector2 rotateAround(final Vector2 center, final float angle) {
+        final float c = Mth.cos(angle), s = Mth.sin(angle);
+        final float x = this.x - center.x;
+        final float y = this.y - center.y;
+        this.x = x * c - y * s + center.x;
+        this.y = x * s + y * c + center.y;
+        return this;
+    }
+
+    public boolean isZero() {
+        return this.lengthSq() < 0.0001F;
+    }
+
+    public Vector2 fromArray(final Float32Array array) {
+        return this.fromArray(array, 0);
+    }
+
+    public Vector2 fromArray(final Float32Array array, final int offset) {
+        this.x = array.get(offset);
+        this.y = array.get(offset + 1);
+        return this;
+    }
+
+    public Float32Array toArray() {
+        return this.toArray(Float32Array.create(2), 0);
+    }
+
+    public Float32Array toArray(final Float32Array array, final int offset) {
+
+        array.set(offset, this.x);
+        array.set(offset + 1, this.y);
+
         return array;
+    }
+
+    public Vector2 clone() {
+        return new Vector2(this.x, this.y);
+    }
+
+    public boolean equals(final Vector2 v) {
+        return ((v.x == this.x) && (v.y == this.y));
+    }
+
+    @Override
+    public String toString() {
+        return "(" + this.x + ", " + this.y + ")";
     }
 }

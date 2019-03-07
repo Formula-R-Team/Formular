@@ -16,8 +16,8 @@ public class PathReader {
 	public boolean read(final Mapper map, final PathVisitor visitor) {
 		final Vector2 pos = new Vector2(0.0F, 0.0F);
 		float rotation = 0.0F;
-		final TransformMapper view = new TransformMapper(map, pos.x(), pos.y(), rotation);
-		visitor.moveTo(pos);
+		final TransformMapper view = new TransformMapper(map, pos.getX(), pos.getY(), rotation);
+		visitor.moveTo(pos.getX(), pos.getY());
 		for (int stepNo = 0;; stepNo++) {
 			if (stepNo >= 128) {
 				break; // too long
@@ -29,13 +29,12 @@ public class PathReader {
 				break; // dead end
 			}
 			pos.add(step);
-			view.setX(pos.x());
-			view.setY(pos.y());
+			view.setTranslation(pos.getX(), pos.getY());
 			if (stepNo > 0 && pos.length() <= this.stepFunc.getSize()) {
 				visitor.closePath();
 				break;
 			}
-			visitor.lineTo(pos);
+			visitor.lineTo(pos.getX(), pos.getY());
 		}
 		return true;
 	}

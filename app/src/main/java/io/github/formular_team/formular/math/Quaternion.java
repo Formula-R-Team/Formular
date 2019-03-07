@@ -1,122 +1,441 @@
-package io.github.formular_team.formular.math;
+package io.github.formular_team.formular.math;/*
+ * Copyright 2012 Alex Usachev, thothbot@gmail.com
+ *
+ * This file is part of Parallax project.
+ *
+ * Parallax is free software: you can redistribute it and/or modify it
+ * under the terms of the Creative Commons Attribution 3.0 Unported License.
+ *
+ * Parallax is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the Creative Commons Attribution
+ * 3.0 Unported License. for more details.
+ *
+ * You should have received a copy of the the Creative Commons Attribution
+ * 3.0 Unported License along with Parallax.
+ * If not, see http://creativecommons.org/licenses/by/3.0/.
+ */
 
+/**
+ * Implementation of Quaternion which provide a convenient mathematical notation 
+ * for representing orientations and rotations of objects in three dimensions.
+ * <p>
+ * Quaternion represented by four coordinates: X, Y, Z, W
+ *
+ * <pre>
+ * {@code
+ * Quaternion q = new Quaternion();
+ * q.setFromAxisAngle( new Vector3( 0, 1, 0 ), Math.PI / 2 );
+ *
+ * Vector3 v = new Vector3( 1, 0, 0 );
+ * q.multiplyVector3( v );
+ * }
+ * </pre>
+ * @author thothbot
+ *
+ */
 public class Quaternion
 {
-    private float x, y, z, w;
-
-    public Quaternion(float x, float y, float z, float w)
+    public static interface QuaternionChangeHandler
     {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-        this.w = w;
+        void onChange(Quaternion quaternion);
     }
 
+    /**
+     * The X coordinate.
+     */
+    public float x;
+
+    /**
+     * The Y coordinate.
+     */
+    public float y;
+
+    /**
+     * The Z coordinate.
+     */
+    public float z;
+
+    /**
+     * The W coordinate.
+     */
+    public float w;
+
+    private QuaternionChangeHandler handler;
+
+    // Temporary variables
+    static Vector3 _v1  = new Vector3();
+
+    /**
+     * Default constructor will make Quaternion (0.0, 0.0, 0.0, 1.0)
+     */
     public Quaternion()
     {
-        this.x = 0;
-        this.y = 0;
-        this.z = 0;
-        this.w = 0;
+        this.x = 0.0F;
+        this.y = 0.0F;
+        this.z = 0.0F;
+        this.w = 1.0F;
     }
 
-    public void setX(float x) {
+    /**
+     * Constructs and initializes a Quaternion from the specified X, Y, Z, W
+     * coordinates.
+     *
+     * Will make Quaternion (X, Y, Z, W)
+     *
+     * @param x the X coordinate
+     * @param y the Y coordinate
+     * @param z the Z coordinate
+     * @param w the W coordinate
+     */
+    public Quaternion(final float x, final float y, final float z, final float w)
+    {
         this.x = x;
-    }
-
-    public void setY(float y) {
         this.y = y;
-    }
-
-    public void setZ(float z) {
         this.z = z;
-    }
-
-    public void setW(float w) {
         this.w = w;
     }
 
-    public float x() {
-        return x;
-    }
-
-    public float y() {
-        return y;
-    }
-
-    public float z() {
-        return z;
-    }
-
-    public float w() {
-        return w;
-    }
-
-    public float angleTo(Quaternion q)
+    /**
+     * Constructs and initializes a Quaternion from the specified X, Y, Z coordinates.
+     * Will make Quaternion (X, Y, Z, 1.0)
+     *
+     * @param x the x coordinate
+     * @param y the y coordinate
+     * @param z the z coordinate
+     */
+    public Quaternion(final float x, final float y, final float z)
     {
-        return 2f * Mth.acos( Math.abs( Mth.clamp( this.dot( q ), - 1, 1 ) ) );
+        this();
+        this.x = x;
+        this.y = y;
+        this.z = z;
     }
 
-    public Quaternion clone()
+    public void setHandler(final QuaternionChangeHandler handler)
     {
-        return new Quaternion(x,y,z,w);
+        this.handler = handler;
+    }
+
+    private void onChange()
+    {
+        if(this.handler != null)
+            this.handler.onChange(Quaternion.this);
+    }
+
+    /**
+     * get X coordinate from the Quaternion
+     *
+     * @return a X coordinate
+     */
+    public float getX()
+    {
+        return this.x;
+    }
+
+    /**
+     * get Y coordinate from the Quaternion
+     *
+     * @return a Y coordinate
+     */
+    public float getY()
+    {
+        return this.y;
+    }
+
+    /**
+     * get Z coordinate from the Quaternion
+     *
+     * @return a Z coordinate
+     */
+    public float getZ()
+    {
+        return this.z;
+    }
+
+    /**
+     * get W coordinate from the Quaternion
+     *
+     * @return a W coordinate
+     */
+    public float getW()
+    {
+        return this.w;
+    }
+
+    public Quaternion set(final float x, final float y, final float z, final float w)
+    {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.w = w;
+
+        this.onChange();
+
+        return this;
+    }
+
+    /**
+     * Copy values from input Quaternion to the values of current Quaternion.
+     *
+     * @param c1 the input Quaternion
+     */
+    public Quaternion copy(final Quaternion c1)
+    {
+        this.x = c1.x;
+        this.y = c1.y;
+        this.z = c1.z;
+        this.w = c1.w;
+
+        this.onChange();
+
+        return this;
+    }
+
+//    public Quaternion setFromEuler( Euler euler )
+//    {
+//        return setFromEuler(euler, false);
+//    }
+
+//    public Quaternion setFromEuler( Euler euler, boolean update )
+//    {
+//
+//        // http://www.mathworks.com/matlabcentral/fileexchange/
+//        // 	20696-function-to-convert-between-dcm-euler-angles-quaternions-and-euler-vectors/
+//        //	content/SpinCalc.m
+//
+//        float c1 = Math.cos( euler.getX() / 2.0 );
+//        float c2 = Math.cos( euler.getY() / 2.0 );
+//        float c3 = Math.cos( euler.getZ() / 2.0 );
+//        float s1 = Math.sin( euler.getX() / 2.0 );
+//        float s2 = Math.sin( euler.getY() / 2.0 );
+//        float s3 = Math.sin( euler.getZ() / 2.0 );
+//
+//        if ( euler.getOrder().equals("XYZ") ) {
+//
+//            this.x = s1 * c2 * c3 + c1 * s2 * s3;
+//            this.y = c1 * s2 * c3 - s1 * c2 * s3;
+//            this.z = c1 * c2 * s3 + s1 * s2 * c3;
+//            this.w = c1 * c2 * c3 - s1 * s2 * s3;
+//
+//        } else if ( euler.getOrder().equals("YXZ") ) {
+//
+//            this.x = s1 * c2 * c3 + c1 * s2 * s3;
+//            this.y = c1 * s2 * c3 - s1 * c2 * s3;
+//            this.z = c1 * c2 * s3 - s1 * s2 * c3;
+//            this.w = c1 * c2 * c3 + s1 * s2 * s3;
+//
+//        } else if ( euler.getOrder().equals("ZXY") ) {
+//
+//            this.x = s1 * c2 * c3 - c1 * s2 * s3;
+//            this.y = c1 * s2 * c3 + s1 * c2 * s3;
+//            this.z = c1 * c2 * s3 + s1 * s2 * c3;
+//            this.w = c1 * c2 * c3 - s1 * s2 * s3;
+//
+//        } else if ( euler.getOrder().equals("ZYX") ) {
+//
+//            this.x = s1 * c2 * c3 - c1 * s2 * s3;
+//            this.y = c1 * s2 * c3 + s1 * c2 * s3;
+//            this.z = c1 * c2 * s3 - s1 * s2 * c3;
+//            this.w = c1 * c2 * c3 + s1 * s2 * s3;
+//
+//        } else if ( euler.getOrder().equals("YZX") ) {
+//
+//            this.x = s1 * c2 * c3 + c1 * s2 * s3;
+//            this.y = c1 * s2 * c3 + s1 * c2 * s3;
+//            this.z = c1 * c2 * s3 - s1 * s2 * c3;
+//            this.w = c1 * c2 * c3 - s1 * s2 * s3;
+//
+//        } else if ( euler.getOrder().equals("XZY") ) {
+//
+//            this.x = s1 * c2 * c3 - c1 * s2 * s3;
+//            this.y = c1 * s2 * c3 - s1 * c2 * s3;
+//            this.z = c1 * c2 * s3 + s1 * s2 * c3;
+//            this.w = c1 * c2 * c3 + s1 * s2 * s3;
+//
+//        }
+//
+//        if(update) this.onChange();
+//
+//        return this;
+//    }
+
+    /**
+     * from
+     * <a href="http://www.euclideanspace.com/maths/geometry/rotations/conversions/angleToQuaternion/index.htm">www.euclideanspace.com</a>
+     * @param axis the axis have to be normalized
+     * @param angle the angle
+     */
+    public Quaternion setFromAxisAngle(final Vector3 axis, final float angle)
+    {
+        final float halfAngle = angle / 2.0F;
+        final float s = Mth.sin(halfAngle);
+
+        this.x = axis.x * s;
+        this.y = axis.y * s;
+        this.z = axis.z * s;
+        this.w = Mth.cos(halfAngle);
+
+        this.onChange();
+
+        return this;
+    }
+
+    /**
+     * http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/index.htm
+     * assumes the upper 3x3 of m is a pure rotation matrix (i.e, unscaled)
+     *
+     * @param m
+     * @return
+     */
+    public Quaternion setFromRotationMatrix(final Matrix4 m )
+    {
+
+        final Float32Array te = m.getArray();
+
+        final float m11 = te.get(0);
+        final float m12 = te.get(4);
+        final float m13 = te.get(8);
+        final float m21 = te.get(1);
+        final float m22 = te.get(5);
+        final float m23 = te.get(9);
+        final float m31 = te.get(2);
+        final float m32 = te.get(6);
+        final float m33 = te.get(10);
+
+        final float trace = m11 + m22 + m33;
+        final float s;
+
+        if ( trace > 0 ) {
+
+            s = 0.5F / Mth.sqrt( trace + 1.0F );
+
+            this.w = 0.25F / s;
+            this.x = ( m32 - m23 ) * s;
+            this.y = ( m13 - m31 ) * s;
+            this.z = ( m21 - m12 ) * s;
+
+        } else if ( m11 > m22 && m11 > m33 ) {
+
+            s = 2.0F * Mth.sqrt( 1.0F + m11 - m22 - m33 );
+
+            this.w = ( m32 - m23 ) / s;
+            this.x = 0.25F * s;
+            this.y = ( m12 + m21 ) / s;
+            this.z = ( m13 + m31 ) / s;
+
+        } else if ( m22 > m33 ) {
+
+            s = 2.0F * Mth.sqrt( 1.0F + m22 - m11 - m33 );
+
+            this.w = ( m13 - m31 ) / s;
+            this.x = ( m12 + m21 ) / s;
+            this.y = 0.25F * s;
+            this.z = ( m23 + m32 ) / s;
+
+        } else {
+
+            s = 2.0F * Mth.sqrt( 1.0F + m33 - m11 - m22 );
+
+            this.w = ( m21 - m12 ) / s;
+            this.x = ( m13 + m31 ) / s;
+            this.y = ( m23 + m32 ) / s;
+            this.z = 0.25F * s;
+
+        }
+
+        this.onChange();
+
+        return this;
+
+    }
+
+    /**
+     * http://lolengine.net/blog/2014/02/24/quaternion-from-two-vectors-final
+     * assumes direction vectors vFrom and vTo are normalized
+     *
+     * @param vFrom
+     * @param vTo
+     * @return
+     */
+    public Quaternion setFromUnitVectors(final Vector3 vFrom, final Vector3 vTo )
+    {
+        final float EPS = 0.000001F;
+
+        float r = vFrom.dot( vTo ) + 1;
+
+        if ( r < EPS ) {
+
+            r = 0;
+
+            if ( Math.abs( vFrom.x ) > Math.abs( vFrom.z ) ) {
+
+                _v1.set( - vFrom.y, vFrom.x, 0 );
+
+            } else {
+
+                _v1.set( 0, - vFrom.z, vFrom.y );
+
+            }
+
+        } else {
+
+            _v1.cross( vFrom, vTo );
+
+        }
+
+        this.x = _v1.x;
+        this.y = _v1.y;
+        this.z = _v1.z;
+        this.w = r;
+
+        this.normalize();
+
+        return this;
+
+    }
+
+
+    /**
+     * Negates the value of this Quaternion in place.
+     */
+    public Quaternion inverse()
+    {
+        this.conjugate().normalize();
+
+        return this;
     }
 
     public Quaternion conjugate()
     {
-        this.x *= - 1.0f;
-        this.y *= - 1.0f;
-        this.z *= - 1.0f;
-        return null;
+        this.x *= -1;
+        this.y *= -1;
+        this.z *= -1;
+
+        this.onChange();
+
+        return this;
     }
 
-    public void copy(Quaternion q)
+    public float dot(final Quaternion v )
     {
-        this.x = q.w();
-        this.y = q.y();
-        this.z = q.z();
-        this.w = q.w();
-    }
-
-    public boolean equals(Quaternion q)
-    {
-        return w == q.w() && x == q.x() && y == q.y() && z == q.z();
-    }
-
-    public float dot(Quaternion v)
-    {
-        return this.x * v.x() + this.y * v.y() + this.z * v.z() + this.w * v.w();
-    }
-
-    public void fromArray(float[] array)
-    {
-        this.fromArray(array, 0);
-    }
-
-    public void fromArray(float[] array, int offset)
-    {
-        this.x = array[ offset ];
-        this.y = array[ offset + 1 ];
-        this.z = array[ offset + 2 ];
-        this.w = array[ offset + 3 ];
-    }
-
-    public void inverse()
-    {
-        this.conjugate();
-    }
-
-    public float length()
-    {
-        return Mth.sqrt( this.x * this.x + this.y * this.y + this.z * this.z + this.w * this.w );
+        return this.x * v.x + this.y * v.y + this.z * v.z + this.w * v.w;
     }
 
     public float lengthSq()
     {
-       return ( this.x * this.x + this.y * this.y + this.z * this.z + this.w * this.w );
+        return this.x * this.x + this.y * this.y + this.z * this.z + this.w * this.w;
     }
 
-    public void normalize()
+    public float length()
+    {
+        return Mth.sqrt(this.x * this.x + this.y * this.y + this.z * this.z + this.w * this.w);
+    }
+
+    /**
+     * Normalize the current Quaternion
+     */
+    public Quaternion normalize()
     {
         float l = this.length();
 
@@ -137,60 +456,99 @@ public class Quaternion
             this.w = this.w * l;
 
         }
+
+        this.onChange();
+
+        return this;
     }
 
-    public void multiply(Quaternion q)
+    /**
+     * Sets the value of this Quaternion to the vector multiplication of Quaternion a and
+     * Quaternion v2.
+     *
+     * Based on <a href="http://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/code/index.htm">http://www.euclideanspace.com</a>
+     *
+     * @param a the first Quaternion
+     * @param b the second Quaternion
+     *
+     */
+    public Quaternion multiply(final Quaternion a, final Quaternion b)
     {
-        this.multiplyQuaternions(this,q);
-    }
-
-    public void multiplyQuaternions(Quaternion a, Quaternion b)
-    {
-        float qax = a.x(), qay = a.y(), qaz = a.z(), qaw = a.w();
-        float qbx = b.x(), qby = b.y(), qbz = b.z(), qbw = b.w();
+        final float qax = a.x;
+        final float qay = a.y;
+        final float qaz = a.z;
+        final float qaw = a.w;
+        final float qbx = b.x;
+        final float qby = b.y;
+        final float qbz = b.z;
+        final float qbw = b.w;
 
         this.x = qax * qbw + qaw * qbx + qay * qbz - qaz * qby;
         this.y = qay * qbw + qaw * qby + qaz * qbx - qax * qbz;
         this.z = qaz * qbw + qaw * qbz + qax * qby - qay * qbx;
         this.w = qaw * qbw - qax * qbx - qay * qby - qaz * qbz;
+
+        this.onChange();
+
+        return this;
     }
 
-    public void premultiply(Quaternion q)
+    /**
+     * Sets the value of this Quaternion to the vector multiplication of itself and
+     * Quaternion b.
+     * (this = this * b)
+     *
+     * @param b the other Quaternion
+     *
+     */
+    public Quaternion multiply(final Quaternion b)
     {
-        this.multiplyQuaternions(q,this);
+        return this.multiply( this, b );
     }
 
-    public void rotateTowards(Quaternion q, float step)
+    /**
+     * Sets the value of the input vector to the vector multiplication of input vector and
+     * the current Quaternion.
+     *
+     * @param vector the input vector
+     *
+     * @return the modified input vector
+     */
+    public Vector3 multiplyVector3(final Vector3 vector)
     {
-        float angle = this.angleTo( q );
-
-        if ( angle == 0.0f ) return;
-
-        float t = Math.min( 1, step / angle );
-
-        this.slerp( q, t );
+        return vector.apply( this );
     }
 
-    public void slerp(Quaternion qb, float t)
+    /**
+     * Quaternion Interpolation
+     *
+     * Based on <a href="http://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/slerp/">http://www.euclideanspace.com</a>
+     *
+     * @param qb  the quaternion a (first quaternion to be interpolated between)
+     * @param t   a scalar between 0.0 (at qa) and 1.0 (at qb)
+     *
+     * @return the interpolated quaternion
+     */
+    public Quaternion slerp(final Quaternion qb, final float t)
     {
-        if ( t == 0 ) return;
-        if ( t == 1 )
-        {
-            this.copy( qb );
-            return;
-        }
+        if ( t == 0 ) return this;
+        if ( t == 1 ) return this.copy( qb );
 
-        float x = this.x, y = this.y, z = this.z, w = this.w;
+        final float x = this.x;
+        final float y = this.y;
+        final float z = this.z;
+        final float w = this.w;
 
+        // http://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/slerp/
 
-        float cosHalfTheta = w * qb.w() + x * qb.x() + y * qb.y() + z * qb.z();
+        float cosHalfTheta = w * qb.w + x * qb.x + y * qb.y + z * qb.z;
 
         if ( cosHalfTheta < 0 ) {
 
-            this.w = - qb.w();
-            this.x = - qb.x();
-            this.y = - qb.y();
-            this.z = - qb.z();
+            this.w = - qb.w;
+            this.x = - qb.x;
+            this.y = - qb.y;
+            this.z = - qb.z;
 
             cosHalfTheta = - cosHalfTheta;
 
@@ -207,220 +565,61 @@ public class Quaternion
             this.y = y;
             this.z = z;
 
-        }
-
-        float sqrSinHalfTheta =  1.0f - cosHalfTheta * cosHalfTheta;
-
-        if ( sqrSinHalfTheta <=  Math.ulp(1.0f)) {
-
-            float s = 1 - t;
-            this.w = s * w + t * this.w;
-            this.x = s * x + t * this.x;
-            this.y = s * y + t * this.y;
-            this.z = s * z + t * this.z;
-
-            this.normalize();
+            return this;
 
         }
 
-        float sinHalfTheta = Mth.sqrt( sqrSinHalfTheta );
-        float halfTheta =  Mth.atan2( sinHalfTheta, cosHalfTheta );
-        float ratioA = Mth.sin( ( 1 - t ) * halfTheta ) / sinHalfTheta,
-                ratioB = Mth.sin( t * halfTheta ) / sinHalfTheta;
+        final float halfTheta = Mth.acos( cosHalfTheta );
+        final float sinHalfTheta = Mth.sqrt( 1.0F - cosHalfTheta * cosHalfTheta );
+
+        if ( Math.abs( sinHalfTheta ) < 0.001F ) {
+
+            this.w = 0.5F * ( w + this.w );
+            this.x = 0.5F * ( x + this.x );
+            this.y = 0.5F * ( y + this.y );
+            this.z = 0.5F * ( z + this.z );
+
+            return this;
+
+        }
+
+        final float ratioA = Mth.sin( ( 1 - t ) * halfTheta ) / sinHalfTheta;
+        final float ratioB = Mth.sin( t * halfTheta ) / sinHalfTheta;
 
         this.w = ( w * ratioA + this.w * ratioB );
         this.x = ( x * ratioA + this.x * ratioB );
         this.y = ( y * ratioA + this.y * ratioB );
         this.z = ( z * ratioA + this.z * ratioB );
+
+        this.onChange();
+
+        return this;
     }
 
-    public void set(float x, float y, float z, float w)
+    public static Quaternion slerp(final Quaternion qa, final Quaternion qb, final Quaternion qm, final float t )
     {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-        this.w = w;
+        return qm.copy( qa ).slerp( qb, t );
     }
 
-    public void setFromAxisAngle(Vector3 axis, float angle)
+    public boolean equals(final Quaternion quaternion )
     {
-        float halfAngle = (angle / 2.0f), s  = Mth.sin( halfAngle );
-
-        this.x = axis.x() * s;
-        this.y = axis.y() * s;
-        this.z = axis.z() * s;
-        this.w = Mth.cos( halfAngle );
+        return ( quaternion.x == this.x ) && ( quaternion.y == this.y ) && ( quaternion.z == this.z ) && ( quaternion.w == this.w );
     }
 
-    public void setFromRotationMatrix(Matrix4 m)
+    /**
+     * Clone the current Quaternion
+     * quaternion.clone() != quaternion;
+     *
+     * @return the new instance of Quaternion
+     */
+    public Quaternion clone()
     {
-        float[] te = m.elements();
-
-         float  m11 = te[ 0 ], m12 = te[ 4 ], m13 = te[ 8 ],
-                m21 = te[ 1 ], m22 = te[ 5 ], m23 = te[ 9 ],
-                m31 = te[ 2 ], m32 = te[ 6 ], m33 = te[ 10 ],
-
-                trace = m11 + m22 + m33,
-                s;
-
-        if ( trace > 0 ) {
-
-            s = 0.5f / Mth.sqrt( trace + 1.0f );
-
-            this.w = 0.25f / s;
-            this.x = ( m32 - m23 ) * s;
-            this.y = ( m13 - m31 ) * s;
-            this.z = ( m21 - m12 ) * s;
-
-        } else if ( m11 > m22 && m11 > m33 ) {
-
-            s = 2.0f * Mth.sqrt( 1.0f + m11 - m22 - m33 );
-
-            this.w = ( m32 - m23 ) / s;
-            this.x =  0.25f * s;
-            this.y = ( m12 + m21 ) / s;
-            this.z = ( m13 + m31 ) / s;
-
-        } else if ( m22 > m33 ) {
-
-            s = 2.0f * Mth.sqrt( 1.0f + m22 - m11 - m33 );
-
-            this.w = ( m13 - m31 ) / s;
-            this.x = ( m12 + m21 ) / s;
-            this.y = 0.25f * s;
-            this.z = ( m23 + m32 ) / s;
-
-        } else {
-
-            s = 2.0f * Mth.sqrt( 1.0f + m33 - m11 - m22 );
-
-            this.w = ( m21 - m12 ) / s;
-            this.x = ( m13 + m31 ) / s;
-            this.y = ( m23 + m32 ) / s;
-            this.z = 0.25f * s;
-
-        }
+        return new Quaternion( this.x, this.y, this.z, this.w );
     }
 
-    public void setFromUnitVectors(Vector3 vFrom, Vector3 vTo)
+    @Override
+    public String toString()
     {
-        Vector3 v1 = new Vector3();
-        float r;
-
-        float EPS = 0.000001f;
-
-        r = vFrom.dot( vTo ) + 1;
-
-        if ( r < EPS ) {
-
-            r = 0;
-
-            if ( Math.abs( vFrom.x() ) > Math.abs( vFrom.z() ) ) {
-
-                v1.set( - vFrom.y(), vFrom.x(), 0.0f );
-
-            } else {
-
-                v1.set( 0.0f, - vFrom.z(), vFrom.y() );
-
-            }
-
-        } else {
-
-            v1.crossVectors( vFrom, vTo );
-
-        }
-
-        this.x = v1.x();
-        this.y = v1.y();
-        this.z = v1.z();
-        this.w = r;
+        return "(" + this.x + ", " + this.y + ", " + this.z +  ", " + this.w + ")";
     }
-
-    public float[] toArray()
-    {
-        return toArray(new float[4], 0);
-    }
-
-    public float[] toArray(float[] array)
-    {
-        return toArray(array, 0);
-    }
-
-    public float[] toArray(float[] array, int offset)
-    {
-        array[ offset ] = this.x();
-        array[ offset + 1 ] = this.y();
-        array[ offset + 2 ] = this.z();
-        array[ offset + 3 ] = this.w();
-
-        return array;
-    }
-
-    public static void slerp(Quaternion qa, Quaternion qb, Quaternion qm, float t)
-    {
-        qm.copy( qa );
-        qm.slerp( qb, t );
-    }
-
-    public static void slerpFlat(float[] dst, int dstOffset, float[] src0, int srcOffset0, float[] src1, int srcOffset1, float t )
-    {
-        float x0 = src0[ srcOffset0],
-                y0 = src0[ srcOffset0 + 1 ],
-                z0 = src0[ srcOffset0 + 2 ],
-                w0 = src0[ srcOffset0 + 3 ],
-
-                x1 = src1[ srcOffset1],
-                y1 = src1[ srcOffset1 + 1 ],
-                z1 = src1[ srcOffset1 + 2 ],
-                w1 = src1[ srcOffset1 + 3 ];
-
-        if ( w0 != w1 || x0 != x1 || y0 != y1 || z0 != z1 ) {
-
-            float s = 1f - t,
-
-                    cos = x0 * x1 + y0 * y1 + z0 * z1 + w0 * w1,
-
-                    dir = ( cos >= 0 ? 1 : - 1 ),
-                    sqrSin = 1 - cos * cos;
-
-            // Skip the Slerp for tiny steps to avoid numeric problems:
-            if ( sqrSin > Math.ulp(1.0f) ) {
-
-                float sin = Mth.sqrt( sqrSin ),
-                        len = Mth.atan2( sin, cos * dir );
-
-                s = Mth.sin( s * len ) / sin;
-                t = Mth.sin( t * len ) / sin;
-
-            }
-
-            float tDir = t * dir;
-
-            x0 = x0 * s + x1 * tDir;
-            y0 = y0 * s + y1 * tDir;
-            z0 = z0 * s + z1 * tDir;
-            w0 = w0 * s + w1 * tDir;
-
-            // Normalize in case we just did a lerp:
-            if ( s == 1 - t ) {
-
-                float f = 1.0f / Mth.sqrt( x0 * x0 + y0 * y0 + z0 * z0 + w0 * w0 );
-
-                x0 *= f;
-                y0 *= f;
-                z0 *= f;
-                w0 *= f;
-
-            }
-
-        }
-
-        dst[ dstOffset ] = x0;
-        dst[ dstOffset + 1 ] = y0;
-        dst[ dstOffset + 2 ] = z0;
-        dst[ dstOffset + 3 ] = w0;
-    }
-
-
 }

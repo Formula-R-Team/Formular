@@ -31,73 +31,31 @@ import io.github.formular_team.formular.math.Sphere;
 import io.github.formular_team.formular.math.Vector2;
 import io.github.formular_team.formular.math.Vector3;
 
-/**
- * Base class for geometries. A geometry holds all data necessary to describe a 3D model.
- *
- * <pre>
- * {@code
- * Geometry geometry = new Geometry();
- *
- * geometry.getVertices().add( new Vector3( -10, 10, 0 ) );
- * geometry.getVertices().add( new Vector3( -10, -10, 0 ) );
- * geometry.getVertices().add( new Vector3( 10, -10, 0 ) );
- * geometry.getFaces().add( new Face3( 0, 1, 2 ) );
- *
- * geometry.computeBoundingSphere();
- * }
- * </pre>
- *
- * @author thothbot
- */
 public class Geometry extends AbstractGeometry {
-    // Array of vertices.
     private List<Vector3> vertices;
 
-    // one-to-one vertex colors, used in ParticleSystem, Line and Ribbon
     private List<Color> colors;
 
     private List<Face3> faces;
 
     private List<List<List<Vector2>>> faceVertexUvs;
 
-    /*
-     * An array containing distances between vertices for Line geometries.
-     * This is required for LinePieces/LineDashedMaterial to render correctly.
-     * Line distances can also be generated with computeLineDistances.
-     */
-    private List<Float> lineDistances;
+    private final List<Float> lineDistances;
 
-    /*
-     * True if geometry has tangents. Set in Geometry.computeTangents.
-     */
     private boolean hasTangents = false;
 
-    /*
-     * The intermediate typed arrays will be deleted when set to false
-     */
     private boolean dynamic = true;
 
     public Geometry() {
         super();
-
         this.vertices = new ArrayList<>();
         this.colors = new ArrayList<>();
-
         this.faces = new ArrayList<>();
-
         this.faceVertexUvs = new ArrayList<>();
         this.faceVertexUvs.add(new ArrayList<>());
-
         this.lineDistances = new ArrayList<>();
     }
 
-    /**
-     * Set to true if attribute buffers will need to change in runtime (using "dirty" flags).
-     * Unless set to true internal typed arrays corresponding to buffers will be deleted once sent to GPU.
-     * Defaults to true.
-     *
-     * @return
-     */
     public boolean isDynamic() {
         return this.dynamic;
     }
@@ -263,10 +221,10 @@ public class Geometry extends AbstractGeometry {
 //		this.computeFaceNormals();
 //
 //		if(geometry.boundingBox != null)
-//			this.boundingBox = geometry.boundingBox.copy();
+//			this.boundingBox = geometry.boundingBox.clone();
 //
 //		if(geometry.boundingSphere != null)
-//			this.boundingSphere = geometry.boundingSphere.copy();
+//			this.boundingSphere = geometry.boundingSphere.clone();
 //
 //		return this;
 //	}
@@ -274,10 +232,10 @@ public class Geometry extends AbstractGeometry {
 //	private void addFace(Float32Array normals, Float32Array colors, List<Vector3> tempNormals, List<Vector2> tempUVs, int a, int b, int c )
 //	{
 //		List<Vector3> vertexNormals = normals != null
-//				? Arrays.asList( tempNormals.get( a ).copy(), tempNormals.get( b ).copy(), tempNormals.get( c ).copy() )
+//				? Arrays.asList( tempNormals.get( a ).clone(), tempNormals.get( b ).clone(), tempNormals.get( c ).clone() )
 //				: new ArrayList<Vector3>();
 //		List<Color> vertexColors = colors != null
-//				? Arrays.asList( this.colors.get( a ).copy(), this.colors.get( b ).copy(), this.colors.get( c ).copy() )
+//				? Arrays.asList( this.colors.get( a ).clone(), this.colors.get( b ).clone(), this.colors.get( c ).clone() )
 //				: new ArrayList<Color>();
 //
 //		this.faces.add( new Face3( a, b, c, vertexNormals, vertexColors, 0 ) );
@@ -291,10 +249,10 @@ public class Geometry extends AbstractGeometry {
 
         final Vector3 offset = new Vector3();
 
-        offset.add(this.boundingBox.min(), this.boundingBox.max());
+        offset.add(this.boundingBox.getMin(), this.boundingBox.getMax());
         offset.multiply(-0.5F);
 
-        this.applyMatrix(new Matrix4().makeTranslation(offset.x(), offset.y(), offset.z()));
+        this.applyMatrix(new Matrix4().makeTranslation(offset.getX(), offset.getY(), offset.getZ()));
         this.computeBoundingBox();
 
         return offset;
@@ -329,8 +287,9 @@ public class Geometry extends AbstractGeometry {
 
     }
 
+    @Override
     public void computeVertexNormals() {
-        computeVertexNormals(false);
+        this.computeVertexNormals(false);
     }
 
     /**
@@ -399,13 +358,13 @@ public class Geometry extends AbstractGeometry {
             face = this.faces.get(f);
 
             if (!face.getVertexNormals().isEmpty()) {
-                face.getVertexNormals().set(0, vertices[face.a].copy());
-                face.getVertexNormals().set(1, vertices[face.b].copy());
-                face.getVertexNormals().set(2, vertices[face.c].copy());
+                face.getVertexNormals().set(0, vertices[face.a].clone());
+                face.getVertexNormals().set(1, vertices[face.b].clone());
+                face.getVertexNormals().set(2, vertices[face.c].clone());
             } else {
-                face.getVertexNormals().add(0, vertices[face.a].copy());
-                face.getVertexNormals().add(1, vertices[face.b].copy());
-                face.getVertexNormals().add(2, vertices[face.c].copy());
+                face.getVertexNormals().add(0, vertices[face.a].clone());
+                face.getVertexNormals().add(1, vertices[face.b].clone());
+                face.getVertexNormals().add(2, vertices[face.c].clone());
             }
 
         }
@@ -442,7 +401,7 @@ public class Geometry extends AbstractGeometry {
             face = this.faces.get(f);
             uv = this.faceVertexUvs.get(0).get(f).toArray(uv); // use UV layer 0 for tangents
 
-            handleTriangle(face.getA(), face.getB(), face.getC(), 0, 1, 2, uv, tan1, tan2);
+            this.handleTriangle(face.getA(), face.getB(), face.getC(), 0, 1, 2, uv, tan1, tan2);
         }
 
         for (f = 0, fl = this.faces.size(); f < fl; f++) {
@@ -465,7 +424,7 @@ public class Geometry extends AbstractGeometry {
 
                 // Calculate handedness
 
-                tmp2.crossVectors(face.getVertexNormals().get(i), t);
+                tmp2.cross(face.getVertexNormals().get(i), t);
             }
         }
 
@@ -517,18 +476,9 @@ public class Geometry extends AbstractGeometry {
     }
 
     public void merge(final Geometry geometry, final Matrix4 matrix) {
-
-        merge(geometry, matrix, 0);
-
+        this.merge(geometry, matrix, 0);
     }
 
-    /**
-     * Merge two geometries or geometry and geometry from object (using object's transform)
-     *
-     * @param geometry
-     * @param matrix
-     * @param materialIndexOffset
-     */
     public void merge(final Geometry geometry, final Matrix4 matrix, final int materialIndexOffset) {
 
         Matrix3 normalMatrix = null;
@@ -554,7 +504,7 @@ public class Geometry extends AbstractGeometry {
 
             final Vector3 vertex = vertices2.get(i);
 
-            final Vector3 vertexCopy = vertex.copy();
+            final Vector3 vertexCopy = vertex.clone();
 
             if (matrix != null) {
                 vertexCopy.apply(matrix);
@@ -584,7 +534,7 @@ public class Geometry extends AbstractGeometry {
 
             for (int j = 0, jl = faceVertexNormals.size(); j < jl; j++) {
 
-                final Vector3 normal = faceVertexNormals.get(j).copy();
+                final Vector3 normal = faceVertexNormals.get(j).clone();
 
                 if (normalMatrix != null) {
 
@@ -601,7 +551,7 @@ public class Geometry extends AbstractGeometry {
             for (int j = 0, jl = faceVertexColors.size(); j < jl; j++) {
 
                 final Color color = faceVertexColors.get(j);
-                faceCopy.vertexColors.add(color.copy());
+                faceCopy.vertexColors.add(color.clone());
 
             }
 
@@ -626,7 +576,7 @@ public class Geometry extends AbstractGeometry {
 
             for (int j = 0, jl = uv.size(); j < jl; j++) {
 
-                uvCopy.add(new Vector2(uv.get(j).x(), uv.get(j).y()));
+                uvCopy.add(new Vector2(uv.get(j).getX(), uv.get(j).getY()));
 
             }
 
@@ -651,7 +601,7 @@ public class Geometry extends AbstractGeometry {
 
         for (int i = 0, il = this.vertices.size(); i < il; i++) {
             final Vector3 v = this.vertices.get(i);
-            final String key = Math.round(v.x() * precision) + "_" + Math.round(v.y() * precision) + "_" + Math.round(v.z() * precision);
+            final String key = Math.round(v.getX() * precision) + "_" + Math.round(v.getY() * precision) + "_" + Math.round(v.getZ() * precision);
 
             if (!verticesMap.containsKey(key)) {
                 verticesMap.put(key, i);
@@ -704,39 +654,24 @@ public class Geometry extends AbstractGeometry {
     /**
      * Creates a new copy of the Geometry.
      */
-    public Geometry copy() {
-
+    @Override
+    public Geometry clone() {
         final Geometry geometry = new Geometry();
-
-
-        for (int i = 0, il = this.vertices.size(); i < il; i++) {
-
-            geometry.vertices.add(this.vertices.get(i).copy());
-
+        for (int i = 0; i < this.vertices.size(); i++) {
+            geometry.vertices.add(this.vertices.get(i).clone());
         }
-
-        for (int i = 0, il = this.faces.size(); i < il; i++) {
-
-            geometry.faces.add(this.faces.get(i).copy());
+        for (int i = 0; i < this.faces.size(); i++) {
+            geometry.faces.add(this.faces.get(i).clone());
         }
-
         final List<List<Vector2>> uvs = this.faceVertexUvs.get(0);
-
-        for (int i = 0, il = uvs.size(); i < il; i++) {
-
+        for (int i = 0; i < uvs.size(); i++) {
             final List<Vector2> uv = uvs.get(i);
             final List<Vector2> uvCopy = new ArrayList<>();
-
             for (int j = 0, jl = uv.size(); j < jl; j++) {
-
-                uvCopy.add(new Vector2(uv.get(j).x(), uv.get(j).y()));
-
+                uvCopy.add(new Vector2(uv.get(j).getX(), uv.get(j).getY()));
             }
-
             geometry.faceVertexUvs.get(0).add(uvCopy);
-
         }
-
         return geometry;
 
     }
@@ -750,17 +685,17 @@ public class Geometry extends AbstractGeometry {
         final Vector2 uvB = uv[ub];
         final Vector2 uvC = uv[uc];
 
-        final float x1 = vB.x() - vA.x();
-        final float x2 = vC.x() - vA.x();
-        final float y1 = vB.y() - vA.y();
-        final float y2 = vC.y() - vA.y();
-        final float z1 = vB.z() - vA.z();
-        final float z2 = vC.z() - vA.z();
+        final float x1 = vB.getX() - vA.getX();
+        final float x2 = vC.getX() - vA.getX();
+        final float y1 = vB.getY() - vA.getY();
+        final float y2 = vC.getY() - vA.getY();
+        final float z1 = vB.getZ() - vA.getZ();
+        final float z2 = vC.getZ() - vA.getZ();
 
-        final float s1 = uvB.x() - uvA.x();
-        final float s2 = uvC.x() - uvA.x();
-        final float t1 = uvB.y() - uvA.y();
-        final float t2 = uvC.y() - uvA.y();
+        final float s1 = uvB.getX() - uvA.getX();
+        final float s2 = uvC.getX() - uvA.getX();
+        final float t1 = uvB.getY() - uvA.getY();
+        final float t2 = uvC.getY() - uvA.getY();
 
         final float r = 1.0F / (s1 * t2 - s2 * t1);
 

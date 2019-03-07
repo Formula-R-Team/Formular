@@ -5,7 +5,8 @@ public class Color {
 
     public Color(int argb) {}
 
-    public Color copy() {
+    @Override
+    public Color clone() {
         return new Color();
     }
 

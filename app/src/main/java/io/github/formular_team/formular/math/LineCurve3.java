@@ -18,19 +18,19 @@
 
 package io.github.formular_team.formular.math;
 
-public class LineCurve extends Curve {
-    private final Vector2 v1;
+public class LineCurve3 extends Curve {
+    public Vector3 v1;
 
-    private final Vector2 v2;
+    public Vector3 v2;
 
-    public LineCurve(final Vector2 v1, final Vector2 v2) {
+    public LineCurve3(final Vector3 v1, final Vector3 v2) {
         this.v1 = v1;
         this.v2 = v2;
     }
 
     @Override
-    public Vector2 getPoint(final float t) {
-        final Vector2 point = this.v2.clone();
+    public Vector3 getPoint(final float t) {
+        final Vector3 point = this.v2.clone();
         point.sub(this.v1);
         point.multiply(t);
         point.add(this.v1);
@@ -38,20 +38,7 @@ public class LineCurve extends Curve {
     }
 
     @Override
-    public Vector2 getPointAt(final float u) {
-        return this.getPoint(u);
-    }
-
-    @Override
-    public Vector2 getTangent(final float t) {
-        final Vector2 tangent = this.v2.clone();
-        tangent.sub(this.v1);
-        tangent.normalize();
-        return tangent;
-    }
-
-    @Override
-    public LineCurve clone() {
-        return new LineCurve(this.v1.clone(), this.v2.clone());
+    public LineCurve3 clone() {
+        return new LineCurve3(this.v1.clone(), this.v2.clone());
     }
 }

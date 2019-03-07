@@ -1,56 +1,94 @@
+/*
+ * Copyright 2012 Alex Usachev, thothbot@gmail.com
+ *
+ * This file is part of Parallax project.
+ *
+ * Parallax is free software: you can redistribute it and/or modify it
+ * under the terms of the Creative Commons Attribution 3.0 Unported License.
+ *
+ * Parallax is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the Creative Commons Attribution
+ * 3.0 Unported License. for more details.
+ *
+ * You should have received a copy of the the Creative Commons Attribution
+ * 3.0 Unported License along with Parallax.
+ * If not, see http://creativecommons.org/licenses/by/3.0/.
+ */
+
 package io.github.formular_team.formular.math;
 
-import com.google.common.collect.Lists;
-
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
+
+import io.github.formular_team.formular.geometry.ExtrudeGeometry;
 
 public class Shape extends Path {
-    private Shape(final Builder builder) {
-        super(builder);
+    private final List<Path> holes = new ArrayList<>();
+
+    public Shape() {
+        super();
+    }
+
+    public Shape(final List<Vector2> points) {
+        super(points);
+    }
+
+    public List<Path> getHoles() {
+        return this.holes;
+    }
+
+    public ExtrudeGeometry extrude(final ExtrudeGeometry.ExtrudeGeometryParameters options) {
+        return new ExtrudeGeometry(this, options);
+    }
+
+//	/*
+//	 * Convenience method to return ShapeGeometry
+//	 */
+//	public ShapeGeometry makeGeometry ( final ShapeGeometry.ShapeGeometryParameters options )
+//	{
+//		return new ShapeGeometry( this, options );
+//	}
+
+    public List<List<Vector2>> getPointsHoles() {
+        return this.getPointsHoles(false);
+    }
+
+    public List<List<Vector2>> getPointsHoles(final boolean closedPath) {
+        final int il = this.holes.size();
+        final List<List<Vector2>> holesPts = new ArrayList<>();
+		for (int i = 0; i < il; i++) {
+			holesPts.add(this.holes.get(i).getTransformedPoints(closedPath, this.getBends()));
+		}
+        return holesPts;
+    }
+
+    public List<List<Vector2>> getSpacedPointsHoles(final boolean closedPath) {
+        final int il = this.holes.size();
+        final List<List<Vector2>> holesPts = new ArrayList<>();
+		for (int i = 0; i < il; i++) {
+			holesPts.add(this.holes.get(i).getTransformedSpacedPoints(closedPath, this.getBends()));
+		}
+        return holesPts;
     }
 
     @Override
-    public Shape copy() {
-        final Builder newBuilder = new Builder();
-        super.copy(newBuilder);
-        return newBuilder.build();
+    public Shape clone() {
+        return new Shape().copy(this);
     }
 
-    public Path[] holes() {
-        return new Path[0];
+    @Override
+    public Shape copy(final Path other) {
+        super.copy(other);
+        return this;
     }
 
-    public List<List<Vector2>> getPointsHoles(final int divisions) {
-        return Lists.newArrayList();
-    }
-
-    public List<List<Vector2>> getPointsHoles() {
-        return this.getPointsHoles(200);
-    }
-
-    public boolean contains(final Vector2 point) {
-        return false;
-    }
-
-    public Vector2 getRandomPoint(final Random rng) {
-        return null;
-    }
-
-    public static Builder builder() {
-        return new Builder();
-    }
-
-    public static class Builder extends Path.Builder {
-        Builder() {}
-
-        public Builder addHole(final Path hole) {
-            return this;
+    public Shape copy(final Shape other) {
+        super.copy(other);
+        this.holes.clear();
+        for (final Path hole : other.holes) {
+            this.holes.add(hole.clone());
         }
-
-        @Override
-        public Shape build() {
-            return new Shape(this);
-        }
+        return this;
     }
 }

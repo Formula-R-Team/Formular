@@ -18,16 +18,16 @@
 
 package io.github.formular_team.formular.math;
 
-public class CubicBezierCurve extends Curve {
-    public final Vector2 v0;
+public class CubicBezierCurve3 extends Curve {
+    private final Vector3 v0;
 
-    public final Vector2 v1;
+    private final Vector3 v1;
 
-    public final Vector2 v2;
+    private final Vector3 v2;
 
-    public final Vector2 v3;
+    private final Vector3 v3;
 
-    public CubicBezierCurve(final Vector2 v0, final Vector2 v1, final Vector2 v2, final Vector2 v3) {
+    public CubicBezierCurve3(final Vector3 v0, final Vector3 v1, final Vector3 v2, final Vector3 v3) {
         this.v0 = v0;
         this.v1 = v1;
         this.v2 = v2;
@@ -35,23 +35,15 @@ public class CubicBezierCurve extends Curve {
     }
 
     @Override
-    public Vector2 getPoint(final float t) {
+    public Vector3 getPoint(final float t) {
         final float tx = ShapeUtils.b3(t, this.v0.getX(), this.v1.getX(), this.v2.getX(), this.v3.getX());
         final float ty = ShapeUtils.b3(t, this.v0.getY(), this.v1.getY(), this.v2.getY(), this.v3.getY());
-        return new Vector2(tx, ty);
+        final float tz = ShapeUtils.b3(t, this.v0.getZ(), this.v1.getZ(), this.v2.getZ(), this.v3.getZ());
+        return new Vector3(tx, ty, tz);
     }
 
     @Override
-    public Vector2 getTangent(final float t) {
-        final float tx = CurveUtils.tangentCubicBezier(t, this.v0.getX(), this.v1.getX(), this.v2.getX(), this.v3.getX());
-        final float ty = CurveUtils.tangentCubicBezier(t, this.v0.getY(), this.v1.getY(), this.v2.getY(), this.v3.getY());
-        final Vector2 tangent = new Vector2(tx, ty);
-        tangent.normalize();
-        return tangent;
-    }
-
-    @Override
-    public CubicBezierCurve clone() {
-        return new CubicBezierCurve(this.v0.clone(), this.v1.clone(), this.v2.clone(), this.v3.clone());
+    public CubicBezierCurve3 clone() {
+        return new CubicBezierCurve3(this.v0.clone(), this.v1.clone(), this.v2.clone(), this.v3.clone());
     }
 }

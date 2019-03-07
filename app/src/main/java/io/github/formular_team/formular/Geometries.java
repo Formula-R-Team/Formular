@@ -20,8 +20,6 @@ import io.github.formular_team.formular.math.Vector3;
 public final class Geometries {
     private Geometries() {}
 
-    private static final String TAG = "Geometries";
-
     public static ModelRenderable extrude(final Shape shape, final Path path, final int divisions, final Material material) {
         final ExtrudeGeometry geom;
         try {
@@ -39,31 +37,26 @@ public final class Geometries {
         // TODO remove duplicates
         final ImmutableList.Builder<Vertex> vertices = ImmutableList.builder();
         final ImmutableList.Builder<Integer> indices = ImmutableList.builder();
-        for (final Vector3 v : vertexArray) {
-            vertices.add(Vertex.builder().setPosition(ar(v)).build());
-        }
+//        for (final Vector3 v : vertexArray) {
+//            vertices.add(Vertex.builder().setPosition(ar(v)).build());
+//        }
+//        for (final Face3 face : faces) {
+//            indices.add(face.getA()).add(face.getB()).add(face.getC());
+//        }
+        int i = 0;
         for (final Face3 face : faces) {
-            indices.add(face.getA()).add(face.getB()).add(face.getC());
-        }
-        /*int i = 0;
-        try {
-            for (final Face3 face : faces) {
-                final List<Vector2> uv = uvArray.next();
-                final int[] v = face.getFlat();
-                final List<Vector3> n = face.getVertexNormals();
-                for (int j = 0; j < 3; j++) {
-                    vertices.add(Vertex.builder()
-                        .setPosition(ar(vertexArray.get(v[j])))
-                        .setUvCoordinate(new Vertex.UvCoordinate(uv.get(j).x(), uv.get(j).y()))
-                        .setNormal(ar(face.getNormal()))
-                        .build()
-                    );
-                    indices.add(i++);
-                }
+            final List<Vector2> uv = uvArray.next();
+            final int[] v = face.getFlat();
+            for (int j = 0; j < 3; j++) {
+                vertices.add(Vertex.builder()
+                    .setPosition(ar(vertexArray.get(v[j])))
+                    .setUvCoordinate(new Vertex.UvCoordinate(uv.get(j).getX(), uv.get(j).getY()))
+                    .setNormal(ar(face.getNormal()))
+                    .build()
+                );
+                indices.add(i++);
             }
-        } catch (final Throwable t) {
-            throw new RuntimeException(t);
-        }*/
+        }
         final RenderableDefinition.Submesh mesh = RenderableDefinition.Submesh.builder()
             .setTriangleIndices(indices.build())
             .setMaterial(material)
@@ -76,6 +69,6 @@ public final class Geometries {
     }
 
     private static com.google.ar.sceneform.math.Vector3 ar(final Vector3 vector) {
-        return new com.google.ar.sceneform.math.Vector3(vector.x(), vector.y(), vector.z());
+        return new com.google.ar.sceneform.math.Vector3(vector.getX(), vector.getY(), vector.getZ());
     }
 }

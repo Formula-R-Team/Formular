@@ -5,6 +5,10 @@ public final class Mth {
 
     public static final float PI = (float) Math.PI;
 
+    public static float toRadians(final float angdeg) {
+        return angdeg / 180.0F * PI;
+    }
+
     public static float sqrt(final float a) {
         return (float) Math.sqrt(a);
     }
@@ -41,7 +45,7 @@ public final class Mth {
         return (float) Math.atan2(a,b);
     }
 
-    public static float clamp(float value, float min, float max)
+    public static float clamp(final float value, final float min, final float max)
     {
         return Math.max( min, Math.min( max, value ) );
     }

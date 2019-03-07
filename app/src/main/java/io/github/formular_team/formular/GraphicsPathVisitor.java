@@ -3,7 +3,6 @@ package io.github.formular_team.formular;
 import android.graphics.Path;
 
 import io.github.formular_team.formular.math.PathVisitor;
-import io.github.formular_team.formular.math.Vector2;
 
 public final class GraphicsPathVisitor implements PathVisitor {
     private final Path path;
@@ -17,26 +16,22 @@ public final class GraphicsPathVisitor implements PathVisitor {
     }
 
     @Override
-    public PathVisitor moveTo(final Vector2 point) {
-        this.path.moveTo(point.x(), point.y());
-        return this;
+    public void moveTo(final float x, final float y) {
+        this.path.moveTo(x, y);
     }
 
     @Override
-    public PathVisitor lineTo(final Vector2 point) {
-        this.path.lineTo(point.x(), point.y());
-        return this;
+    public void lineTo(final float x, final float y) {
+        this.path.lineTo(x, y);
     }
 
     @Override
-    public PathVisitor bezierCurveTo(final Vector2 controlA, final Vector2 controlB, final Vector2 point) {
-        this.path.cubicTo(controlA.x(), controlA.y(), controlB.x(), controlB.y(), point.x(), point.y());
-        return this;
+    public void bezierCurveTo(final float aCP1x, final float aCP1y, final float aCP2x, final float aCP2y, final float aX, final float aY) {
+        this.path.cubicTo(aCP1x, aCP1y, aCP2x, aCP2y, aX, aY);
     }
 
     @Override
-    public PathVisitor closePath() {
+    public void closePath() {
         this.path.close();
-        return this;
     }
 }

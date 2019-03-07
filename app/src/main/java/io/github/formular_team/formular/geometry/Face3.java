@@ -48,136 +48,58 @@ public class Face3 {
 	protected List<Vector3> vertexNormals;
 	protected Color color;
 	protected List<Color> vertexColors;
-	// protected List<Material> materials;
 	protected int materialIndex = 0;
 
-	// Special case used in Geometry.computeMorphNormals()
 	public Vector3 __originalFaceNormal;
 	public List<Vector3> __originalVertexNormals;
 
-	public Face3(int a, int b, int c, Vector3 normal) {
+	public Face3(final int a, final int b, final int c, final Vector3 normal) {
 		this(a, b, c);
-
 		this.normal = normal;
 	}
 
-
-	/**
-	 * Face3 constructor
-	 *
-	 * @param a
-	 *            the Vertex A index.
-	 * @param b
-	 *            the Vertex B index.
-	 * @param c
-	 *            the Vertex C index.
-	 * @param normals
-	 *            the List of vertex normals.
-	 */
-	public Face3(int a, int b, int c, List<Vector3> normals) {
+	public Face3(final int a, final int b, final int c, final List<Vector3> normals) {
 		this(a, b, c);
-
 		this.setVertexNormals(normals);
 	}
 
-	/**
-	 * Face3 constructor
-	 *
-	 * @param a
-	 *            the Vertex A index.
-	 * @param b
-	 *            the Vertex B index.
-	 * @param c
-	 *            the Vertex C index.
-	 * @param materialIndex
-	 *            the Material index.
-	 */
-	public Face3(int a, int b, int c, int materialIndex) {
+	public Face3(final int a, final int b, final int c, final int materialIndex) {
 		this(a, b, c);
-
 		this.materialIndex = materialIndex;
 	}
 
-	/**
-	 * Face3 constructor
-	 *
-	 * @param a
-	 *            the Vertex A index.
-	 * @param b
-	 *            the Vertex B index.
-	 * @param c
-	 *            the Vertex C index.
-	 */
-	public Face3(int a, int b, int c) {
+	public Face3(final int a, final int b, final int c) {
 		this.setA(a);
 		this.setB(b);
 		this.setC(c);
 		this.setNormal(new Vector3());
-		this.vertexNormals = new ArrayList<Vector3>();
-		this.color = new Color(0x000000);
-
-		this.vertexColors = new ArrayList<Color>();
+		this.vertexNormals = new ArrayList<>();
+		this.color = new Color(0xFF000000);
+		this.vertexColors = new ArrayList<>();
 	}
 
-	/**
-	 * Face3 constructor
-	 *
-	 * @param a
-	 *            the Vertex A index.
-	 * @param b
-	 *            the Vertex B index.
-	 * @param c
-	 *            the Vertex C index.
-	 * @param normals
-	 *            the List of vertex normals.
-	 * @param colors
-	 *            the List of vertex colors.
-	 * @param materialIndex
-	 *            the Material index.
-	 */
-	public Face3(int a, int b, int c, List<Vector3> normals,
-				 List<Color> colors, int materialIndex) {
+	public Face3(final int a, final int b, final int c, final List<Vector3> normals, final List<Color> colors, final int materialIndex) {
 		this(a, b, c);
-
 		this.setVertexNormals(normals);
-		this.setVertexColors(new ArrayList<Color>());
+		this.setVertexColors(colors);
 
 		this.materialIndex = materialIndex;
 	}
 
-	/**
-	 * Face3 constructor
-	 *
-	 * @param a
-	 *            the Vertex A index.
-	 * @param b
-	 *            the Vertex B index.
-	 * @param c
-	 *            the Vertex C index.
-	 * @param normal
-	 *            the Face normal.
-	 * @param color
-	 *            the Face color.
-	 * @param materialIndex
-	 *            the Material index.
-	 */
-	public Face3(int a, int b, int c, Vector3 normal, Color color,
-				 int materialIndex) {
+	public Face3(final int a, final int b, final int c, final Vector3 normal, final Color color,
+				 final int materialIndex) {
 		this(a, b, c);
-
-		this.setNormal(normal instanceof Vector3 ? normal : new Vector3());
-		this.setVertexNormals(new ArrayList<Vector3>());
-
+		this.setNormal(normal != null ? normal : new Vector3());
+		this.setVertexNormals(new ArrayList<>());
 		this.setColor(color);
-		this.setVertexColors(new ArrayList<Color>());
-
+		this.setVertexColors(new ArrayList<>());
 		this.materialIndex = materialIndex;
 	}
 
 	/**
 	 * Sets Vertex A index.
 	 */
-	public void setA(int a) {
+	public void setA(final int a) {
 		this.a = a;
 	}
 
@@ -185,13 +107,13 @@ public class Face3 {
 	 * Gets Vertex A index.
 	 */
 	public int getA() {
-		return a;
+		return this.a;
 	}
 
 	/**
 	 * Sets Vertex B index.
 	 */
-	public void setB(int b) {
+	public void setB(final int b) {
 		this.b = b;
 	}
 
@@ -199,13 +121,13 @@ public class Face3 {
 	 * Gets Vertex B index.
 	 */
 	public int getB() {
-		return b;
+		return this.b;
 	}
 
 	/**
 	 * Sets Vertex C index
 	 */
-	public void setC(int c) {
+	public void setC(final int c) {
 		this.c = c;
 	}
 
@@ -213,11 +135,11 @@ public class Face3 {
 	 * Gets Vertex C index
 	 */
 	public int getC() {
-		return c;
+		return this.c;
 	}
 
 	public int[] getFlat() {
-		int[] flat = new int[3];
+		final int[] flat = new int[3];
 		flat[0] = this.a;
 		flat[1] = this.b;
 		flat[2] = this.c;
@@ -227,7 +149,7 @@ public class Face3 {
 	/**
 	 * Sets the Face normal.
 	 */
-	public void setNormal(Vector3 normal) {
+	public void setNormal(final Vector3 normal) {
 		this.normal = normal;
 	}
 
@@ -235,13 +157,13 @@ public class Face3 {
 	 * Gets the Face normal.
 	 */
 	public Vector3 getNormal() {
-		return normal;
+		return this.normal;
 	}
 
 	/**
 	 * Sets List of 3 vertex normals.
 	 */
-	public void setVertexNormals(List<Vector3> vertexNormals) {
+	public void setVertexNormals(final List<Vector3> vertexNormals) {
 		this.vertexNormals = vertexNormals;
 	}
 
@@ -249,13 +171,13 @@ public class Face3 {
 	 * Gets List of 3 vertex normals.
 	 */
 	public List<Vector3> getVertexNormals() {
-		return vertexNormals;
+		return this.vertexNormals;
 	}
 
 	/**
 	 * Sets the Face color.
 	 */
-	public void setColor(Color color) {
+	public void setColor(final Color color) {
 		this.color = color;
 	}
 
@@ -263,13 +185,13 @@ public class Face3 {
 	 * Gets the Face color.
 	 */
 	public Color getColor() {
-		return color;
+		return this.color;
 	}
 
 	/**
 	 * Sets List of 3 vertex colors.
 	 */
-	public void setVertexColors(List<Color> vertexColors) {
+	public void setVertexColors(final List<Color> vertexColors) {
 		this.vertexColors = vertexColors;
 	}
 
@@ -277,7 +199,7 @@ public class Face3 {
 	 * Gets List of 3 vertex colors.
 	 */
 	public List<Color> getVertexColors() {
-		return vertexColors;
+		return this.vertexColors;
 	}
 
 //
@@ -309,22 +231,22 @@ public class Face3 {
 	/**
 	 * Sets Material index.
 	 */
-	public void setMaterialIndex(int index) {
+	public void setMaterialIndex(final int index) {
 		this.materialIndex = index;
 	}
 
-	public Face3 copy() {
-		Face3 face = new Face3(this.a, this.b, this.c);
+	public Face3 clone() {
+		final Face3 face = new Face3(this.a, this.b, this.c);
 
 		face.normal.copy(this.normal);
 		face.color.copy(this.color);
 		face.materialIndex = this.materialIndex;
 
 		for (int i = 0, il = this.vertexNormals.size(); i < il; i++)
-			face.vertexNormals.add(this.vertexNormals.get(i).copy());
+			face.vertexNormals.add(this.vertexNormals.get(i).clone());
 
 		for (int i = 0, il = this.vertexColors.size(); i < il; i++)
-			face.vertexColors.add(this.vertexColors.get(i).copy());
+			face.vertexColors.add(this.vertexColors.get(i).clone());
 
 		return face;
 	}

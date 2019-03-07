@@ -35,11 +35,6 @@ import io.github.formular_team.formular.math.ShapeUtils;
 import io.github.formular_team.formular.math.Vector2;
 import io.github.formular_team.formular.math.Vector3;
 
-/**
- * Creates extruded geometry from a path shape.
- * <p>
- * Based on the three.js code.
- */
 public class ExtrudeGeometry extends Geometry {
     private static final String TAG = "ExtrudeGeometry";
 
@@ -137,10 +132,10 @@ public class ExtrudeGeometry extends Geometry {
         final Vector3 normal = new Vector3();
         final Vector3 position2 = new Vector3();
 
-        Curve.FrenetFrameSet splineTube = null;
+        FrenetFrames splineTube = null;
 
         if (options.extrudePath != null) {
-            extrudePts = Lists.newArrayList(options.extrudePath.getSpacedPoints(options.steps));
+            extrudePts = options.extrudePath.getSpacedPoints(options.steps);
 
             extrudeByPath = true;
             // bevels not supported for path extrusion
@@ -149,7 +144,7 @@ public class ExtrudeGeometry extends Geometry {
             // SETUP TNB variables
 
             // Reuse TNB from TubeGeomtry for now.
-            splineTube = options.extrudePath.computeFrenetFrames(options.steps, false);
+            splineTube = new FrenetFrames(options.extrudePath, options.steps, false);
         }
 
         // Safeguards if bevels are not enabled
@@ -162,9 +157,9 @@ public class ExtrudeGeometry extends Geometry {
 
         this.shapesOffset = this.getVertices().size();
 
-        final List<Vector2> vertices = shape.getPoints(options.curveSegments);
+        final List<Vector2> vertices = shape.getPoints(options.curveSegments, false);
 
-        this.holes = shape.getPointsHoles(options.curveSegments);
+        this.holes = shape.getPointsHoles();
 
         final boolean reverse = !ShapeUtils.isClockWise(vertices);
 
@@ -253,7 +248,7 @@ public class ExtrudeGeometry extends Geometry {
 
             for (int i = 0, il = contour.size(); i < il; i++) {
                 final Vector2 vert = this.scalePt2(contour.get(i), contourMovements.get(i), bs);
-                this.v(vert.x(), vert.y(), -z);
+                this.v(vert.getX(), vert.getY(), -z);
             }
 
             // expand holes
@@ -263,7 +258,7 @@ public class ExtrudeGeometry extends Geometry {
 
                 for (int i = 0, il = ahole.size(); i < il; i++) {
                     final Vector2 vert = this.scalePt2(ahole.get(i), oneHoleMovements.get(i), bs);
-                    this.v(vert.x(), vert.y(), -z);
+                    this.v(vert.getX(), vert.getY(), -z);
                 }
             }
         }
@@ -277,13 +272,13 @@ public class ExtrudeGeometry extends Geometry {
                 : vertices.get(i);
 
             if (!extrudeByPath) {
-                this.v(vert.x(), vert.y(), 0);
+                this.v(vert.getX(), vert.getY(), 0);
             } else {
-                normal.copy(splineTube.getNormals()[0]).multiply(vert.x());
-                binormal.copy(splineTube.getBinormals()[0]).multiply(vert.y());
+                normal.copy(splineTube.getNormals().get(0)).multiply(vert.getX());
+                binormal.copy(splineTube.getBinormals().get(0)).multiply(vert.getY());
                 position2.copy((Vector3) extrudePts.get(0)).add(normal).add(binormal);
 
-                this.v(position2.x(), position2.y(), position2.z());
+                this.v(position2.getX(), position2.getY(), position2.getZ());
             }
         }
 
@@ -297,14 +292,14 @@ public class ExtrudeGeometry extends Geometry {
                     : vertices.get(i);
 
                 if (!extrudeByPath) {
-                    this.v(vert.x(), vert.y(), (float) options.amount / options.steps * s);
+                    this.v(vert.getX(), vert.getY(), (float) options.amount / options.steps * s);
                 } else {
-                    normal.copy(splineTube.getNormals()[s]).multiply(vert.x());
-                    binormal.copy(splineTube.getBinormals()[s]).multiply(vert.y());
+                    normal.copy(splineTube.getNormals().get(s)).multiply(vert.getX());
+                    binormal.copy(splineTube.getBinormals().get(s)).multiply(vert.getY());
 
                     position2.copy((Vector3) extrudePts.get(s)).add(normal).add(binormal);
 
-                    this.v(position2.x(), position2.y(), position2.z());
+                    this.v(position2.getX(), position2.getY(), position2.getZ());
                 }
             }
         }
@@ -320,7 +315,7 @@ public class ExtrudeGeometry extends Geometry {
             // contract shape
             for (int i = 0, il = contour.size(); i < il; i++) {
                 final Vector2 vert = this.scalePt2(contour.get(i), contourMovements.get(i), bs);
-                this.v(vert.x(), vert.y(), options.amount + z);
+                this.v(vert.getX(), vert.getY(), options.amount + z);
             }
 
             // expand holes
@@ -332,11 +327,11 @@ public class ExtrudeGeometry extends Geometry {
                     final Vector2 vert = this.scalePt2(ahole.get(i), oneHoleMovements.get(i), bs);
 
                     if (!extrudeByPath) {
-                        this.v(vert.x(), vert.y(), options.amount + z);
+                        this.v(vert.getX(), vert.getY(), options.amount + z);
                     } else {
-                        this.v(vert.x(),
-                            vert.y() + extrudePts.get(options.steps - 1).y(),
-                            extrudePts.get(options.steps - 1).x() + z);
+                        this.v(vert.getX(),
+                            vert.getY() + extrudePts.get(options.steps - 1).getY(),
+                            extrudePts.get(options.steps - 1).getX() + z);
                     }
                 }
             }
@@ -359,8 +354,8 @@ public class ExtrudeGeometry extends Geometry {
     }
 
     private Vector2 getBevelVec1(final Vector2 pt_i, final Vector2 pt_j, final Vector2 pt_k) {
-        final float anglea = Mth.atan2(pt_j.y() - pt_i.y(), pt_j.x() - pt_i.x());
-        float angleb = Mth.atan2(pt_k.y() - pt_i.y(), pt_k.x() - pt_i.x());
+        final float anglea = Mth.atan2(pt_j.getY() - pt_i.getY(), pt_j.getX() - pt_i.getX());
+        float angleb = Mth.atan2(pt_k.getY() - pt_i.getY(), pt_k.getX() - pt_i.getX());
 
         if (anglea > angleb) {
             angleb += Mth.PI * 2.0F;
@@ -375,7 +370,7 @@ public class ExtrudeGeometry extends Geometry {
     }
 
     private Vector2 scalePt2(final Vector2 pt, final Vector2 vec, final float size) {
-        return vec.copy().multiply(size).add(pt);
+        return vec.clone().multiply(size).add(pt);
     }
 
     /*
@@ -392,23 +387,23 @@ public class ExtrudeGeometry extends Geometry {
 
         // define a as vector j->i
         // define b as vectot k->i
-        a.set(pt_i.x() - pt_j.x(), pt_i.y() - pt_j.y());
-        b.set(pt_i.x() - pt_k.x(), pt_i.y() - pt_k.y());
+        a.set(pt_i.getX() - pt_j.getX(), pt_i.getY() - pt_j.getY());
+        b.set(pt_i.getX() - pt_k.getX(), pt_i.getY() - pt_k.getY());
 
         // get unit vectors
         final Vector2 v = a.normalize();
         final Vector2 w = b.normalize();
 
         // normals from pt i
-        v_hat.set(-v.y(), v.x());
-        w_hat.set(w.y(), -w.x());
+        v_hat.set(-v.getY(), v.getX());
+        w_hat.set(w.getY(), -w.getX());
 
         // pts from i
         p.copy(pt_i).add(v_hat);
         q.copy(pt_i).add(w_hat);
 
         if (p.equals(q)) {
-            return w_hat.copy();
+            return w_hat.clone();
         }
 
         // Points from j, k. helps prevents points cross overover most of the time
@@ -440,7 +435,7 @@ public class ExtrudeGeometry extends Geometry {
         final Vector2 intersection = v.multiply(s).add(p);
 
         // Don't normalize!, otherwise sharp corners become ugly
-        return intersection.sub(pt_i).copy();
+        return intersection.sub(pt_i).clone();
     }
 
     private void buildLidFaces() {
@@ -569,19 +564,19 @@ public class ExtrudeGeometry extends Geometry {
         private WorldUVGenerator() {}
 
         public static List<Vector2> generateTopUV(final Geometry geometry, final int indexA, final int indexB, final int indexC) {
-            final float ax = geometry.getVertices().get(indexA).x();
-            final float ay = geometry.getVertices().get(indexA).y();
+            final float ax = geometry.getVertices().get(indexA).getX();
+            final float ay = geometry.getVertices().get(indexA).getY();
 
-            final float bx = geometry.getVertices().get(indexB).x();
-            final float by = geometry.getVertices().get(indexB).y();
+            final float bx = geometry.getVertices().get(indexB).getX();
+            final float by = geometry.getVertices().get(indexB).getY();
 
-            final float cx = geometry.getVertices().get(indexC).x();
-            final float cy = geometry.getVertices().get(indexC).y();
+            final float cx = geometry.getVertices().get(indexC).getX();
+            final float cy = geometry.getVertices().get(indexC).getY();
 
             return Arrays.asList(
-                new Vector2(ax, 1 - ay),
-                new Vector2(bx, 1 - by),
-                new Vector2(cx, 1 - cy)
+                new Vector2(ax, 1.0F - ay),
+                new Vector2(bx, 1.0F - by),
+                new Vector2(cx, 1.0F - cy)
             );
         }
 
@@ -590,23 +585,23 @@ public class ExtrudeGeometry extends Geometry {
         }
 
         public static List<Vector2> generateSideWallUV(final Geometry geometry, final int indexA, final int indexB, final int indexC, final int indexD) {
-            final float ax = geometry.getVertices().get(indexA).x();
-            final float ay = geometry.getVertices().get(indexA).y();
-            final float az = geometry.getVertices().get(indexA).z();
+            final float ax = geometry.getVertices().get(indexA).getX();
+            final float ay = geometry.getVertices().get(indexA).getY();
+            final float az = geometry.getVertices().get(indexA).getZ();
 
-            final float bx = geometry.getVertices().get(indexB).x();
-            final float by = geometry.getVertices().get(indexB).y();
-            final float bz = geometry.getVertices().get(indexB).z();
+            final float bx = geometry.getVertices().get(indexB).getX();
+            final float by = geometry.getVertices().get(indexB).getY();
+            final float bz = geometry.getVertices().get(indexB).getZ();
 
-            final float cx = geometry.getVertices().get(indexC).x();
-            final float cy = geometry.getVertices().get(indexC).y();
-            final float cz = geometry.getVertices().get(indexC).z();
+            final float cx = geometry.getVertices().get(indexC).getX();
+            final float cy = geometry.getVertices().get(indexC).getY();
+            final float cz = geometry.getVertices().get(indexC).getZ();
 
-            final float dx = geometry.getVertices().get(indexD).x();
-            final float dy = geometry.getVertices().get(indexD).y();
-            final float dz = geometry.getVertices().get(indexD).z();
+            final float dx = geometry.getVertices().get(indexD).getX();
+            final float dy = geometry.getVertices().get(indexD).getY();
+            final float dz = geometry.getVertices().get(indexD).getZ();
 
-            if (Math.abs(ay - by) < 0.01) {
+            if (Math.abs(ay - by) < 0.01F) {
                 return Arrays.asList(
                     new Vector2(ax, az),
                     new Vector2(bx, bz),

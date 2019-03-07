@@ -1,294 +1,693 @@
+/*
+ * Copyright 2012 Alex Usachev, thothbot@gmail.com
+ *
+ * This file is part of Parallax project.
+ *
+ * Parallax is free software: you can redistribute it and/or modify it
+ * under the terms of the Creative Commons Attribution 3.0 Unported License.
+ *
+ * Parallax is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the Creative Commons Attribution
+ * 3.0 Unported License. for more details.
+ *
+ * You should have received a copy of the the Creative Commons Attribution
+ * 3.0 Unported License along with Parallax.
+ * If not, see http://creativecommons.org/licenses/by/3.0/.
+ */
+
 package io.github.formular_team.formular.math;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
-public class Path implements Curve {
-    private List<Curve> curves;
+public class Path extends CurvePath implements PathVisitor {
+    private final List<Action> actions;
 
-    Path(final Builder builder) {
-        this.curves = builder.getCurves();
+    public Path() {
+        super();
+        this.actions = new ArrayList<>();
+        this.actions.add(new DummyAction());
     }
 
-    public boolean isClosed() {
-        return !this.curves.isEmpty() &&
-            this.curves.get(0).getPoint(0.0F).equals(
-                this.curves.get(this.curves.size() - 1).getPoint(1.0F)
-            );
+    public Path(final List<Vector2> points) {
+        this();
+        this.fromPoints(points);
     }
 
-    @Override
-    public boolean isStraight() {
-        // TODO: curves are all colinear
-        return false;
-    }
-
-    //Not sure if this is how visit should look
     public void visit(final PathVisitor visitor) {
-        if (!this.curves.isEmpty()) {
-            final Curve first = this.curves.get(0);
-            visitor.moveTo(first instanceof LineCurve ? ((LineCurve) first).v0() : ((CubicBezierCurve) first).v0());
-        }
-        for (final Curve curCurve : this.curves) {
-            if (curCurve instanceof LineCurve) {
-                visitor.lineTo(((LineCurve) curCurve).v1());
-            } else {
-                final CubicBezierCurve curBezier = (CubicBezierCurve) curCurve;
-                visitor.bezierCurveTo(curBezier.v1(), curBezier.v2(), curBezier.v3());
-            }
+        for (final Action action : this.actions) {
+            action.visit(visitor);
         }
     }
 
-    public Curve[] getCurves() {
-        return this.curves.toArray(new Curve[0]);
-    }
-
-    public static Builder builder() {
-        return new Builder();
-    }
-
-
-    @Override
-    public Vector2 getPoint(float t) {
-        if (t == 1.0F) {
-            return this.curves.get(this.curves.size() - 1).getPoint(1.0F);
+    public void fromPoints(final List<Vector2> vectors) {
+        this.moveTo(vectors.get(0).getX(), vectors.get(0).getY());
+        for (int n = 1; n < vectors.size(); n++) {
+            this.lineTo(vectors.get(n).getX(), vectors.get(n).getY());
         }
-        if ((t < 0.0F || t > 1.0F) && this.isClosed()) {
-            t %= 1.0F;
-            if (t < 0.0F) {
-                t += 1.0F;
-            }
-        }
-        final float d = t * this.getLength();
-        final float[] curveLengths = this.getCurveLengths();
-        for (int i = 0; i < curveLengths.length; i++) {
-            if (curveLengths[i] >= d) {
-                final float diff = curveLengths[i] - d;
-                final Curve curve = this.curves.get(i);
-                final float segmentLength = curve.getLength();
-                final float u = segmentLength == 0 ? 0 : 1 - diff / segmentLength;
-                return curve.getPointAt(u);
-            }
-        }
-        throw new RuntimeException("t=" + t);
     }
 
     @Override
-    public Vector2 getPointAt(final float u) {
-        final float t = this.uToT(u);
-        return this.getPoint(t);
+    public void moveTo(final float x, final float y) {
+        this.actions.add(new MoveToAction(x, y));
     }
 
     @Override
-    public List<Vector2> getPoints(final int divisions) {
-        final List<Vector2> points = new ArrayList<>();
-        Vector2 last = new Vector2(Float.NaN, Float.NaN);
-        for (int i = 0; i < this.curves.size(); i++) {
-            final Curve curve = this.curves.get(i);
-            final int resolution = curve.isStraight() ? 1 : divisions;
-            final List<Vector2> pts = curve.getPoints(resolution);
-            for (final Vector2 point : pts) {
-                if (!last.equals(point)) {
-                    points.add(point);
-                    last = point;
-                }
-            }
-        }
-        return points;
+    public void lineTo(final float x, final float y) {
+        final Action last = this.actions.get(this.actions.size() - 1);
+        final float x0 = last.getX();
+        final float y0 = last.getY();
+        final LineCurve curve = new LineCurve(new Vector2(x0, y0), new Vector2(x, y));
+        this.add(curve);
+        this.actions.add(new LineToAction(x, y));
     }
 
-    public List<Vector2> getPoints() {
-        return this.getPoints(12);
-    }
-
-    @Override
-    public Vector2[] getSpacedPoints(final int divisions) {
-        final Vector2[] points = new Vector2[1 + divisions];
-        for (int d = 0; d <= divisions; d++) {
-            points[d] = this.getPointAt((float) d / divisions);
-        }
-        return points;
-    }
+//	public void quadraticCurveTo(float aCPx, float aCPy, float aX, float aY) {
+//		List<Object> lastargs = this.actions.get(this.actions.size() - 1).args;
+//
+//		float x0 = (Float) lastargs.get(lastargs.size() - 2);
+//		float y0 = (Float) lastargs.get(lastargs.size() - 1);
+//
+//		QuadraticBezierCurve curve = new QuadraticBezierCurve(
+//				new Vector2(x0, y0),
+//				new Vector2(aCPx, aCPy),
+//				new Vector2(aX, aY));
+//		add(curve);
+//
+//		this.actions.add(new Action(PATH_ACTIONS.QUADRATIC_CURVE_TO, aCPx, aCPy, aX, aY));
+//	}
 
     @Override
-    public Vector2[] getSpacedPoints() {
+    public void bezierCurveTo(final float aCP1x, final float aCP1y, final float aCP2x, final float aCP2y, final float aX, final float aY) {
+        final Action last = this.actions.get(this.actions.size() - 1);
+        final float x0 = last.getX();
+        final float y0 = last.getY();
+        final CubicBezierCurve curve = new CubicBezierCurve(new Vector2(x0, y0),
+            new Vector2(aCP1x, aCP1y),
+            new Vector2(aCP2x, aCP2y),
+            new Vector2(aX, aY));
+        this.add(curve);
+        this.actions.add(new BezierCurveToAction(aCP1x, aCP1y, aCP2x, aCP2y, aX, aY));
+    }
+
+//	public void splineThru(List<Vector2> pts) {
+//		List<Object> lastargs = this.actions.get(this.actions.size() - 1).args;
+//
+//		float x0 = (Float) lastargs.get(lastargs.size() - 2);
+//		float y0 = (Float) lastargs.get(lastargs.size() - 1);
+//
+//		//---
+//		List<Vector2> npts = new ArrayList<Vector2>();
+//		npts.add(new Vector3(x0, y0, 0));
+//		npts.addAll(pts);
+//
+//		SplineCurve curve = new SplineCurve(npts);
+//		add(curve);
+//
+//		this.actions.add(new Action(PATH_ACTIONS.CSPLINE_THRU, pts));
+//	}
+
+//	public void arc(float aX, float aY, float aRadius,
+//					float aStartAngle, float aEndAngle, boolean aClockwise) {
+//		List<Object> lastargs = this.actions.get(this.actions.size() - 1).args;
+//
+//		float x0 = (Float) lastargs.get(lastargs.size() - 2);
+//		float y0 = (Float) lastargs.get(lastargs.size() - 1);
+//
+//		absarc(aX + x0, aY + y0, aRadius, aStartAngle, aEndAngle, aClockwise);
+//	}
+
+//	public void absarc(float aX, float aY, float aRadius,
+//					   float aStartAngle, float aEndAngle, boolean aClockwise) {
+//		absellipse(aX, aY, aRadius, aRadius, aStartAngle, aEndAngle, aClockwise);
+//	}
+
+//	public void ellipse(float aX, float aY, float xRadius, float yRadius,
+//						float aStartAngle, float aEndAngle, boolean aClockwise) {
+//		List<Object> lastargs = this.actions.get(this.actions.size() - 1).args;
+//		float x0 = (Float) lastargs.get(lastargs.size() - 2);
+//		float y0 = (Float) lastargs.get(lastargs.size() - 1);
+//
+//		absellipse(aX + x0, aY + y0, xRadius, yRadius, aStartAngle, aEndAngle, aClockwise);
+//	}
+
+//	public void absellipse(float aX, float aY, float xRadius, float yRadius,
+//						   float aStartAngle, float aEndAngle, boolean aClockwise) {
+//
+//		EllipseCurve curve = new EllipseCurve(aX, aY, xRadius, yRadius,
+//				aStartAngle, aEndAngle, aClockwise);
+//		add(curve);
+//
+//		Vector2 lastPoint = curve.getPoint(aClockwise ? 1 : 0);
+//
+//		this.actions.add(new Action(PATH_ACTIONS.ELLIPSE, aX, aY, xRadius, yRadius, aStartAngle, aEndAngle, aClockwise, lastPoint.getX(), lastPoint.getY()));
+//	}
+
+    @Override
+    public List<Vector2> getSpacedPoints() {
         return this.getSpacedPoints(40);
     }
 
     @Override
-    public float getLength() {
-        final float[] lens = this.getCurveLengths();
-        return lens[lens.length - 1];
-    }
-
-    @Override
-    public float[] getLengths(final int divisions) {
-        final float[] lengths = new float[1 + divisions];
-        Vector2 last = this.getPoint(0.0F);
-        float sum = 0.0F;
-        for (int p = 1; p <= divisions; p++) {
-            final Vector2 current = this.getPoint((float) p / divisions);
-            sum += current.distanceTo(last);
-            lengths[p] = sum;
-            last = current;
+    public List<Vector2> getSpacedPoints(final int divisions) {
+        final List<Vector2> points = new ArrayList<>();
+        for (int i = 0; i <= divisions; i++) {
+            points.add(this.getPoint(i / (float) divisions));
         }
-        return lengths;
+        return points;
     }
 
-    public float[] getLengths() {
-        return this.getLengths(200);
+    public List<Vector2> getPoints(final boolean closedPath) {
+        return this.getPoints(12, closedPath);
     }
 
-    @Override
-    public Vector2 getTangent(final float t) {
-        final float delta = 0.0001F;
-        float t1 = t - delta;
-        float t2 = t + delta;
-        if (t1 < 0.0F) {
-            t1 = 0.0F;
+    public List<Vector2> getPoints(final int divisions, final boolean closedPath) {
+        final List<Vector2> points = new ArrayList<>();
+        this.visit(new PathVisitor() {
+            private final Vector2 last = new Vector2();
+
+            @Override
+            public void moveTo(final float x, final float y) {
+                final Vector2 point = new Vector2(x, y);
+                this.last.copy(point);
+                points.add(point);
+            }
+
+            @Override
+            public void lineTo(final float x, final float y) {
+                final Vector2 point = new Vector2(x, y);
+                this.last.copy(point);
+                points.add(point);
+            }
+
+            @Override
+            public void bezierCurveTo(final float aCP1x, final float aCP1y, final float aCP2x, final float aCP2y, final float aX, final float aY) {
+                final float x0 = this.last.getX();
+                final float y0 = this.last.getX();
+                for (int n = 1; n <= divisions; n++) {
+                    final float t = n / (float) divisions;
+                    final float tx = ShapeUtils.b3(t, x0, aCP1x, aCP2x, aX);
+                    final float ty = ShapeUtils.b3(t, y0, aCP1y, aCP2y, aY);
+                    final Vector2 point = new Vector2(tx, ty);
+                    this.last.copy(point);
+                    points.add(point);
+                }
+            }
+
+            @Override
+            public void closePath() {}
+        });
+//				case QUADRATIC_CURVE_TO:
+//					cpx = (Float) args.get(2);
+//					cpy = (Float) args.get(3);
+//					cpx1 = (Float) args.get(0);
+//					cpy1 = (Float) args.get(1);
+//					if (!points.isEmpty()) {
+//						Vector2 laste = points.get(points.size() - 1);
+//						cpx0 = laste.getX();
+//						cpy0 = laste.getY();
+//					} else {
+//						List<Object> laste = this.actions.get(i - 1).args;
+//						cpx0 = (Float) laste.get(laste.size() - 2);
+//						cpy0 = (Float) laste.get(laste.size() - 1);
+//					}
+//					for (int j = 1; j <= divisions; j++) {
+//						float t = j / (float) divisions;
+//						float tx = ShapeUtils.b2(t, cpx0, cpx1, cpx);
+//						float ty = ShapeUtils.b2(t, cpy0, cpy1, cpy);
+//						points.add(new Vector2(tx, ty));
+//					}
+
+//				case CSPLINE_THRU:
+//					List<Object> laste = this.actions.get(i - 1).args;
+//					Vector2 last = new Vector2((Float) laste.get(laste.size() - 2), (Float) laste.get(laste.size() - 1));
+//					List<Vector2> spts = new ArrayList<Vector2>();
+//					spts.add(last);
+//					List<Vector3> v = (List<Vector3>) args.get(0);
+//					float n = (float)divisions * v.size();
+//					spts.addAll(v);
+//					SplineCurve spline = new SplineCurve(spts);
+//					for (int j = 1; j <= n; j++)
+//						points.add((Vector2) spline.getPointAt(j / n));
+//					break;
+
+//				case ARC:
+//					float aX = (Float) args.get(0);
+//					float aY = (Float) args.get(1);
+//					float aRadius = (Float) args.get(2);
+//					float aStartAngle = (Float) args.get(3);
+//					float aEndAngle = (Float) args.get(4);
+//					boolean aClockwise = !!(Boolean) args.get(5);
+//					float deltaAngle = aEndAngle - aStartAngle;
+//					int tdivisions = divisions * 2;
+//					for (int j = 1; j <= tdivisions; j++) {
+//						float t = j / (float) tdivisions;
+//						if (!aClockwise) {
+//							t = 1.0F - t;
+//						}
+//						float angle = aStartAngle + t * deltaAngle;
+//						float tx = aX + aRadius * Mth.cos(angle);
+//						float ty = aY + aRadius * Mth.sin(angle);
+//						points.add(new Vector2(tx, ty));
+//					}
+
+//				case ELLIPSE:
+//					float aXE = (Float) args.get(0);
+//					float aYE = (Float) args.get(1);
+//					float xRadiusE = (Float) args.get(2);
+//					float yRadiusE = (Float) args.get(3);
+//					float aStartAngleE = (Float) args.get(4);
+//					float aEndAngleE = (Float) args.get(5);
+//					boolean aClockwiseE = !!(Boolean) args.get(6);
+//					float deltaAngleE = aEndAngleE - aStartAngleE;
+//					float tdivisionsE = divisions * 2.0F;
+//					for (int j = 1; j <= tdivisionsE; j++) {
+//						float t = j / tdivisionsE;
+//						if (!aClockwiseE) {
+//							t = 1.0F - t;
+//						}
+//						float angle = aStartAngleE + t * deltaAngleE;
+//						float tx = aXE + xRadiusE * Mth.cos(angle);
+//						float ty = aYE + yRadiusE * Mth.sin(angle);
+//						points.add(new Vector2(tx, ty));
+//					}
+
+        // Normalize to remove the closing point by default.
+        if (points.size() >= 2) {
+            final Vector2 lastPoint = points.get(points.size() - 1);
+            final float epsilon = 0.0000001F;
+            if (Math.abs(lastPoint.getX() - points.get(0).getX()) < epsilon &&
+                Math.abs(lastPoint.getY() - points.get(0).getY()) < epsilon) {
+                points.remove(points.size() - 1);
+            }
         }
-        if (t2 > 1.0F) {
-            t2 = 1.0F;
+        if (closedPath) {
+            points.add(points.get(0));
         }
-        final Vector2 pt1 = this.getPoint(t1);
-        final Vector2 pt2 = this.getPoint(t2);
-        final Vector2 vec = pt2.copy();
-        vec.sub(pt1);
-        vec.normalize();
-        return vec;
+        return points;
     }
 
-    @Override
-    public Vector2 getTangentAt(final float u) {
-        final float t = this.uToT(u);
-        return this.getTangent(t);
+    public List<Shape> toShapes() {
+        return this.toShapes(false, false);
     }
-
-    public float[] getCurveLengths() {
-        final float[] lengths = new float[this.curves.size()];
-        float sums = 0.0F;
-        for (int i = 0; i < this.curves.size(); i++) {
-            sums += this.curves.get(i).getLength();
-            lengths[i] = sums;
+    public List<Shape> toShapes(final boolean isCCW, final boolean noHoles) {
+        final List<Shape> shapes = new ArrayList<>();
+        final List<Path> subPaths = this.extractSubPaths();
+        if (subPaths.isEmpty()) {
+            return shapes;
         }
-        return lengths;
-    }
+        if (noHoles) {
+            return this.toShapesNoHoles(subPaths);
+        }
+        if (subPaths.size() == 1) {
+            shapes.add(new Shape().copy(subPaths.get(0)));
+            return shapes;
+        }
+        boolean holesFirst = !ShapeUtils.isClockWise(subPaths.get(0).getPoints());
+        holesFirst = isCCW != holesFirst;
+        final class ShapeHole {
+            private final Shape s;
 
-    public void copy(final Path path) {
-        this.curves = Arrays.stream(path.getCurves()).map(Curve::copy).collect(Collectors.toList());
-    }
+            private final List<Vector2> p;
 
-    public Curve copy() {
-        final Builder newBuilder = new Builder();
-        this.copy(newBuilder);
-        return newBuilder.build();
-    }
+            private ShapeHole(final Shape s, final List<Vector2> p) {
+                this.s = s;
+                this.p = p;
+            }
+        }
 
-    protected void copy(final Builder newBuilder) {
-        for (final Curve curCurve : this.curves) {
-            if (curCurve instanceof LineCurve) {
-                newBuilder.lineTo(((LineCurve) curCurve).v1());
+        final class PathHole {
+            private final Path h;
+
+            private final Vector2 p;
+
+            private PathHole(final Path h, final Vector2 p) {
+                this.h = h;
+                this.p = p;
+            }
+        }
+        final List<ShapeHole> newShapes = new ArrayList<>();
+        final List<List<PathHole>> betterShapeHoles = new ArrayList<>();
+        List<List<PathHole>> newShapeHoles = new ArrayList<>();
+        newShapeHoles.add(new ArrayList<>());
+        int mainIdx = 0;
+        for (int i = 0, l = subPaths.size(); i < l; i++) {
+            final Path tmpPath = subPaths.get(i);
+            final List<Vector2> tmpPoints = tmpPath.getPoints();
+            boolean solid = ShapeUtils.isClockWise(tmpPoints);
+            solid = isCCW != solid;
+            if (solid) {
+                if ((!holesFirst) && (mainIdx < newShapes.size() && newShapes.get(mainIdx) != null)) {
+                    mainIdx++;
+                }
+                final Shape s = new Shape().copy(tmpPath);
+                newShapes.add(mainIdx, new ShapeHole(s, tmpPoints));
+                if (holesFirst) {
+                    mainIdx++;
+                }
+                newShapeHoles.add(mainIdx, new ArrayList<>());
             } else {
-                final CubicBezierCurve curBezier = (CubicBezierCurve) curCurve;
-                newBuilder.bezierCurveTo(curBezier.v1(), curBezier.v2(), curBezier.v3());
+                newShapeHoles.get(mainIdx).add(new PathHole(tmpPath, tmpPoints.get(0)));
+            }
+
+        }
+        // only Holes? -> probably all Shapes with wrong orientation
+        if (newShapes.get(0) == null) {
+            return this.toShapesNoHoles(subPaths);
+        }
+        if (newShapes.size() > 1) {
+            boolean ambiguous = false;
+            final List<Integer> toChange = new ArrayList<>();
+            for (int sIdx = 0, sLen = newShapes.size(); sIdx < sLen; sIdx++) {
+                betterShapeHoles.add(new ArrayList<>());
+            }
+            for (int sIdx = 0, sLen = newShapes.size(); sIdx < sLen; sIdx++) {
+                final List<PathHole> sho = newShapeHoles.get(sIdx);
+                for (int hIdx = 0; hIdx < sho.size(); hIdx++) {
+                    final PathHole ho = sho.get(hIdx);
+                    boolean holeUnassigned = true;
+                    for (int s2Idx = 0; s2Idx < newShapes.size(); s2Idx++) {
+                        if (this.isPointInsidePolygon(ho.p, newShapes.get(s2Idx).p)) {
+                            if (sIdx != s2Idx) {
+                                toChange.add(hIdx);
+                            }
+                            if (holeUnassigned) {
+                                holeUnassigned = false;
+                                betterShapeHoles.get(s2Idx).add(ho);
+                            } else {
+                                ambiguous = true;
+                            }
+                        }
+                    }
+                    if (holeUnassigned) {
+                        betterShapeHoles.get(sIdx).add(ho);
+                    }
+                }
+            }
+            if (!toChange.isEmpty() && !ambiguous) {
+                newShapeHoles = betterShapeHoles;
             }
         }
+        for (int i = 0, il = newShapes.size(); i < il; i++) {
+            final Shape tmpShape = newShapes.get(i).s;
+            shapes.add(tmpShape);
+            final List<PathHole> tmpHoles = newShapeHoles.get(i);
+            for (int j = 0, jl = tmpHoles.size(); j < jl; j++) {
+                tmpShape.getHoles().add(tmpHoles.get(j).h);
+            }
+        }
+        return shapes;
     }
 
-    // TODO: remove duplicate code
-    private float uToT(final float u) {
-        final float[] lengths = this.getLengths();
-        return this.uToT(lengths, u * lengths[lengths.length - 1]);
+    private List<Path> extractSubPaths() {
+        final List<Path> subPaths = new ArrayList<>();
+        final class Extractor implements PathVisitor {
+            private Path currentPath = new Path();
+
+            @Override
+            public void moveTo(final float x, final float y) {
+                this.emit();
+                this.currentPath = new Path();
+            }
+
+            @Override
+            public void lineTo(final float x, final float y) {
+                this.currentPath.lineTo(x, y);
+            }
+
+            @Override
+            public void bezierCurveTo(final float aCP1x, final float aCP1y, final float aCP2x, final float aCP2y, final float aX, final float aY) {
+                this.currentPath.bezierCurveTo(aCP1x, aCP1y, aCP2x, aCP2y, aX, aY);
+            }
+
+            @Override
+            public void closePath() {}
+
+            private void emit() {
+                if (!this.currentPath.getCurves().isEmpty()) {
+                    subPaths.add(this.currentPath);
+                }
+            }
+        }
+        final Extractor e = new Extractor();
+        this.visit(e);
+        e.emit();
+        return subPaths;
     }
 
-    private float uToT(final float[] arcLengths, final float distance) {
-        int i, low = 0, high = arcLengths.length;
-        while (low < high) {
-            i = low + (high - low) / 2;
-            final float delta = arcLengths[i] - distance;
-            if (delta < 0.0F) {
-                low = i + 1;
-            } else if (delta > 0.0F) {
-                high = i - 1;
+    private List<Shape> toShapesNoHoles(final List<Path> inSubpaths) {
+        final List<Shape> shapes = new ArrayList<>();
+        for (int i = 0; i < inSubpaths.size(); i++) {
+            shapes.add(new Shape().copy(inSubpaths.get(i)));
+        }
+        return shapes;
+    }
+
+    private boolean isPointInsidePolygon(final Vector2 inPt, final List<Vector2> inPolygon) {
+        final int polyLen = inPolygon.size();
+        // inPt on polygon contour => immediate success or
+        // toggling of inside/outside at every single! intersection point of an edge
+        //  with the horizontal line through inPt, left of inPt
+        //  not counting lowerY endpoints of edges and whole edges on that line
+        boolean inside = false;
+        for (int p = polyLen - 1, q = 0; q < polyLen; p = q++) {
+            Vector2 edgeLowPt = inPolygon.get(p);
+            Vector2 edgeHighPt = inPolygon.get(q);
+            float edgeDx = edgeHighPt.getX() - edgeLowPt.getX();
+            float edgeDy = edgeHighPt.getY() - edgeLowPt.getY();
+            if (Math.abs(edgeDy) > Float.MIN_VALUE) {
+                // not parallel
+                if (edgeDy < 0) {
+                    edgeLowPt = inPolygon.get(q);
+                    edgeDx = -edgeDx;
+                    edgeHighPt = inPolygon.get(p);
+                    edgeDy = -edgeDy;
+                }
+                if ((inPt.getY() < edgeLowPt.getY()) || (inPt.getY() > edgeHighPt.getY())) {
+                    continue;
+                }
+                if (inPt.getY() == edgeLowPt.getY()) {
+                    if (inPt.getX() == edgeLowPt.getX()) {
+                        // inPt is on contour ?
+                        return true;
+                    }
+                    // continue;
+                    // no intersection or edgeLowPt => doesn't count !!!
+                } else {
+
+                    final float perpEdge = edgeDy * (inPt.getX() - edgeLowPt.getX()) - edgeDx * (inPt.getY() - edgeLowPt.getY());
+                    if (perpEdge == 0) {
+                        // inPt is on contour ?
+                        return true;
+                    }
+                    if (perpEdge < 0) {
+                        continue;
+                    }
+                    // true intersection left of inPt
+                    inside = !inside;
+                }
             } else {
-                high = i;
-                break;
+                // parallel or collinear
+                if (inPt.getY() != edgeLowPt.getY()) {
+                    // parallel
+                    continue;
+                }
+                // edge lies on the same horizontal line as inPt
+                if (((edgeHighPt.getX() <= inPt.getX()) && (inPt.getX() <= edgeLowPt.getX())) ||
+                    ((edgeLowPt.getX() <= inPt.getX()) && (inPt.getX() <= edgeHighPt.getX()))) {
+                    // inPt: Point on contour !
+                    return true;
+                }
             }
         }
-        i = high;
-        if (arcLengths[i] == distance) {
-            return i / (arcLengths.length - 1f);
-        }
-        final float lengthBefore = arcLengths[i];
-        final float lengthAfter = arcLengths[i + 1];
-        final float segmentLength = lengthAfter - lengthBefore;
-        final float segmentFraction = (distance - lengthBefore) / segmentLength;
-        return (i + segmentFraction) / (arcLengths.length - 1);
+        return inside;
     }
 
-    public static class Builder implements PathVisitor {
-        private Vector2 currentPoint;
+    public List<Vector2> getTransformedSpacedPoints(final boolean closedPath) {
+        return this.getTransformedSpacedPoints(closedPath, this.getBends());
+    }
 
-        private ArrayList<Curve> curves;
-
-        Builder() {
-            this.currentPoint = new Vector2();
-            this.curves = new ArrayList<>();
+    public List<Vector2> getTransformedSpacedPoints(final boolean closedPath, final List<CurvePath> bends) {
+        List<Vector2> oldPts = this.getSpacedPoints();
+        for (int i = 0; i < bends.size(); i++) {
+            oldPts = this.getWrapPoints(oldPts, bends.get(i));
         }
+        return oldPts;
+    }
 
-        public Builder(final Vector2[] points) {
-            this.setFromPoints(points);
+//	public Geometry createPointsGeometry()
+//	{
+//		return this.createGeometry(this.getPoints(true) );
+//	}
+//
+//	public Geometry createPointsGeometry(final int divisions )
+//	{
+//		return this.createGeometry(this.getPoints( divisions, true ) );
+//	}
+//
+//	public Geometry createSpacedPointsGeometry()
+//	{
+//		return this.createGeometry(this.getSpacedPoints(true) );
+//	}
+//
+//	public Geometry createSpacedPointsGeometry(final int divisions )
+//	{
+//		return this.createGeometry(this.getSpacedPoints( divisions, true ) );
+//	}
+//
+//	private Geometry createGeometry(final List<Vector2> points)
+//	{
+//		final Geometry geometry = new Geometry();
+//
+//		for ( int i = 0; i < points.size(); i ++ )
+//		{
+//			geometry.getVertices().add( new Vector3(
+//					points.get( i ).getX(),
+//					points.get( i ).getY(), 0 ) );
+//		}
+//
+//		return geometry;
+//	}
+
+    public List<Vector2> getTransformedPoints() {
+        return this.getTransformedPoints(false, this.getBends());
+    }
+
+    public List<Vector2> getTransformedPoints(final boolean closedPath) {
+        return this.getTransformedPoints(closedPath, this.getBends());
+    }
+
+    public List<Vector2> getTransformedPoints(final boolean closedPath, final List<CurvePath> bends) {
+        List<Vector2> oldPts = this.getPoints(closedPath);
+        for (int i = 0; i < bends.size(); i++) {
+            oldPts = this.getWrapPoints(oldPts, bends.get(i));
         }
+        return oldPts;
+    }
 
-        public boolean isEmpty() {
-            return this.curves.isEmpty();
-        }
+    @Override
+    public Path clone() {
+        return new Path().copy(this);
+    }
 
-        private Builder setFromPoints(final Vector2[] points) {
-            this.moveTo(points[0]);
-            for (int i = 1; i < points.length; i++) {
-                this.lineTo(points[i]);
-            }
-            return this;
-        }
+    public Path copy(final Path other) {
+        super.copy(other);
+        this.actions.subList(1, this.actions.size()).clear();
+        other.visit(this);
+        return this;
+    }
 
-        public ArrayList<Curve> getCurves() {
-            return this.curves;
+    private interface Action {
+        float getX();
+
+        float getY();
+
+        void visit(final PathVisitor visitor);
+    }
+
+    private final class DummyAction implements Action {
+        @Override
+        public float getY() {
+            return 0.0F;
         }
 
         @Override
-        public Builder moveTo(final Vector2 point) {
-
-            this.currentPoint = point.copy();
-            return this;
-        }
-
-
-        @Override
-        public Builder lineTo(final Vector2 point) {
-            final LineCurve curve = new LineCurve(this.currentPoint.copy(), point.copy());
-            this.curves.add(curve);
-            this.currentPoint = point.copy();
-            return this;
+        public float getX() {
+            return 0.0F;
         }
 
         @Override
-        public Builder bezierCurveTo(final Vector2 controlA, final Vector2 controlB, final Vector2 point) {
-            final CubicBezierCurve curve = new CubicBezierCurve(this.currentPoint.copy(), controlA.copy(), controlB.copy(), point.copy());
-            this.curves.add(curve);
-            this.currentPoint = point.copy();
-            return this;
+        public void visit(final PathVisitor visitor) {}
+    }
+
+    private final class MoveToAction implements Action {
+        private final float x;
+
+        private final float y;
+
+        private MoveToAction(final float x, final float y) {
+            this.x = x;
+            this.y = y;
         }
 
         @Override
-        public Builder closePath() {
-            return this.lineTo(this.curves.get(0).getPoint(0).copy());
+        public float getX() {
+            return this.x;
         }
 
-        public Path build() {
-            return new Path(this);
+        @Override
+        public float getY() {
+            return this.y;
+        }
+
+        @Override
+        public void visit(final PathVisitor visitor) {
+            visitor.moveTo(this.x, this.y);
+        }
+    }
+
+    private final class LineToAction implements Action {
+        private final float x;
+
+        private final float y;
+
+        private LineToAction(final float x, final float y) {
+            this.x = x;
+            this.y = y;
+        }
+
+        @Override
+        public float getX() {
+            return this.x;
+        }
+
+        @Override
+        public float getY() {
+            return this.y;
+        }
+
+        @Override
+        public void visit(final PathVisitor visitor) {
+            visitor.lineTo(this.x, this.y);
+        }
+    }
+
+    private final class BezierCurveToAction implements Action {
+        private final float aCP1x;
+
+        private final float aCP1y;
+
+        private final float aCP2x;
+
+        private final float aCP2y;
+
+        private final float aX;
+
+        private final float aY;
+
+        private BezierCurveToAction(final float aCP1x, final float aCP1y, final float aCP2x, final float aCP2y, final float aX, final float aY) {
+            this.aCP1x = aCP1x;
+            this.aCP1y = aCP1y;
+            this.aCP2x = aCP2x;
+            this.aCP2y = aCP2y;
+            this.aX = aX;
+            this.aY = aY;
+        }
+
+        @Override
+        public float getX() {
+            return this.aX;
+        }
+
+        @Override
+        public float getY() {
+            return this.aY;
+        }
+
+        @Override
+        public void visit(final PathVisitor visitor) {
+            visitor.bezierCurveTo(this.aCP1x, this.aCP1y, this.aCP2x, this.aCP2y, this.aX, this.aY);
         }
     }
 }
