@@ -73,19 +73,13 @@ public class CurvePath extends Curve {
     public Vector2 getPoint(final float t) {
         final float d = t * this.getLength();
         final List<Float> curveLengths = this.getCurveLengths();
-        int i = 0;
-        // To think about boundaries points.
-        while (i < curveLengths.size()) {
+        for (int i = 0; i < curveLengths.size(); i++) {
             if (curveLengths.get(i) >= d) {
                 final float diff = curveLengths.get(i) - d;
                 final Curve curve = this.getCurves().get(i);
-
                 final float u = 1.0F - diff / curve.getLength();
-
                 return curve.getPointAt(u);
             }
-
-            i++;
         }
         // loop where sum != 0, sum > d , sum+1 <d
         return null;

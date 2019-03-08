@@ -5,8 +5,12 @@ public final class Mth {
 
     public static final float PI = (float) Math.PI;
 
-    public static float toRadians(final float angdeg) {
-        return angdeg / 180.0F * PI;
+    public static float toRadians(final float degrees) {
+        return degrees / 180.0F * PI;
+    }
+
+    public static float toDegrees(final float radians) {
+        return radians * 180.0F / PI;
     }
 
     public static float deltaAngle(final float a, final float b) {
@@ -57,4 +61,5 @@ public final class Mth {
     {
         return Math.max( min, Math.min( max, value ) );
     }
+
 }

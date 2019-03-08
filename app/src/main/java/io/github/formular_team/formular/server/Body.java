@@ -10,7 +10,7 @@ public class Body {
 
     private final float inertia;
 
-    private final Matrix3 transform = new Matrix3();
+    private float transformX, transformY, transformAngle;
 
     private float angularVelocity = 0.0F;
 
@@ -27,9 +27,7 @@ public class Body {
     }
 
     private Vector2 center() {
-        final Vector2 center = new Vector2();
-        center.apply(this.transform);
-        return center;
+        return new Vector2(this.transformX, this.transformY);
     }
 
     public void applyImpulse(final Vector2 force, final Vector2 point) {
@@ -65,25 +63,44 @@ public class Body {
     }
 
     public void step(final float delta) {
-        final Matrix3 m = new Matrix3();
-        this.force.multiply(delta);
-        this.velocity.add(this.force);
-        final Vector2 stepVelocity = this.velocity.clone();
-        stepVelocity.multiply(delta);
-        m.set(
-            1.0F, 0.0F, stepVelocity.getX(),
-            0.0F, 1.0F, stepVelocity.getY(),
-            0.0F, 0.0F, 1.0F
-        );
-        this.transform.multiply(m);
-        this.force.set(0.0F, 0.0F);
         this.angularVelocity += this.torque * delta;
-        m.set(
-            (float) Math.cos(this.angularVelocity * delta), (float) -Math.sin(this.angularVelocity * delta), 0.0F,
-            (float) Math.sin(this.angularVelocity * delta), (float) Math.cos(this.angularVelocity * delta), 0.0F,
-            0.0F, 0.0F, 1.0F
-        );
-        this.transform.multiply(m);
+        this.transformAngle += this.angularVelocity * delta;
+//        this.transform.rotate(this.angularVelocity * delta);
         this.torque = 0.0F;
+
+        this.velocity.add(this.force.multiply(delta));
+        final Vector2 stepVelocity = this.velocity.clone().multiply(delta);
+        this.transformX += stepVelocity.getX();
+        this.transformY += stepVelocity.getY();
+//        this.transform.translate(stepVelocity.getX(), stepVelocity.getY());
+        this.force.set(0.0F, 0.0F);
+
+        this.velocity.multiply(0.85F);
+        if (this.velocity.length() < 0.0001F) {
+            this.velocity.set(0.0F, 0.0F);
+        }
+        this.angularVelocity *= 0.8F;
+        if (this.angularVelocity < 0.0001F) {
+            this.angularVelocity = 0.0F;
+        }
+    }
+
+    public float getTransformX() {
+        return this.transformX;
+    }
+
+    public float getTransformY() {
+        return this.transformY;
+    }
+
+    public float getTransformAngle() {
+        return this.transformAngle;
+    }
+
+    public Matrix3 getTransform() {
+        final Matrix3 m = new Matrix3();
+        m.translate(this.transformX, this.transformY);
+        m.rotate(this.transformAngle);
+        return m;
     }
 }

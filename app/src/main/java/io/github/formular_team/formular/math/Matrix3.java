@@ -71,8 +71,8 @@ public class Matrix3 {
     }
 
     public Matrix3 rotate(final float theta) {
-        final float c = Mth.cos( theta );
-        final float s = Mth.sin( theta );
+        final float c = Mth.cos(theta);
+        final float s = Mth.sin(theta);
         final Float32Array te = this.getArray();
         final float a11 = te.get(0), a12 = te.get(3), a13 = te.get(6);
         final float a21 = te.get(1), a22 = te.get(4), a23 = te.get(7);

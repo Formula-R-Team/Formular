@@ -15,12 +15,7 @@
  * 3.0 Unported License along with Parallax.
  * If not, see http://creativecommons.org/licenses/by/3.0/.
  */
-
 package io.github.formular_team.formular.geometry;
-
-import android.util.Log;
-
-import com.google.common.collect.Lists;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,6 +24,7 @@ import java.util.List;
 
 import io.github.formular_team.formular.math.Color;
 import io.github.formular_team.formular.math.Curve;
+import io.github.formular_team.formular.math.CurvePath;
 import io.github.formular_team.formular.math.Mth;
 import io.github.formular_team.formular.math.Shape;
 import io.github.formular_team.formular.math.ShapeUtils;
@@ -36,8 +32,6 @@ import io.github.formular_team.formular.math.Vector2;
 import io.github.formular_team.formular.math.Vector3;
 
 public class ExtrudeGeometry extends Geometry {
-    private static final String TAG = "ExtrudeGeometry";
-
     public static class ExtrudeGeometryParameters {
         // size of the text
         public float size;
@@ -68,6 +62,9 @@ public class ExtrudeGeometry extends Geometry {
 
         // 2d/3d spline path to extrude shape orthogonality to
         public Curve extrudePath;
+
+        // 2d path for bend the shape around x/y plane
+        CurvePath bendPath;
 
         // material index for front and back faces
         public int material;
@@ -144,6 +141,7 @@ public class ExtrudeGeometry extends Geometry {
             // SETUP TNB variables
 
             // Reuse TNB from TubeGeomtry for now.
+            // TODO - have a .isClosed in spline?
             splineTube = new FrenetFrames(options.extrudePath, options.steps, false);
         }
 
@@ -157,7 +155,11 @@ public class ExtrudeGeometry extends Geometry {
 
         this.shapesOffset = this.getVertices().size();
 
-        final List<Vector2> vertices = shape.getPoints(options.curveSegments, false);
+        if (options.bendPath != null) {
+            shape.addWrapPath(options.bendPath);
+        }
+
+        final List<Vector2> vertices = shape.getTransformedPoints();
 
         this.holes = shape.getPointsHoles();
 
@@ -212,7 +214,7 @@ public class ExtrudeGeometry extends Geometry {
         }
 
         final List<List<Vector2>> holesMovements = new ArrayList<>();
-        final List<Vector2> verticesMovements = Lists.newArrayList(contourMovements);
+        final List<Vector2> verticesMovements = new ArrayList<>(contourMovements);
 
         for (int h = 0, hl = this.holes.size(); h < hl; h++) {
             final List<Vector2> ahole = this.holes.get(h);
@@ -416,12 +418,12 @@ public class ExtrudeGeometry extends Geometry {
         // We should not reach these conditions
 
         if (v_dot_w_hat == 0) {
-            Log.w(TAG, "Either infinite or no solutions!");
+//            Log.warn("ExtrudeGeometry.getBevelVec2() Either infinite or no solutions!");
 
             if (q_sub_p_dot_w_hat == 0) {
-                Log.w(TAG, "Its finite solutions.");
+//                Log.warn("ExtrudeGeometry.getBevelVec2() Its finite solutions.");
             } else {
-                Log.w(TAG, "Too bad, no solutions.");
+//                Log.warn("ExtrudeGeometry.getBevelVec2() Too bad, no solutions.");
             }
         }
 
@@ -440,7 +442,7 @@ public class ExtrudeGeometry extends Geometry {
 
     private void buildLidFaces() {
         final int flen = this.localFaces.size();
-        Log.d(TAG, "faces=" + flen);
+//        Log.debug( "ExtrudeGeometry.buildLidFaces() faces=" + flen);
 
         if (this.options.bevelEnabled) {
             int layer = 0; // steps + 1
@@ -574,9 +576,9 @@ public class ExtrudeGeometry extends Geometry {
             final float cy = geometry.getVertices().get(indexC).getY();
 
             return Arrays.asList(
-                new Vector2(ax, 1.0F - ay),
-                new Vector2(bx, 1.0F - by),
-                new Vector2(cx, 1.0F - cy)
+                new Vector2(ax, 1 - ay),
+                new Vector2(bx, 1 - by),
+                new Vector2(cx, 1 - cy)
             );
         }
 

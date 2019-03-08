@@ -18,6 +18,9 @@
 
 package io.github.formular_team.formular.math;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class LineCurve3 extends Curve {
     public Vector3 v1;
 
@@ -35,6 +38,21 @@ public class LineCurve3 extends Curve {
         point.multiply(t);
         point.add(this.v1);
         return point;
+    }
+
+    @Override
+    public float getLength() {
+        return this.v1.distanceTo(this.v2);
+    }
+
+    @Override
+    public List<Float> getLengths(final int divisions) {
+        final List<Float> lengths = new ArrayList<>(1 + divisions);
+        final float length = this.getLength();
+        for (int n = 0; n <= divisions; n++) {
+            lengths.add(length * n / (float) divisions);
+        }
+        return lengths;
     }
 
     @Override

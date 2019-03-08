@@ -12,7 +12,7 @@ import java.util.List;
 
 import io.github.formular_team.formular.geometry.ExtrudeGeometry;
 import io.github.formular_team.formular.geometry.Face3;
-import io.github.formular_team.formular.math.Path;
+import io.github.formular_team.formular.math.Curve;
 import io.github.formular_team.formular.math.Shape;
 import io.github.formular_team.formular.math.Vector2;
 import io.github.formular_team.formular.math.Vector3;
@@ -20,7 +20,7 @@ import io.github.formular_team.formular.math.Vector3;
 public final class Geometries {
     private Geometries() {}
 
-    public static ModelRenderable extrude(final Shape shape, final Path path, final int divisions, final Material material) {
+    public static ModelRenderable extrude(final Shape shape, final Curve path, final int divisions, final Material material) {
         final ExtrudeGeometry geom;
         try {
             geom = new ExtrudeGeometry(shape, new ExtrudeGeometry.ExtrudeGeometryParameters() {{

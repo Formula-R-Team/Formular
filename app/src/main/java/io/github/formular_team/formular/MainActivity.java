@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.function.Function;
 
 import io.github.formular_team.formular.math.CubicBezierCurve3;
+import io.github.formular_team.formular.math.CurvePath;
 import io.github.formular_team.formular.math.Float32Array;
 import io.github.formular_team.formular.math.LineCurve3;
 import io.github.formular_team.formular.math.Matrix3;
@@ -190,15 +191,15 @@ public class MainActivity extends AppCompatActivity {
                                 planeAnchorNode.setParent(view.getScene());
                                 this.anchors.add(planeAnchor);
                                 MaterialFactory.makeOpaqueWithColor(MainActivity.this, new Color(0xFF565E66)).thenAccept(material -> {
-                                    final float roadHeight = 3.0F;
-                                    final float roadSize = 0.5F;
+                                    final float roadHeight = 0.25F;
+                                    final float roadSize = 0.6F;
                                     final Shape shape = new Shape();
-                                    shape.moveTo(-roadSize, 0.0F);
-                                    shape.lineTo(-roadSize, roadHeight);
-                                    shape.lineTo(roadSize, roadHeight);
-                                    shape.lineTo(roadSize, 0.0F);
-                                    shape.lineTo(-roadSize, 0.0F);
-                                    final Path path3d = new Path();
+                                    shape.moveTo(0.0F, -roadSize);
+                                    shape.lineTo(-roadHeight, -roadSize);
+                                    shape.lineTo(-roadHeight, roadSize);
+                                    shape.lineTo(0.0F, roadSize);
+                                    shape.lineTo(0.0F, -roadSize);
+                                    final CurvePath path3d = new CurvePath();
                                     pathOnPlane.visit(new PathVisitor() {
                                         private Vector3 last = new Vector3();
 
@@ -209,7 +210,8 @@ public class MainActivity extends AppCompatActivity {
 
                                         @Override
                                         public void lineTo(final float x, final float y) {
-                                            path3d.add(new LineCurve3(this.last, this.last = this.map(x, y)));
+                                            final LineCurve3 line = new LineCurve3(this.last, this.last = this.map(x, y));
+                                            path3d.add(line);
                                         }
 
                                         @Override
@@ -224,7 +226,7 @@ public class MainActivity extends AppCompatActivity {
                                             return new Vector3(x, 0.0F, y).multiply(100.0F);
                                         }
                                     });
-                                    final ModelRenderable pathRenderable = Geometries.extrude(shape, path3d, 128, material);
+                                    final ModelRenderable pathRenderable = Geometries.extrude(shape, path3d, (int) (path3d.getLength() * 4), material);
                                     final Node pathNode = new Node();
                                     pathNode.setLocalScale(com.google.ar.sceneform.math.Vector3.one().scaled(1.0F / 100.0F));
                                     pathNode.setLocalPosition(new com.google.ar.sceneform.math.Vector3(0.0F, 0.0F, 0.0F));

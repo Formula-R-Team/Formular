@@ -17,44 +17,19 @@
  */
 package io.github.formular_team.formular.math;
 
-/**
- * This class is realization of (X, Y) vector.
- * Where:
- * X - x coordinate of the vector.
- * Y - y coordinate of the vector.
- *
- * @author thothbot
- */
 public class Vector2 {
-    /**
-     * The X-coordinate
-     */
     protected float x;
 
-    /**
-     * The Y-coordinate
-     */
     protected float y;
 
-    // Temporary variables
-    static Vector2 _min = new Vector2();
+    private static Vector2 _min = new Vector2();
 
-    static Vector2 _max = new Vector2();
+    private static Vector2 _max = new Vector2();
 
-    /**
-     * This default constructor will initialize vector (0, 0);
-     */
     public Vector2() {
-        this(0, 0);
+        this(0.0F, 0.0F);
     }
 
-    /**
-     * This constructor will initialize vector (X, Y) from the specified
-     * X, Y coordinates.
-     *
-     * @param x the X coordinate
-     * @param y the Y coordinate
-     */
     public Vector2(final float x, final float y) {
         this.x = x;
         this.y = y;
@@ -78,13 +53,17 @@ public class Vector2 {
         return y;
     }
 
+    protected float getZ() {
+        return 0.0F;
+    }
+
     /**
      * This method will add specified value to X coordinate of the vector.
      * In another words: x += value.
      *
      * @param x the X coordinate
      */
-    public void addX(final float x) {
+    void addX(final float x) {
         this.x += x;
     }
 
@@ -94,7 +73,7 @@ public class Vector2 {
      *
      * @param y the Y coordinate
      */
-    public void addY(final float y) {
+    void addY(final float y) {
         this.y += y;
     }
 
@@ -169,7 +148,6 @@ public class Vector2 {
     public Vector2 add(final Vector2 v1, final Vector2 v2) {
         this.x = v1.x + v2.x;
         this.y = v1.y + v2.y;
-
         return this;
     }
 
@@ -187,7 +165,6 @@ public class Vector2 {
     public Vector2 sub(final Vector2 v1, final Vector2 v2) {
         this.x = v1.x - v2.x;
         this.y = v1.y - v2.y;
-
         return this;
     }
 
@@ -198,14 +175,12 @@ public class Vector2 {
     public Vector2 multiply(final Vector2 v1, final Vector2 v2) {
         this.x = v1.x * v2.x;
         this.y = v1.y * v2.y;
-
         return this;
     }
 
     public Vector2 multiply(final float s) {
         this.x *= s;
         this.y *= s;
-
         return this;
     }
 
@@ -216,7 +191,6 @@ public class Vector2 {
     public Vector2 divide(final Vector2 v1, final Vector2 v2) {
         this.x = v1.x / v2.x;
         this.y = v1.y / v2.y;
-
         return this;
     }
 
@@ -227,7 +201,6 @@ public class Vector2 {
         } else {
             this.set(0, 0);
         }
-
         return this;
     }
 
@@ -235,11 +208,9 @@ public class Vector2 {
         if (this.x > v.x) {
             this.x = v.x;
         }
-
         if (this.y > v.y) {
             this.y = v.y;
         }
-
         return this;
     }
 
@@ -247,11 +218,9 @@ public class Vector2 {
         if (this.x < v.x) {
             this.x = v.x;
         }
-
         if (this.y < v.y) {
             this.y = v.y;
         }
-
         return this;
     }
 
@@ -362,31 +331,21 @@ public class Vector2 {
         return this;
     }
 
-    /*
-     * (non-Javadoc)
-     * @see thothbot.parallax.core.shared.core.Vector#distanceToSquared(thothbot.parallax.core.shared.core.Vector)
-     */
     public float distanceToSquared(final Vector2 v) {
         final float dx = this.x - v.x;
         final float dy = this.y - v.y;
         return (dx * dx + dy * dy);
     }
 
-    /*
-     * (non-Javadoc)
-     * @see thothbot.parallax.core.shared.core.Vector#distanceTo(thothbot.parallax.core.shared.core.Vector)
-     */
-    public float distanceTo(final Vector2 v1) {
-        return Mth.sqrt(this.distanceToSquared(v1));
+    public float distanceTo(final Vector2 v) {
+        return Mth.sqrt(this.distanceToSquared(v));
     }
 
     public Vector2 setLength(final float l) {
         final float oldLength = this.length();
-
         if (oldLength != 0 && l != oldLength) {
             this.multiply(l / oldLength);
         }
-
         return this;
     }
 
@@ -419,6 +378,18 @@ public class Vector2 {
 
     public boolean isZero() {
         return this.lengthSq() < 0.0001F;
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj instanceof Vector2) {
+            final Vector2 v1 = (Vector2) obj;
+            return (this.x == v1.x && this.y == v1.y);
+        }
+        return false;
     }
 
     public Vector2 fromArray(final Float32Array array) {

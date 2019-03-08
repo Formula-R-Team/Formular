@@ -17,25 +17,10 @@
  */
 package io.github.formular_team.formular.math;
 
-/**
- * This class is realization of (X, Y, Z) vector.
- * Where:
- * X - x coordinate of the vector.
- * Y - y coordinate of the vector.
- * Z - z coordinate of the vector.
- *
- * @author thothbot
- */
 public class Vector3 extends Vector2 {
-    /**
-     * The Z-coordinate
-     */
     protected float z;
 
-    // Temporary variables
     private static final Quaternion _quaternion = new Quaternion();
-
-    static Matrix4 _matrix = new Matrix4();
 
     private static final Vector3 _min = new Vector3();
 
@@ -43,61 +28,28 @@ public class Vector3 extends Vector2 {
 
     private static final Vector3 _v1 = new Vector3();
 
-    /**
-     * This default constructor will initialize vector (0, 0, 0);
-     */
     public Vector3() {
-        this(0, 0, 0);
+        this(0.0F, 0.0F, 0.0F);
     }
 
-    /**
-     * This constructor will initialize vector (X, Y, Z) from the specified
-     * X, Y, Z coordinates.
-     *
-     * @param x the X coordinate
-     * @param y the Y coordinate
-     * @param z the Z coordinate
-     */
     public Vector3(final float x, final float y, final float z) {
         super(x, y);
         this.z = z;
     }
 
-    /**
-     * get Z coordinate from the vector
-     *
-     * @return a Z coordinate
-     */
+    @Override
     public float getZ() {
         return this.z;
     }
 
-    /**
-     * This method will add specified value to Z coordinate of the vector.
-     * In another words: z += value.
-     *
-     * @param z the Y coordinate
-     */
     private void addZ(final float z) {
         this.z += z;
     }
 
-    /**
-     * This method sets Z coordinate of the vector.
-     *
-     * @param z the Z coordinate
-     */
     public void setZ(final float z) {
         this.z = z;
     }
 
-    /**
-     * Set value of the vector to the specified (X, Y, Z) coordinates.
-     *
-     * @param x the X coordinate
-     * @param y the Y coordinate
-     * @param z the Z coordinate
-     */
     public Vector3 set(final float x, final float y, final float z) {
         this.x = x;
         this.y = y;
@@ -105,11 +57,6 @@ public class Vector3 extends Vector2 {
         return this;
     }
 
-    /**
-     * Set value of the vector to the specified (A, A, A) coordinates.
-     *
-     * @param a the X, Y and Z coordinate
-     */
     public Vector3 set(final float a) {
         this.x = a;
         this.y = a;
@@ -119,9 +66,7 @@ public class Vector3 extends Vector2 {
 
     @Override
     public void setComponent(final int index, final float value) {
-
         switch (index) {
-
         case 0:
             this.x = value;
             break;
@@ -133,16 +78,12 @@ public class Vector3 extends Vector2 {
             break;
         default:
             throw new Error("index is out of range: " + index);
-
         }
-
     }
 
     @Override
     public float getComponent(final int index) {
-
         switch (index) {
-
         case 0:
             return this.x;
         case 1:
@@ -151,82 +92,71 @@ public class Vector3 extends Vector2 {
             return this.z;
         default:
             throw new Error("index is out of range: " + index);
-
         }
-
     }
 
-    /**
-     * Set value of the vector from another vector.
-     *
-     * @param v the other vector
-     * @return the current vector
-     */
-    public Vector3 copy(final Vector3 v) {
+    @Override
+    public Vector3 copy(final Vector2 v) {
         this.set(v.getX(), v.getY(), v.getZ());
-
         return this;
     }
 
-    public Vector3 add(final Vector3 v) {
+    @Override
+    public Vector3 add(final Vector2 v) {
         return this.add(this, v);
     }
 
-    public Vector3 add(final Vector3 v1, final Vector3 v2) {
-        this.x = v1.x + v2.x;
-        this.y = v1.y + v2.y;
-        this.z = v1.z + v2.z;
-
+    @Override
+    public Vector3 add(final Vector2 v1, final Vector2 v2) {
+        super.add(v1, v2);
+        this.z = v1.getZ() + v2.getZ();
         return this;
     }
 
     @Override
     public Vector3 add(final float s) {
-        this.addX(s);
-        this.addY(s);
+        super.add(s);
         this.addZ(s);
-
         return this;
     }
 
-    public Vector3 sub(final Vector3 v) {
+    @Override
+    public Vector3 sub(final Vector2 v) {
         return this.sub(this, v);
     }
 
-    public Vector3 sub(final Vector3 v1, final Vector3 v2) {
-        this.x = v1.x - v2.x;
-        this.y = v1.y - v2.y;
-        this.z = v1.z - v2.z;
-
+    @Override
+    public Vector3 sub(final Vector2 v1, final Vector2 v2) {
+        super.sub(v1, v2);
+        this.z = v1.getZ() - v2.getZ();
         return this;
     }
 
-    public Vector3 multiply(final Vector3 v) {
+    @Override
+    public Vector3 multiply(final Vector2 v) {
         return this.multiply(this, v);
     }
 
-    public Vector3 multiply(final Vector3 v1, final Vector3 v2) {
-        this.x = v1.x * v2.x;
-        this.y = v1.y * v2.y;
-        this.z = v1.z * v2.z;
-
+    @Override
+    public Vector3 multiply(final Vector2 v1, final Vector2 v2) {
+        super.multiply(v1, v2);
+        this.z = v1.getZ() * v2.getZ();
         return this;
     }
 
     @Override
     public Vector3 multiply(final float s) {
-        this.x *= s;
-        this.y *= s;
+        super.multiply(s);
         this.z *= s;
         return this;
     }
 
     public Vector3 applyAxisAngle(final Vector3 axis, final float angle) {
         this.apply(_quaternion.setFromAxisAngle(axis, angle));
-
         return this;
     }
 
+    @Override
     public Vector3 apply(final Matrix3 m) {
         final float x = this.x;
         final float y = this.y;
@@ -292,128 +222,68 @@ public class Vector3 extends Vector2 {
 //        return this.applyProjection( _matrix );
 //    }
 
-    /**
-     * @param m Matrix4 affine matrix vector interpreted as a direction
-     * @return
-     */
     public Vector3 transformDirection(final Matrix4 m) {
         final float x = this.x;
         final float y = this.y;
         final float z = this.z;
-
         final Float32Array e = m.getArray();
-
         this.x = e.get(0) * x + e.get(4) * y + e.get(8) * z;
         this.y = e.get(1) * x + e.get(5) * y + e.get(9) * z;
         this.z = e.get(2) * x + e.get(6) * y + e.get(10) * z;
-
         this.normalize();
-
         return this;
     }
 
-    public Vector3 divide(final Vector3 v) {
+    @Override
+    public Vector3 divide(final Vector2 v) {
         return this.divide(this, v);
     }
 
-    public Vector3 divide(final Vector3 v1, final Vector3 v2) {
-        this.x = v1.x / v2.x;
-        this.y = v1.y / v2.y;
-        this.z = v1.z / v2.z;
-
+    @Override
+    public Vector3 divide(final Vector2 v1, final Vector2 v2) {
+        super.divide(v1, v2);
+        this.z = v1.getZ() / v2.getZ();
         return this;
     }
 
     @Override
     public Vector3 divide(final float scalar) {
+        super.divide(scalar);
         if (scalar != 0) {
-
-            final float invScalar = 1.0F / scalar;
-
-            this.x *= invScalar;
-            this.y *= invScalar;
-            this.z *= invScalar;
-
+            this.z *= 1.0F / scalar;
         } else {
-
-            this.x = 0;
-            this.y = 0;
-            this.z = 0;
-
+            this.z = 0.0F;
         }
-
-        return this;
-
-    }
-
-    public Vector3 min(final Vector3 v) {
-        if (this.x > v.x) {
-            this.x = v.x;
-        }
-
-        if (this.y > v.y) {
-            this.y = v.y;
-        }
-
-        if (this.z > v.z) {
-            this.z = v.z;
-        }
-
         return this;
     }
 
-    public Vector3 max(final Vector3 v) {
-        if (this.x < v.x) {
-            this.x = v.x;
+    @Override
+    public Vector3 min(final Vector2 v) {
+        super.min(v);
+        if (this.z > v.getZ()) {
+            this.z = v.getZ();
         }
-
-        if (this.y < v.y) {
-            this.y = v.y;
-        }
-
-        if (this.z < v.z) {
-            this.z = v.z;
-        }
-
         return this;
     }
 
-    /**
-     * This function assumes min &#60; max, if this assumption isn't true it will not operate correctly
-     */
-    public Vector3 clamp(final Vector3 min, final Vector3 max) {
-        // This function assumes min < max, if this assumption isn't true it will not operate correctly
-
-        if (this.x < min.x) {
-
-            this.x = min.x;
-
-        } else if (this.x > max.x) {
-
-            this.x = max.x;
-
+    @Override
+    public Vector3 max(final Vector2 v) {
+        super.max(v);
+        if (this.z < v.getZ()) {
+            this.z = v.getZ();
         }
+        return this;
+    }
 
-        if (this.y < min.y) {
 
-            this.y = min.y;
-
-        } else if (this.y > max.y) {
-
-            this.y = max.y;
-
+    @Override
+    public Vector3 clamp(final Vector2 min, final Vector2 max) {
+        super.clamp(min, max);
+        if (this.z < min.getZ()) {
+            this.z = min.getZ();
+        } else if (this.z > max.getZ()) {
+            this.z = max.getZ();
         }
-
-        if (this.z < min.z) {
-
-            this.z = min.z;
-
-        } else if (this.z > max.z) {
-
-            this.z = max.z;
-
-        }
-
         return this;
     }
 
@@ -421,88 +291,56 @@ public class Vector3 extends Vector2 {
     public Vector3 clamp(final float minVal, final float maxVal) {
         _min.set(minVal, minVal, minVal);
         _max.set(maxVal, maxVal, maxVal);
-
         return this.clamp(_min, _max);
     }
 
     @Override
     public Vector3 floor() {
-
-        this.x = Mth.floor(this.x);
-        this.y = Mth.floor(this.y);
+        super.floor();
         this.z = Mth.floor(this.z);
-
         return this;
 
     }
 
     @Override
     public Vector3 ceil() {
-
-        this.x = Mth.ceil(this.x);
-        this.y = Mth.ceil(this.y);
+        super.ceil();
         this.z = Mth.ceil(this.z);
-
         return this;
-
     }
 
     @Override
     public Vector3 round() {
-
-        this.x = Math.round(this.x);
-        this.y = Math.round(this.y);
+        super.round();
         this.z = Math.round(this.z);
-
         return this;
-
     }
 
     @Override
     public Vector3 roundToZero() {
-
-        this.x = (this.x < 0) ? Mth.ceil(this.x) : Mth.floor(this.x);
-        this.y = (this.y < 0) ? Mth.ceil(this.y) : Mth.floor(this.y);
+        super.roundToZero();
         this.z = (this.z < 0) ? Mth.ceil(this.z) : Mth.floor(this.z);
-
         return this;
 
     }
 
     @Override
     public Vector3 negate() {
-        this.x = -this.x;
-        this.y = -this.y;
+        super.negate();
         this.z = -this.z;
-
         return this;
     }
 
-    /**
-     * Computes the dot product of this vector and vector v1.
-     *
-     * @param v1 the other vector
-     * @return the dot product of this vector and v1
-     */
-    public float dot(final Vector3 v1) {
-        return (this.x * v1.x + this.y * v1.y + this.z * v1.z);
+    @Override
+    public float dot(final Vector2 v1) {
+        return (this.x * v1.x + this.y * v1.y + this.z * v1.getZ());
     }
 
-    /**
-     * Returns the squared length of this vector.
-     *
-     * @return the squared length of this vector
-     */
     @Override
     public float lengthSq() {
         return this.dot(this);
     }
 
-    /**
-     * Returns the length of this vector.
-     *
-     * @return the length of this vector
-     */
     @Override
     public float length() {
         return Mth.sqrt(this.lengthSq());
@@ -512,9 +350,6 @@ public class Vector3 extends Vector2 {
         return Math.abs(this.x) + Math.abs(this.y) + Math.abs(this.z);
     }
 
-    /**
-     * Normalizes this vector in place.
-     */
     @Override
     public Vector3 normalize() {
         return this.divide(this.length());
@@ -523,29 +358,19 @@ public class Vector3 extends Vector2 {
     @Override
     public Vector3 setLength(final float l) {
         final float oldLength = this.length();
-
         if (oldLength != 0 && l != oldLength) {
-
             this.multiply(l / oldLength);
         }
-
         return this;
     }
 
-    public Vector3 lerp(final Vector3 v1, final float alpha) {
-        this.x += (v1.x - this.x) * alpha;
-        this.y += (v1.y - this.y) * alpha;
-        this.z += (v1.z - this.z) * alpha;
-
+    @Override
+    public Vector3 lerp(final Vector2 v1, final float alpha) {
+        super.lerp(v1, alpha);
+        this.z += (v1.getZ() - this.z) * alpha;
         return this;
     }
 
-    /**
-     * Sets this vector to be the vector cross product of vectors v1 and v2.
-     *
-     * @param a the first vector
-     * @param b the second vector
-     */
     public Vector3 cross(final Vector3 a, final Vector3 b) {
         final float ax = a.x;
         final float ay = a.y;
@@ -553,11 +378,9 @@ public class Vector3 extends Vector2 {
         final float bx = b.x;
         final float by = b.y;
         final float bz = b.z;
-
         this.x = ay * bz - az * by;
         this.y = az * bx - ax * bz;
         this.z = ax * by - ay * bx;
-
         return this;
     }
 
@@ -567,96 +390,75 @@ public class Vector3 extends Vector2 {
 
     public Vector3 projectOnVector(final Vector3 vector) {
         _v1.copy(vector).normalize();
-
         final float dot = this.dot(_v1);
-
         return this.copy(_v1).multiply(dot);
     }
 
     public Vector3 projectOnPlane(final Vector3 planeNormal) {
         _v1.copy(this).projectOnVector(planeNormal);
-
         return this.sub(_v1);
     }
 
-
-    /**
-     * reflect incident vector off plane orthogonal to normal
-     * normal is assumed to have unit length
-     *
-     * @param normal
-     * @return
-     */
     public Vector3 reflect(final Vector3 normal) {
         return this.sub(_v1.copy(normal).multiply(2 * this.dot(normal)));
     }
 
     public float angleTo(final Vector3 v) {
         final float theta = this.dot(v) / (this.length() * v.length());
-
-        // clamp, to handle numerical problems
-
         return Mth.acos(Mth.clamp(theta, -1.0F, 1.0F));
     }
 
-    public float distanceTo(final Vector3 v1) {
+    @Override
+    public float distanceTo(final Vector2 v1) {
         return Mth.sqrt(this.distanceToSquared(v1));
     }
 
-    public float distanceToSquared(final Vector3 v1) {
+    @Override
+    public float distanceToSquared(final Vector2 v1) {
         final float dx = this.x - v1.x;
         final float dy = this.y - v1.y;
-        final float dz = this.z - v1.z;
+        final float dz = this.z - v1.getZ();
         return (dx * dx + dy * dy + dz * dz);
     }
 
     public Vector3 setFromMatrixPosition(final Matrix4 m) {
-
         this.x = m.getArray().get(12);
         this.y = m.getArray().get(13);
         this.z = m.getArray().get(14);
-
         return this;
     }
 
     public Vector3 setFromMatrixScale(final Matrix4 m) {
-
         final Float32Array el = m.getArray();
-
         final float sx = this.set(el.get(0), el.get(1), el.get(2)).length();
         final float sy = this.set(el.get(4), el.get(5), el.get(6)).length();
         final float sz = this.set(el.get(8), el.get(9), el.get(10)).length();
-
         this.x = sx;
         this.y = sy;
         this.z = sz;
-
         return this;
     }
 
     public Vector3 setFromMatrixColumn(final int index, final Matrix4 matrix) {
-
         final int offset = index * 4;
-
         final Float32Array me = matrix.getArray();
-
         this.x = me.get(offset);
         this.y = me.get(offset + 1);
         this.z = me.get(offset + 2);
-
         return this;
 
     }
 
-    /**
-     * Returns true if all of the data members of v1 are equal to the
-     * corresponding data members in this Vector3.
-     *
-     * @param v1 the vector with which the comparison is made
-     * @return true or false
-     */
-    public boolean equals(final Vector3 v1) {
-        return (this.x == v1.x && this.y == v1.y && this.z == v1.z);
+    @Override
+    public boolean equals(final Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj instanceof Vector3) {
+            final Vector3 v1 = (Vector3) obj;
+            return (this.x == v1.x && this.y == v1.y && this.z == v1.z);
+        }
+        return false;
     }
 
     @Override
@@ -666,13 +468,10 @@ public class Vector3 extends Vector2 {
 
     @Override
     public Vector3 fromArray(final Float32Array array, final int offset) {
-
         this.x = array.get(offset);
         this.y = array.get(offset + 1);
         this.z = array.get(offset + 2);
-
         return this;
-
     }
 
     @Override
@@ -682,11 +481,9 @@ public class Vector3 extends Vector2 {
 
     @Override
     public Float32Array toArray(final Float32Array array, final int offset) {
-
         array.set(offset, this.x);
         array.set(offset + 1, this.y);
         array.set(offset + 2, this.z);
-
         return array;
     }
 
