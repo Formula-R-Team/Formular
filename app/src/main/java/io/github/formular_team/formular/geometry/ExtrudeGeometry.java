@@ -24,7 +24,6 @@ import java.util.List;
 
 import io.github.formular_team.formular.math.Color;
 import io.github.formular_team.formular.math.Curve;
-import io.github.formular_team.formular.math.CurvePath;
 import io.github.formular_team.formular.math.Mth;
 import io.github.formular_team.formular.math.Shape;
 import io.github.formular_team.formular.math.ShapeUtils;
@@ -42,7 +41,7 @@ public class ExtrudeGeometry extends Geometry {
         // number of points on the curves
         public int curveSegments = 12;
 
-        // number of points for z-side extrusions / used for subdividing segements of extrude spline too
+        // number of points for z-side extrusions / used for subdividing segments of extrude spline too
         public int steps = 1;
 
         // Amount
@@ -62,9 +61,6 @@ public class ExtrudeGeometry extends Geometry {
 
         // 2d/3d spline path to extrude shape orthogonality to
         public Curve extrudePath;
-
-        // 2d path for bend the shape around x/y plane
-        CurvePath bendPath;
 
         // material index for front and back faces
         public int material;
@@ -105,18 +101,13 @@ public class ExtrudeGeometry extends Geometry {
 
     public ExtrudeGeometry(final List<Shape> shapes, final ExtrudeGeometryParameters options) {
         super();
-
         this.options = options;
-
         this.addShape(shapes, options);
-
         this.computeFaceNormals();
     }
 
     public void addShape(final List<Shape> shapes, final ExtrudeGeometryParameters options) {
-        final int sl = shapes.size();
-
-        for (int s = 0; s < sl; s++) {
+        for (int s = 0; s < shapes.size(); s++) {
             this.addShape(shapes.get(s), options);
         }
     }
