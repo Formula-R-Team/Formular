@@ -117,6 +117,9 @@ public class MainActivity extends AppCompatActivity {
                         projMat,
                         viewMat
                     );
+                    final float sceneCaptureRange = 0.15F;
+                    final float gameRoadWidth = 4.0F;
+                    final float gameToSceneScale = 0.06F / gameRoadWidth; // physical 6cm = virtual roadWidth meters
                     pickRay.intersectPlane(fplane, new io.github.formular_team.formular.math.Vector3())
                         .ifPresent(v -> {
                             final Pose planeAtPick = Pose.makeTranslation(v.getX(), v.getY(), v.getZ()).compose(planePose.extractRotation());
@@ -137,12 +140,13 @@ public class MainActivity extends AppCompatActivity {
                                 );
                                 return new Vector2().fromArray(out2);
                             };
-                            final Vector2 b00 = planeToImage.apply(new Vector3(-1.0F, 0.0F, 1.0F));
-                            final Vector2 b01 = planeToImage.apply(new Vector3(-1.0F, 0.0F, -1.0F));
-                            final Vector2 b10 = planeToImage.apply(new Vector3(1.0F, 0.0F, 1.0F));
-                            final Vector2 b11 = planeToImage.apply(new Vector3(1.0F, 0.0F, -1.0F));
+                            final Vector2 b00 = planeToImage.apply(new Vector3(-sceneCaptureRange, 0.0F, sceneCaptureRange));
+                            final Vector2 b01 = planeToImage.apply(new Vector3(-sceneCaptureRange, 0.0F, -sceneCaptureRange));
+                            final Vector2 b10 = planeToImage.apply(new Vector3(sceneCaptureRange, 0.0F, sceneCaptureRange));
+                            final Vector2 b11 = planeToImage.apply(new Vector3(sceneCaptureRange, 0.0F, -sceneCaptureRange));
                             final Vector2 min, max;
                             final Bitmap image;
+                            final int captureSize = 128;
                             try (final Image cameraImage = frame.acquireCameraImage()) {
                                 min = b00.clone().min(b01).min(b10).min(b11).floor().max(new Vector2(0, 0));
                                 max = b00.clone().max(b01).max(b10).max(b11).ceil().min(new Vector2(cameraImage.getWidth() - 1, cameraImage.getHeight() - 1));
@@ -151,16 +155,14 @@ public class MainActivity extends AppCompatActivity {
                                 throw new RuntimeException(e);
                             }
                             if (image != null) {
-                                final int captureSize = 128;
-                                final float worldScale = 0.075F;
                                 final Bitmap capture = Bitmap.createBitmap(captureSize, captureSize, Bitmap.Config.ARGB_8888);
                                 final Vector3 outputPos = new Vector3();
                                 for (int y = 0; y < capture.getHeight(); y++) {
                                     for (int x = 0; x < capture.getWidth(); x++) {
                                         outputPos.set(
-                                            worldScale * (2.0F * x / captureSize - 1.0F),
-                                            0,
-                                            -worldScale * (2.0F * y / captureSize - 1.0F)
+                                            sceneCaptureRange * (2.0F * x / captureSize - 1.0F),
+                                            0.0F,
+                                            -sceneCaptureRange * (2.0F * y / captureSize - 1.0F)
                                         );
                                         final Vector2 p = planeToImage.apply(outputPos).sub(min);
                                         if (p.getX() >= 0.0F && p.getY() >= 0.0F && p.getX() < image.getWidth() && p.getY() < image.getHeight()) {
@@ -169,29 +171,29 @@ public class MainActivity extends AppCompatActivity {
                                         }
                                     }
                                 }
-                                final Path pathInCapture = this.findPath(capture);
-                                this.updateOverlayPath(capture, pathInCapture);
-                                final Path pathOnPlane = new Path();
-                                pathInCapture.visit(new TransformingPathVisitor(pathOnPlane, new Matrix3()
+                                final Path capturePath = this.findPath(capture);
+                                this.updateOverlayPath(capture, capturePath);
+                                final Path trackPath = new Path();
+                                capturePath.visit(new TransformingPathVisitor(trackPath, new Matrix3()
                                     .scale(2.0F / captureSize)
                                     .translate(-1.0F, -1.0F)
-                                    .scale(worldScale, -worldScale)
+                                    .scale(sceneCaptureRange / gameToSceneScale, -sceneCaptureRange / gameToSceneScale)
                                 ));
                                 final Anchor planeAnchor = plane.createAnchor(planeAtPick);
                                 final AnchorNode planeAnchorNode = new AnchorNode(planeAnchor);
                                 planeAnchorNode.setParent(view.getScene());
                                 this.anchors.add(planeAnchor);
                                 MaterialFactory.makeOpaqueWithColor(MainActivity.this, new Color(0xFF565E66)).thenAccept(material -> {
-                                    final float roadHeight = 0.25F;
-                                    final float roadSize = 0.6F;
+                                    final float roadHeight = 0.125F;
+                                    final float roadHalfWidth = gameRoadWidth * 0.5F;
                                     final Shape shape = new Shape();
-                                    shape.moveTo(0.0F, -roadSize);
-                                    shape.lineTo(-roadHeight, -roadSize);
-                                    shape.lineTo(-roadHeight, roadSize);
-                                    shape.lineTo(0.0F, roadSize);
-                                    shape.lineTo(0.0F, -roadSize);
-                                    final CurvePath path3d = new CurvePath();
-                                    pathOnPlane.visit(new PathVisitor() {
+                                    shape.moveTo(0.0F, -roadHalfWidth);
+                                    shape.lineTo(-roadHeight, -roadHalfWidth);
+                                    shape.lineTo(-roadHeight, roadHalfWidth);
+                                    shape.lineTo(0.0F, roadHalfWidth);
+                                    shape.lineTo(0.0F, -roadHalfWidth);
+                                    final CurvePath trackPath3d = new CurvePath();
+                                    trackPath.visit(new PathVisitor() {
                                         private Vector3 last = new Vector3();
 
                                         @Override
@@ -201,25 +203,24 @@ public class MainActivity extends AppCompatActivity {
 
                                         @Override
                                         public void lineTo(final float x, final float y) {
-                                            path3d.add(new LineCurve3(this.last, this.last = this.map(x, y)));
+                                            trackPath3d.add(new LineCurve3(this.last, this.last = this.map(x, y)));
                                         }
 
                                         @Override
                                         public void bezierCurveTo(final float aCP1x, final float aCP1y, final float aCP2x, final float aCP2y, final float aX, final float aY) {
-                                            path3d.add(new CubicBezierCurve3(this.last, this.map(aCP1x, aCP1y), this.map(aCP2x, aCP2y), this.last = this.map(aX, aY)));
+                                            trackPath3d.add(new CubicBezierCurve3(this.last, this.map(aCP1x, aCP1y), this.map(aCP2x, aCP2y), this.last = this.map(aX, aY)));
                                         }
 
                                         @Override
                                         public void closePath() {}
 
                                         private Vector3 map(final float x, final float y) {
-                                            return new Vector3(x, 0.0F, y).multiply(100.0F);
+                                            return new Vector3(x, 0.0F, y);
                                         }
                                     });
-                                    final ModelRenderable pathRenderable = Geometries.extrude(shape, path3d, (int) (path3d.getLength() * 4), material);
+                                    final ModelRenderable pathRenderable = Geometries.extrude(shape, trackPath3d, 2 * trackPath3d.getCurves().size(), material);
                                     final Node pathNode = new Node();
-                                    pathNode.setLocalScale(com.google.ar.sceneform.math.Vector3.one().scaled(1.0F / 100.0F));
-                                    pathNode.setLocalPosition(new com.google.ar.sceneform.math.Vector3(0.0F, 0.0F, 0.0F));
+                                    pathNode.setLocalScale(com.google.ar.sceneform.math.Vector3.one().scaled(gameToSceneScale));
                                     pathNode.setParent(planeAnchorNode);
                                     pathNode.setRenderable(pathRenderable);
                                 });
