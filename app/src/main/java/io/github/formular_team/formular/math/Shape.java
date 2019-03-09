@@ -55,7 +55,7 @@ public class Shape extends Path {
         final int il = this.holes.size();
         final List<List<Vector2>> holesPts = new ArrayList<>();
 		for (int i = 0; i < il; i++) {
-			holesPts.add(this.holes.get(i).getTransformedPoints(closedPath, this.getBends()));
+			holesPts.add(this.holes.get(i).getPoints(closedPath)/*.getTransformedPoints(closedPath, this.getBends())*/);
 		}
         return holesPts;
     }
@@ -64,7 +64,7 @@ public class Shape extends Path {
         final int il = this.holes.size();
         final List<List<Vector2>> holesPts = new ArrayList<>();
 		for (int i = 0; i < il; i++) {
-			holesPts.add(this.holes.get(i).getTransformedSpacedPoints(closedPath, this.getBends()));
+			holesPts.add(this.holes.get(i).getPoints(closedPath)/*.getTransformedSpacedPoints(closedPath, this.getBends())*/);
 		}
         return holesPts;
     }

@@ -22,8 +22,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class Curve {
-    public int __arcLengthDivisions = 0;
-
     public List<Float> cacheArcLengths;
 
     public boolean needsUpdate;
@@ -77,32 +75,24 @@ public abstract class Curve {
     }
 
     public List<Float> getLengths() {
-        if (this.__arcLengthDivisions > 0) {
-            return this.getLengths(this.__arcLengthDivisions);
-        }
         return this.getLengths(200);
     }
 
     public List<Float> getLengths(final int divisions) {
-        if (this.cacheArcLengths != null
-            && (this.cacheArcLengths.size() == (divisions + 1))
-            && !this.needsUpdate
-        ) {
-            return this.cacheArcLengths;
+        if (this.cacheArcLengths == null || this.cacheArcLengths.size() != (divisions + 1) || this.needsUpdate) {
+            this.needsUpdate = false;
+            this.cacheArcLengths = new ArrayList<>();
+            this.cacheArcLengths.add(0.0F);
+            Vector2 last = this.getPoint(0.0F);
+            float sum = 0.0F;
+            for (int p = 1; p <= divisions; p++) {
+                final Vector2 current = this.getPoint(p / (float) divisions);
+                sum += current.distanceTo(last);
+                this.cacheArcLengths.add(sum);
+                last = current;
+            }
         }
-        this.needsUpdate = false;
-        final List<Float> cache = new ArrayList<>();
-        cache.add(0.0F);
-        Vector2 last = this.getPoint(0.0F);
-        float sum = 0.0F;
-        for (int p = 1; p <= divisions; p++) {
-            final Vector2 current = this.getPoint(p / (float) divisions);
-            sum += current.distanceTo(last);
-            last = current;
-            cache.add(sum);
-        }
-        this.cacheArcLengths = cache;
-        return cache;
+        return this.cacheArcLengths;
     }
 
     public void updateArcLengths() {
@@ -112,19 +102,12 @@ public abstract class Curve {
 
     public float getUtoTmapping(final float u) {
         final List<Float> arcLengths = this.getLengths();
-        return this.getUtoTmapping(u, u * arcLengths.get(arcLengths.size() - 1));
-    }
-
-    public float getUtoTmapping(final float u, final float distance) {
-        final List<Float> arcLengths = this.getLengths();
-        int low = 0;
-        int high = arcLengths.size() - 1;
-        float comparison;
-        while (low <= high) {
+        final int end = arcLengths.size() - 1;
+        final float distance = u * arcLengths.get(end);
+        int high = end;
+        for (int low = 0; low <= high; ) {
             final int i = low + (high - low);
-
-            comparison = arcLengths.get(i) - distance;
-
+            final float comparison = arcLengths.get(i) - distance;
             if (comparison < 0) {
                 low = i + 1;
             } else if (comparison > 0) {
@@ -135,23 +118,13 @@ public abstract class Curve {
             }
         }
         if (arcLengths.get(high) == distance) {
-            return high / (float) (arcLengths.size() - 1);
+            return high / (float) end;
         }
         final float lengthBefore = arcLengths.get(high);
         final float lengthAfter = arcLengths.get(high + 1);
         final float segmentLength = lengthAfter - lengthBefore;
         final float segmentFraction = (distance - lengthBefore) / segmentLength;
-        return (high + segmentFraction) / ((float) arcLengths.size() - 1.0F);
-    }
-
-    /*
-     * In 2D space, there are actually 2 normal vectors,
-     * and in 3D space, infinite
-     * TODO this should be depreciated.
-     */
-    public Vector2 getNormalVector(final float t) {
-        final Vector2 vec = this.getTangent(t);
-        return new Vector2(-vec.getY(), vec.getX());
+        return (high + segmentFraction) / (float) end;
     }
 
     public Vector2 getTangent(final float t) {
@@ -159,19 +132,10 @@ public abstract class Curve {
         float t1 = t - delta;
         float t2 = t + delta;
         if (!this.isClosed()) {
-            if (t1 < 0.0F) {
-                t1 = 0.0F;
-            }
-            if (t2 > 1.0F) {
-                t2 = 1.0F;
-            }
+            t1 = Math.max(0.0F, t1);
+            t2 = Math.min(1.0F, t2);
         }
-        final Vector2 pt1 = this.getPoint(t1);
-        final Vector2 pt2 = this.getPoint(t2);
-        final Vector2 vec = pt2.clone();
-        vec.sub(pt1);
-        vec.normalize();
-        return vec;
+        return this.getPoint(t2).sub(this.getPoint(t1)).normalize();
     }
 
     public Vector2 getTangentAt(final float u) {

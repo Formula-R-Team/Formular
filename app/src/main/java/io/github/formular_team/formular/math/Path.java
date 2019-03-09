@@ -280,8 +280,6 @@ public class Path extends CurvePath implements PathVisitor {
 //						float ty = aYE + yRadiusE * Mth.sin(angle);
 //						points.add(new Vector2(tx, ty));
 //					}
-
-        // Normalize to remove the closing point by default.
         if (points.size() >= 2) {
             final Vector2 lastPoint = points.get(points.size() - 1);
             final float epsilon = 0.0000001F;
@@ -513,17 +511,17 @@ public class Path extends CurvePath implements PathVisitor {
         return inside;
     }
 
-    public List<Vector2> getTransformedSpacedPoints(final boolean closedPath) {
-        return this.getTransformedSpacedPoints(closedPath, this.getBends());
-    }
-
-    public List<Vector2> getTransformedSpacedPoints(final boolean closedPath, final List<CurvePath> bends) {
-        List<Vector2> oldPts = this.getSpacedPoints();
-        for (int i = 0; i < bends.size(); i++) {
-            oldPts = this.getWrapPoints(oldPts, bends.get(i));
-        }
-        return oldPts;
-    }
+//    public List<Vector2> getTransformedSpacedPoints(final boolean closedPath) {
+//        return this.getTransformedSpacedPoints(closedPath, this.getBends());
+//    }
+//
+//    public List<Vector2> getTransformedSpacedPoints(final boolean closedPath, final List<CurvePath> bends) {
+//        List<Vector2> oldPts = this.getSpacedPoints();
+//        for (int i = 0; i < bends.size(); i++) {
+//            oldPts = this.getWrapPoints(oldPts, bends.get(i));
+//        }
+//        return oldPts;
+//    }
 
 //	public Geometry createPointsGeometry()
 //	{
@@ -559,21 +557,21 @@ public class Path extends CurvePath implements PathVisitor {
 //		return geometry;
 //	}
 
-    public List<Vector2> getTransformedPoints() {
-        return this.getTransformedPoints(false, this.getBends());
-    }
-
-    public List<Vector2> getTransformedPoints(final boolean closedPath) {
-        return this.getTransformedPoints(closedPath, this.getBends());
-    }
-
-    public List<Vector2> getTransformedPoints(final boolean closedPath, final List<CurvePath> bends) {
-        List<Vector2> oldPts = this.getPoints(closedPath);
-        for (int i = 0; i < bends.size(); i++) {
-            oldPts = this.getWrapPoints(oldPts, bends.get(i));
-        }
-        return oldPts;
-    }
+//    public List<Vector2> getTransformedPoints() {
+//        return this.getTransformedPoints(false, this.getBends());
+//    }
+//
+//    public List<Vector2> getTransformedPoints(final boolean closedPath) {
+//        return this.getTransformedPoints(closedPath, this.getBends());
+//    }
+//
+//    public List<Vector2> getTransformedPoints(final boolean closedPath, final List<CurvePath> bends) {
+//        List<Vector2> oldPts = this.getPoints(closedPath);
+//        for (int i = 0; i < bends.size(); i++) {
+//            oldPts = this.getWrapPoints(oldPts, bends.get(i));
+//        }
+//        return oldPts;
+//    }
 
     @Override
     public Path clone() {

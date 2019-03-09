@@ -145,11 +145,7 @@ public class ExtrudeGeometry extends Geometry {
 
         this.shapesOffset = this.getVertices().size();
 
-        if (options.bendPath != null) {
-            shape.addWrapPath(options.bendPath);
-        }
-
-        final List<Vector2> vertices = shape.getTransformedPoints();
+        final List<Vector2> vertices = shape.getPoints(false);
 
         this.holes = shape.getPointsHoles();
 
@@ -171,14 +167,6 @@ public class ExtrudeGeometry extends Geometry {
         }
 
         this.localFaces = ShapeUtils.triangulateShape(vertices, this.holes);
-
-        // Would it be better to move points after triangulation?
-        // shapePoints = shape.extractAllPointsWithBend( curveSegments, bendPath );
-        // 	vertices = shapePoints.shape;
-        // 	holes = shapePoints.holes;
-        ////
-        ///   Handle Vertices
-        ////
 
         // vertices has all points but contour has only points of circumference
         final List<Vector2> contour = new ArrayList<>(vertices);
@@ -419,7 +407,7 @@ public class ExtrudeGeometry extends Geometry {
 
         final float s = q_sub_p_dot_w_hat / v_dot_w_hat;
 
-        // in case of emergecy, revert to algorithm 1.
+        // in case of emergency, revert to algorithm 1.
         if (s < 0) {
             return this.getBevelVec1(pt_i, pt_j, pt_k);
         }

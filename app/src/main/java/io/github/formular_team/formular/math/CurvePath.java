@@ -19,22 +19,16 @@
 package io.github.formular_team.formular.math;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public class CurvePath extends Curve {
     private List<Curve> curves;
 
-    private final List<CurvePath> bends;
-
     private List<Float> cacheLengths;
 
     public CurvePath() {
         this.curves = new ArrayList<>();
-        this.bends = new ArrayList<>();
-    }
-
-    public List<CurvePath> getBends() {
-        return this.bends;
     }
 
     public List<Curve> getCurves() {
@@ -50,11 +44,11 @@ public class CurvePath extends Curve {
     }
 
     public Curve getFirstCurve() {
-        return this.getCurves().get(0);
+        return this.curves.get(0);
     }
 
     public Curve getLastCurve() {
-        return this.getCurves().get(this.getCurves().size() - 1);
+        return this.curves.get(this.curves.size() - 1);
     }
 
     @Override
@@ -65,17 +59,18 @@ public class CurvePath extends Curve {
         if (t == 1.0F) {
             return this.getLastCurve().getEnd();
         }
-        final float d = Mth.mod(t, 1.0F) * this.getLength();
-        final List<Float> curveLengths = this.getCurveLengths();
-        for (int i = 0; i < curveLengths.size(); i++) {
-            if (curveLengths.get(i) >= d) {
-                final float diff = curveLengths.get(i) - d;
-                final Curve curve = this.getCurves().get(i);
-                final float u = 1.0F - diff / curve.getLength();
-                return curve.getPointAt(u);
+        final float d = (this.isClosed() ? Mth.mod(t, 1.0F) : t) * this.getLength();
+        final Iterator<Curve> curves = this.curves.iterator();
+        final Iterator<Float> lengths = this.getCurveLengths().iterator();
+        while (true) {
+            final Curve curve = curves.next();
+            final float length = lengths.next();
+            if (curves.hasNext() && d > length) {
+                continue;
             }
+            final float u = 1.0F - (length - d) / curve.getLength();
+            return curve.getPointAt(u);
         }
-        throw new AssertionError();
     }
 
     @Override
@@ -85,87 +80,15 @@ public class CurvePath extends Curve {
     }
 
     public List<Float> getCurveLengths() {
-        // We use cache values if curves and cache array are same length
-		if (this.cacheLengths != null && this.cacheLengths.size() == this.curves.size()) {
-			return this.cacheLengths;
-		}
-
-        // Get length of subsurve
-        // Push sums into cached array
-        this.cacheLengths = new ArrayList<>();
-        float sums = 0.0F;
-        for (int i = 0; i < this.curves.size(); i++) {
-            sums += this.curves.get(i).getLength();
-            this.cacheLengths.add(sums);
+        if (this.cacheLengths == null || this.cacheLengths.size() != this.curves.size()) {
+            this.cacheLengths = new ArrayList<>();
+            float sum = 0.0F;
+            for (final Curve curve : this.curves) {
+                sum += curve.getLength();
+                this.cacheLengths.add(sum);
+            }
         }
-
         return this.cacheLengths;
-    }
-
-    /*
-     * Returns getMin and max coordinates, as well as centroid
-     */
-    public Box3 getBoundingBox() {
-        final List<Vector2> points = this.getPoints();
-
-        float maxX, maxY;
-        float minX, minY;
-
-        maxX = maxY = Float.NEGATIVE_INFINITY;
-        minX = minY = Float.POSITIVE_INFINITY;
-
-        final Vector2 sum = new Vector2();
-        final int il = points.size();
-
-        for (int i = 0; i < il; i++) {
-            final Vector2 p = points.get(i);
-
-			if (p.getX() > maxX) {
-				maxX = p.getX();
-			} else if (p.getX() < minX) {
-				minX = p.getX();
-			}
-
-			if (p.getY() > maxY) {
-				maxY = p.getY();
-			} else if (p.getY() < maxY) {
-				minY = p.getY();
-			}
-
-            sum.add(p);
-        }
-
-        final Box3 boundingBox = new Box3();
-        boundingBox.getMin().set(minX, minY, 0);
-        boundingBox.getMax().set(maxX, maxY, 0);
-
-        return boundingBox;
-    }
-
-    public void addWrapPath(final CurvePath bendpath) {
-        this.bends.add(bendpath);
-    }
-
-    /*
-     * http://www.planetclegg.com/projects/WarpingTextToSplines.html
-     */
-    protected List<Vector2> getWrapPoints(final List<Vector2> oldPts, final CurvePath path) {
-        final Box3 bounds = this.getBoundingBox();
-        for (int i = 0, il = oldPts.size(); i < il; i++) {
-            final Vector2 p = oldPts.get(i);
-            final float oldX = p.getX();
-            final float oldY = p.getY();
-            float xNorm = oldX / bounds.getMax().getX();
-            // If using actual distance, for length > path, requires line extrusions
-            //xNorm = path.getUtoTmapping(xNorm, oldX); // 3 styles. 1) wrap stretched. 2) wrap stretch by arc length 3) warp by actual distance
-            xNorm = path.getUtoTmapping(xNorm, oldX);
-            // check for out of bounds?
-            final Vector2 pathPt = path.getPoint(xNorm);
-            final Vector2 normal = path.getNormalVector(xNorm).multiply(oldY);
-            p.setX(pathPt.getX() + normal.getY());
-            p.setY(pathPt.getX() + normal.getY());
-        }
-        return oldPts;
     }
 
     @Override
@@ -177,10 +100,6 @@ public class CurvePath extends Curve {
         this.curves.clear();
         for (final Curve curve : other.curves) {
             this.curves.add(curve.clone());
-        }
-        this.bends.clear();
-        for (final CurvePath bend : other.bends) {
-            this.bends.add(bend.clone());
         }
         this.cacheLengths = null;
         return this;
