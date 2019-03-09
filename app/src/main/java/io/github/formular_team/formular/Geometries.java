@@ -21,16 +21,10 @@ public final class Geometries {
     private Geometries() {}
 
     public static ModelRenderable extrude(final Shape shape, final Curve path, final int divisions, final Material material) {
-        final ExtrudeGeometry geom;
-        try {
-            geom = new ExtrudeGeometry(shape, new ExtrudeGeometry.ExtrudeGeometryParameters() {{
-                this.steps = divisions;
-                this.bevelEnabled = false;
-                this.extrudePath = path;
-            }});
-        } catch (final Throwable t) {
-            throw new RuntimeException(t);
-        }
+        final ExtrudeGeometry geom = shape.extrude(new ExtrudeGeometry.ExtrudeGeometryParameters() {{
+            this.steps = divisions;
+            this.extrudePath = path;
+        }});
         final List<Vector3> vertexArray = geom.getVertices();
         final List<Face3> faces = geom.getFaces();
         final Iterator<List<Vector2>> uvArray = geom.getFaceVertexUvs().get(0).iterator();

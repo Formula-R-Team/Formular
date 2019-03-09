@@ -6,9 +6,9 @@ import io.github.formular_team.formular.math.Vector2;
 public class PathReader {
 	private final StepFunction stepFunc;
 
-	private final ToDoubleMapFunction orientFunc;
+	private final ToFloatMapFunction orientFunc;
 
-	public PathReader(final StepFunction stepFunc, final ToDoubleMapFunction orientFunc) {
+	public PathReader(final StepFunction stepFunc, final ToFloatMapFunction orientFunc) {
 		this.stepFunc = stepFunc;
 		this.orientFunc = orientFunc;
 	}
@@ -22,7 +22,11 @@ public class PathReader {
 			if (stepNo >= 128) {
 				break; // too long
 			}
-			rotation += this.orientFunc.orient(view);
+            final float o = this.orientFunc.orient(view);
+            if (!Float.isFinite(o)) {
+                break; // no orientation
+            }
+			rotation += o;
 			view.setRotation(rotation);
 			final Vector2 step = view.transformVec(this.stepFunc.step(view));
 			if (step.length() == 0.0F) {

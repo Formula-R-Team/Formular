@@ -1,29 +1,31 @@
 package io.github.formular_team.formular.trace;
 
-public final class OrientFunction implements ToDoubleMapFunction {
+import io.github.formular_team.formular.math.Mth;
+
+public final class OrientFunction implements ToFloatMapFunction {
 	private final int radius;
 
-	private final double[] bufX;
+	private final float[] bufX;
 
-	private final double[] bufY;
+	private final float[] bufY;
 
-	private final double[] bufW;
+	private final float[] bufW;
 
 	public OrientFunction(final int radius) {
 		this.radius = radius;
 		final int count = (2 * this.radius + 1) * (2 * this.radius + 1);
-		this.bufX = new double[count];
-		this.bufY = new double[count];
-		this.bufW = new double[count];
+		this.bufX = new float[count];
+		this.bufY = new float[count];
+		this.bufW = new float[count];
 	}
 
 	@Override
-	public double orient(final Mapper image) {
+	public float orient(final Mapper image) {
 		int n = 0;
 		for (int x = -this.radius; x <= this.radius; x++) {
 			for (int y = -this.radius; y <= this.radius; y++) {
-				final double w = image.get(x, y);
-				if (w != 0.0D) {
+				final float w = image.get(x, y);
+				if (w != 0.0F) {
 					this.bufX[n] = x;
 					this.bufY[n] = y;
 					this.bufW[n] = w;
@@ -31,18 +33,18 @@ public final class OrientFunction implements ToDoubleMapFunction {
 				}
 			}
 		}
-		final double a = cov(this.bufX, this.bufX, this.bufW, n);
-		final double b = cov(this.bufX, this.bufY, this.bufW, n);
-		final double d = cov(this.bufY, this.bufY, this.bufW, n);
-		return this.computeSpreadAngle(d, b, a);
+		final float a = cov(this.bufX, this.bufX, this.bufW, n);
+		final float b = cov(this.bufX, this.bufY, this.bufW, n);
+		final float d = cov(this.bufY, this.bufY, this.bufW, n);
+        return this.computeSpreadAngle(d, b, a);
 	}
 
-	private double computeSpreadAngle(final double a, final double b, final double d) {
-		return Math.atan2(b == 0.0D ? 0.0D : (Math.sqrt((a - d) * (a - d) + 4.0D * b * b) + a - d) / (2.0D * b), 1.0D);
+	private float computeSpreadAngle(final float a, final float b, final float d) {
+		return Mth.atan2(b == 0.0F ? 0.0F : (Mth.sqrt((a - d) * (a - d) + 4.0F * b * b) + a - d) / (2.0F * b), 1.0F);
 	}
 
 	// https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Online
-	private static double cov(final double[] data1, final double[] data2, final double[] data3, final int n) {
+	private static float cov(final float[] data1, final float[] data2, final float[] data3, final int n) {
 		double meanx = 0.0D, meany = 0.0D;
 		double wsum = 0.0D, wsum2 = 0.0D;
 		double C = 0.0D;
@@ -57,6 +59,6 @@ public final class OrientFunction implements ToDoubleMapFunction {
 			meany += (w / wsum) * (y - meany);
 			C += w * dx * (y - meany);
 		}
-		return C / (wsum - wsum2 / wsum);
+		return (float) (C / (wsum - wsum2 / wsum));
 	}
 }

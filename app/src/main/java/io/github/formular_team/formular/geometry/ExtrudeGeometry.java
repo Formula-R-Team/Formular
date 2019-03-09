@@ -133,24 +133,14 @@ public class ExtrudeGeometry extends Geometry {
 
         if (options.extrudePath != null) {
             extrudePts = options.extrudePath.getSpacedPoints(options.steps);
-
             extrudeByPath = true;
-            // bevels not supported for path extrusion
             options.bevelEnabled = false;
-
-            // SETUP TNB variables
-
-            // Reuse TNB from TubeGeomtry for now.
-            // TODO - have a .isClosed in spline?
-            splineTube = new FrenetFrames(options.extrudePath, options.steps, false);
+            splineTube = new FrenetFrames(options.extrudePath, options.steps, options.extrudePath.isClosed());
         }
-
-        // Safeguards if bevels are not enabled
-
         if (!options.bevelEnabled) {
             options.bevelSegments = 0;
-            options.bevelThickness = 0;
-            options.bevelSize = 0;
+            options.bevelThickness = 0.0F;
+            options.bevelSize = 0.0F;
         }
 
         this.shapesOffset = this.getVertices().size();
@@ -278,7 +268,7 @@ public class ExtrudeGeometry extends Geometry {
             } else {
                 normal.copy(splineTube.getNormals().get(0)).multiply(vert.getX());
                 binormal.copy(splineTube.getBinormals().get(0)).multiply(vert.getY());
-                position2.copy((Vector3) extrudePts.get(0)).add(normal).add(binormal);
+                position2.copy(extrudePts.get(0)).add(normal).add(binormal);
 
                 this.v(position2.getX(), position2.getY(), position2.getZ());
             }
@@ -299,7 +289,7 @@ public class ExtrudeGeometry extends Geometry {
                     normal.copy(splineTube.getNormals().get(s)).multiply(vert.getX());
                     binormal.copy(splineTube.getBinormals().get(s)).multiply(vert.getY());
 
-                    position2.copy((Vector3) extrudePts.get(s)).add(normal).add(binormal);
+                    position2.copy(extrudePts.get(s)).add(normal).add(binormal);
 
                     this.v(position2.getX(), position2.getY(), position2.getZ());
                 }

@@ -145,6 +145,14 @@ public class Path extends CurvePath implements PathVisitor {
 //	}
 
     @Override
+    public void closePath() {
+        if (!this.isClosed()) {
+            final Vector2 start = this.getStart();
+            this.lineTo(start.x, start.y);
+        }
+    }
+
+    @Override
     public List<Vector2> getSpacedPoints() {
         return this.getSpacedPoints(40);
     }
@@ -291,6 +299,7 @@ public class Path extends CurvePath implements PathVisitor {
     public List<Shape> toShapes() {
         return this.toShapes(false, false);
     }
+
     public List<Shape> toShapes(final boolean isCCW, final boolean noHoles) {
         final List<Shape> shapes = new ArrayList<>();
         final List<Path> subPaths = this.extractSubPaths();

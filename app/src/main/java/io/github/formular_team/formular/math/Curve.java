@@ -28,6 +28,18 @@ public abstract class Curve {
 
     public boolean needsUpdate;
 
+    public Vector2 getStart() {
+        return this.getPoint(0.0F);
+    }
+
+    public Vector2 getEnd() {
+        return this.getPoint(1.0F);
+    }
+
+    public boolean isClosed() {
+        return this.getStart().equals(this.getEnd());
+    }
+
     public abstract Vector2 getPoint(float t);
 
     public Vector2 getPointAt(final float u) {
@@ -134,7 +146,7 @@ public abstract class Curve {
 
     /*
      * In 2D space, there are actually 2 normal vectors,
-     * and in 3D space, infinte
+     * and in 3D space, infinite
      * TODO this should be depreciated.
      */
     public Vector2 getNormalVector(final float t) {
@@ -146,11 +158,13 @@ public abstract class Curve {
         final float delta = 0.0001F;
         float t1 = t - delta;
         float t2 = t + delta;
-        if (t1 < 0.0F) {
-            t1 = 0.0F;
-        }
-        if (t2 > 1.0F) {
-            t2 = 1.0F;
+        if (!this.isClosed()) {
+            if (t1 < 0.0F) {
+                t1 = 0.0F;
+            }
+            if (t2 > 1.0F) {
+                t2 = 1.0F;
+            }
         }
         final Vector2 pt1 = this.getPoint(t1);
         final Vector2 pt2 = this.getPoint(t2);

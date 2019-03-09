@@ -49,29 +49,23 @@ public class CurvePath extends Curve {
         this.curves.add(curve);
     }
 
-    /*
-     * TODO:
-     * If the ending of curve is not connected to the starting
-     * or the next curve, then, this is not a real path
-     */
-    public void checkConnection() {
+    public Curve getFirstCurve() {
+        return this.getCurves().get(0);
     }
 
-    public void closePath() {
-        // TODO Test
-        // and verify for vector3 (needs to implement equals)
-        // Add a line curve if start and end of lines are not connected
-        final Vector2 startPoint = this.getCurves().get(0).getPoint(0);
-        final Vector2 endPoint = this.getCurves().get(this.curves.size() - 1).getPoint(1);
-
-		if (!startPoint.equals(endPoint)) {
-			this.curves.add(new LineCurve(endPoint, startPoint));
-		}
+    public Curve getLastCurve() {
+        return this.getCurves().get(this.getCurves().size() - 1);
     }
 
     @Override
     public Vector2 getPoint(final float t) {
-        final float d = t * this.getLength();
+        if (t == 0.0F) {
+            return this.getFirstCurve().getStart();
+        }
+        if (t == 1.0F) {
+            return this.getLastCurve().getEnd();
+        }
+        final float d = Mth.mod(t, 1.0F) * this.getLength();
         final List<Float> curveLengths = this.getCurveLengths();
         for (int i = 0; i < curveLengths.size(); i++) {
             if (curveLengths.get(i) >= d) {
@@ -81,8 +75,7 @@ public class CurvePath extends Curve {
                 return curve.getPointAt(u);
             }
         }
-        // loop where sum != 0, sum > d , sum+1 <d
-        return null;
+        throw new AssertionError();
     }
 
     @Override

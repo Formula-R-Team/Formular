@@ -27,7 +27,7 @@ import io.github.formular_team.formular.math.Mth;
 import io.github.formular_team.formular.math.Vector3;
 
 public class FrenetFrames {
-    private static final float epsilon = 0.0001F;
+    private static final float EPSILON = 0.0001F;
 
     private final List<Vector3> tangents;
 
@@ -60,18 +60,14 @@ public class FrenetFrames {
         // compute the slowly-varying normal and binormal vectors for each segment on the path
         for (int i = 1; i <= segments; i++) {
             this.normals.add(this.normals.get(i - 1).clone());
-
             this.binormals.add(this.binormals.get(i - 1).clone());
             vec.cross(this.tangents.get(i - 1), this.tangents.get(i));
-
-            if (vec.length() > epsilon) {
+            if (vec.length() > EPSILON) {
                 vec.normalize();
                 final float aCos = this.tangents.get(i - 1).dot(this.tangents.get(i));
-                final float theta = Mth.acos(aCos > 1.0F ? 1.0F : aCos);
-
+                final float theta = Mth.acos(Math.min(1.0F, aCos));
                 this.normals.get(i).apply(mat.makeRotationAxis(vec, theta));
             }
-
             this.binormals.get(i).cross(this.tangents.get(i), this.normals.get(i));
 
         }
@@ -79,13 +75,14 @@ public class FrenetFrames {
         // if the curve is closed, post-process the vectors so the first and last normal vectors are the same
         if (closed) {
             float theta = Mth.acos(this.normals.get(0).dot(this.normals.get(segments))) / segments;
-            if (this.tangents.get(0).dot(vec.cross(this.normals.get(0), this.normals.get(segments))) > 0) {
-                theta = -theta;
-            }
-            for (int i = 1; i <= segments; i++) {
-                // twist a little...
-                this.normals.get(i).apply(mat.makeRotationAxis(this.tangents.get(i), theta * i));
-                this.binormals.get(i).cross(this.tangents.get(i), this.normals.get(i));
+            if (theta > EPSILON) {
+                if (this.tangents.get(0).dot(vec.cross(this.normals.get(0), this.normals.get(segments))) > 0) {
+                    theta = -theta;
+                }
+                for (int i = 1; i <= segments; i++) {
+                    this.normals.get(i).apply(mat.makeRotationAxis(this.tangents.get(i), theta * i));
+                    this.binormals.get(i).cross(this.tangents.get(i), this.normals.get(i));
+                }
             }
         }
     }
@@ -117,7 +114,7 @@ public class FrenetFrames {
 
     private void initialNormal2() {
         // This uses the Frenet-Serret formula for deriving binormal
-        final Vector3 t2 = (Vector3) this.path.getTangentAt(epsilon);
+        final Vector3 t2 = (Vector3) this.path.getTangentAt(EPSILON);
 
         this.normals.add(new Vector3().sub(t2, this.tangents.get(0)).normalize());
         this.binormals.add(new Vector3().cross(this.tangents.get(0), this.normals.get(0)));

@@ -33,6 +33,12 @@ public class LineCurve3 extends Curve {
 
     @Override
     public Vector3 getPoint(final float t) {
+        if (t == 0.0F) {
+            return this.v1.clone();
+        }
+        if (t == 1.0F) {
+            return this.v2.clone();
+        }
         final Vector3 point = this.v2.clone();
         point.sub(this.v1);
         point.multiply(t);

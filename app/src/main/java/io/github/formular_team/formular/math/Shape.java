@@ -42,9 +42,6 @@ public class Shape extends Path {
         return new ExtrudeGeometry(this, options);
     }
 
-//	/*
-//	 * Convenience method to return ShapeGeometry
-//	 */
 //	public ShapeGeometry makeGeometry ( final ShapeGeometry.ShapeGeometryParameters options )
 //	{
 //		return new ShapeGeometry( this, options );

@@ -1,7 +1,5 @@
 package io.github.formular_team.formular.math;
 
-import java.util.function.Function;
-
 public interface PathVisitor {
     void moveTo(final float x, final float y);
 
