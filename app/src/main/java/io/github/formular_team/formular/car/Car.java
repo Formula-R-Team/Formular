@@ -35,6 +35,8 @@ public class Car {
 
     public float brake;
 
+    public Vector2 velocity;
+
     public Car(final CarDefinition type) {
         this.definition = type;
     }
@@ -44,7 +46,7 @@ public class Car {
         final float cs = Mth.cos(this.rotation);
         // SAE convention: x is to the front of the car, y is to the right, z is down
         // transform velocity in world reference frame to velocity in car reference frame
-        final Vector2 velocity = new Vector2(
+        velocity = new Vector2(
             cs * this.linearVelocity.getY() + sn * this.linearVelocity.getX(),
             -sn * this.linearVelocity.getY() + cs * this.linearVelocity.getX()
         );
@@ -114,5 +116,9 @@ public class Car {
 
         this.position.add(this.linearVelocity.clone().multiply(dt));
         this.rotation += dt * this.angularVelocity;
+    }
+
+    public Vector2 getLinearVelocity(){
+        return linearVelocity;
     }
 }

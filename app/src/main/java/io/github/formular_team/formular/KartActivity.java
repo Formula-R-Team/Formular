@@ -140,6 +140,7 @@ public class KartActivity extends AppCompatActivity {
         }
 
         void step(final float delta){
+            final CarDefinition definition = CarDefinition.createDefault();
             final float targetDt = 0.01F;
             final int steps = Math.max((int) (delta / targetDt), 1);
             final float dt = delta / steps;
@@ -150,6 +151,12 @@ public class KartActivity extends AppCompatActivity {
             this.localRotation.set(Vector3.up(), Mth.toDegrees(this.car.rotation));
             this.model.setLocalPosition(this.localPosition);
             this.model.setLocalRotation(this.localRotation);
+
+            //how much the wheels turn
+            for(int w = 0; w < 4;w++){
+                Quaternion wheelRotation = wheels[w].getLocalRotation();
+                wheels[w].setLocalRotation(Quaternion.multiply(new Quaternion(Vector3.right(),(Math.abs(this.car.velocity.getX())/(definition.wheellength/2))),wheelRotation));
+            }
         }
     }
 }
