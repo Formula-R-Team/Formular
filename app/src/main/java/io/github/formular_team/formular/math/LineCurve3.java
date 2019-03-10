@@ -65,4 +65,12 @@ public class LineCurve3 extends Curve {
     public LineCurve3 clone() {
         return new LineCurve3(this.v1.clone(), this.v2.clone());
     }
+
+    @Override
+    public String toString() {
+        return "LineCurve3{" +
+            "v1=" + this.v1 +
+            ", v2=" + this.v2 +
+            '}';
+    }
 }

@@ -51,6 +51,10 @@ public class CurvePath extends Curve {
         return this.curves.get(this.curves.size() - 1);
     }
 
+    public Curve removeLast() {
+        return this.curves.remove(this.curves.size() - 1);
+    }
+
     @Override
     public Vector2 getPoint(final float t) {
         if (t == 0.0F) {
@@ -103,5 +107,12 @@ public class CurvePath extends Curve {
         }
         this.cacheLengths = null;
         return this;
+    }
+
+    @Override
+    public String toString() {
+        return "CurvePath{" +
+            "curves=" + this.curves +
+            '}';
     }
 }

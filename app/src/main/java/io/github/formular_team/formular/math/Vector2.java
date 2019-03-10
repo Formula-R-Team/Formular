@@ -343,7 +343,7 @@ public class Vector2 {
 
     public Vector2 setLength(final float l) {
         final float oldLength = this.length();
-        if (oldLength != 0 && l != oldLength) {
+        if (oldLength != 0.0F && l != oldLength) {
             this.multiply(l / oldLength);
         }
         return this;

@@ -104,29 +104,21 @@ public class KartActivity extends AppCompatActivity {
             tireFrontLeft.setLocalPosition(new Vector3(-this.tirePos.x, this.tirePos.y, -this.tirePos.z));
             tireFrontLeft.setParent(bodyNode);
             tireFrontLeft.setRenderable(this.kartTire);
-            Wheel frontLeft = new Wheel(tireFrontLeft,0f);
-
             final Node tireFrontRight = new Node();
             tireFrontRight.setLocalPosition(new Vector3(this.tirePos.x, this.tirePos.y, -this.tirePos.z));
             tireFrontRight.setLocalRotation(Quaternion.axisAngle(Vector3.up(), (float) Math.PI));
             tireFrontRight.setParent(bodyNode);
             tireFrontRight.setRenderable(this.kartTire);
-            Wheel frontRight = new Wheel(tireFrontRight,0f);
-
             final Node tireRearLeft = new Node();
             tireRearLeft.setLocalPosition(new Vector3(-this.tirePos.x, this.tirePos.y, this.tirePos.z));
             tireRearLeft.setParent(bodyNode);
             tireRearLeft.setRenderable(this.kartTire);
-            Wheel rearLeft = new Wheel(tireRearLeft,0f);
-
             final Node tireRearRight = new Node();
             tireRearRight.setLocalPosition(new Vector3(this.tirePos.x, this.tirePos.y, this.tirePos.z));
             tireRearRight.setLocalRotation(Quaternion.axisAngle(Vector3.up(), (float) Math.PI));
             tireRearRight.setParent(bodyNode);
             tireRearRight.setRenderable(this.kartTire);
-            Wheel rearRight = new Wheel(tireRearRight,0f);
-
-            this.controller = new CarController(new Car(this.definition), bodyNode, new Wheel[] { frontRight, rearRight, frontLeft, rearLeft });
+            this.controller = new CarController(new Car(this.definition), bodyNode, new Node[] { tireFrontRight, tireRearRight, tireFrontLeft, tireRearLeft });
         });
     }
 
@@ -135,13 +127,13 @@ public class KartActivity extends AppCompatActivity {
 
         final Node model;
 
-        final Wheel[] wheels;
+        final Node[] wheels;
 
         final Vector3 localPosition = new Vector3();
 
         final Quaternion localRotation = new Quaternion();
 
-        CarController(final Car car, final Node model, final Wheel[] wheels) {
+        CarController(final Car car, final Node model, final Node[] wheels) {
             this.car = car;
             this.model = model;
             this.wheels = wheels;
@@ -162,43 +154,9 @@ public class KartActivity extends AppCompatActivity {
 
             //how much the wheels turn
             for(int w = 0; w < 4;w++){
-                float rotateCalculation = Math.abs(this.car.velocity.getX())/(definition.wheellength/2);
-                float wheelRotation = wheels[w].getRotationAngle();
-                Quaternion right = new Quaternion(Vector3.right(),wheelRotation + rotateCalculation);
-                wheels[w].setRotationAngle(wheelRotation + rotateCalculation);
-                wheels[w].getNode().setLocalRotation(right);
-
-                if(w == 1 || w == 3){
-                    Quaternion steerangle = new Quaternion(Vector3.up(),Mth.toDegrees(this.car.steerangle));
-                    wheels[w].getNode().setLocalRotation(Quaternion.multiply(steerangle,right));
-                }
+                Quaternion wheelRotation = wheels[w].getLocalRotation();
+                wheels[w].setLocalRotation(Quaternion.multiply(new Quaternion(Vector3.right(),(Math.abs(this.car.velocity.getX())/(definition.wheellength/2))),wheelRotation));
             }
-        }
-    }
-
-    class Wheel {
-        private Node node;
-        private float rotationAngle;
-
-        Wheel(Node node, float rotationAngle){
-            this.node = node;
-            this.rotationAngle = rotationAngle;
-        }
-
-        public float getRotationAngle() {
-            return rotationAngle;
-        }
-
-        public Node getNode() {
-            return node;
-        }
-
-        public void setNode(Node node) {
-            this.node = node;
-        }
-
-        public void setRotationAngle(float steerangle){
-            this.rotationAngle = steerangle;
         }
     }
 }

@@ -19,13 +19,13 @@
 package io.github.formular_team.formular.math;
 
 public class CubicBezierCurve3 extends Curve {
-    private final Vector3 v0;
+    public final Vector3 v0;
 
-    private final Vector3 v1;
+    public final Vector3 v1;
 
-    private final Vector3 v2;
+    public final Vector3 v2;
 
-    private final Vector3 v3;
+    public final Vector3 v3;
 
     public CubicBezierCurve3(final Vector3 v0, final Vector3 v1, final Vector3 v2, final Vector3 v3) {
         this.v0 = v0;
@@ -51,5 +51,15 @@ public class CubicBezierCurve3 extends Curve {
     @Override
     public CubicBezierCurve3 clone() {
         return new CubicBezierCurve3(this.v0.clone(), this.v1.clone(), this.v2.clone(), this.v3.clone());
+    }
+
+    @Override
+    public String toString() {
+        return "CubicBezierCurve3{" +
+            "v0=" + this.v0 +
+            ", v1=" + this.v1 +
+            ", v2=" + this.v2 +
+            ", v3=" + this.v3 +
+            '}';
     }
 }

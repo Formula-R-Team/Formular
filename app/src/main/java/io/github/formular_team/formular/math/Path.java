@@ -35,6 +35,13 @@ public class Path extends CurvePath implements PathVisitor {
         this.fromPoints(points);
     }
 
+    @Override
+    public Curve removeLast() {
+        final Curve last = super.removeLast();
+        this.actions.remove(this.actions.size() - 1);
+        return last;
+    }
+
     public void visit(final PathVisitor visitor) {
         for (final Action action : this.actions) {
             action.visit(visitor);
@@ -198,9 +205,9 @@ public class Path extends CurvePath implements PathVisitor {
                     final float tx = ShapeUtils.b3(t, x0, aCP1x, aCP2x, aX);
                     final float ty = ShapeUtils.b3(t, y0, aCP1y, aCP2y, aY);
                     final Vector2 point = new Vector2(tx, ty);
-                    this.last.copy(point);
                     points.add(point);
                 }
+                this.last.set(aX, aY);
             }
 
             @Override
@@ -282,7 +289,7 @@ public class Path extends CurvePath implements PathVisitor {
 //					}
         if (points.size() >= 2) {
             final Vector2 lastPoint = points.get(points.size() - 1);
-            final float epsilon = 0.0000001F;
+            final float epsilon = 1.0e-6F;
             if (Math.abs(lastPoint.getX() - points.get(0).getX()) < epsilon &&
                 Math.abs(lastPoint.getY() - points.get(0).getY()) < epsilon) {
                 points.remove(points.size() - 1);

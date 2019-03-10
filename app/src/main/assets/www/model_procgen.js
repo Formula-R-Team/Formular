@@ -1,126 +1,54 @@
 (function() {
-    function stroke(path, offset) {
-        const outerPath = OffsetUtils.offsetPath(path, offset, true);
-        const innerPath = OffsetUtils.offsetPath(path, -offset, true);
-        return [ outerPath, innerPath ];//OffsetUtils.joinOffsets(outerPath.clone(), innerPath.clone(), path, offset).unite();
-    }
     function aspect() {
         return window.innerWidth / window.innerHeight;
     }
-    const camera = new THREE.PerspectiveCamera(50, aspect(), 0.01, 100);
-    camera.position.set(10, 5, 0);
-    camera.lookAt(new THREE.Vector3(0, 0, 0));
-    const arm = new THREE.Object3D();
-    arm.rotateY(Math.PI / 4 + Math.PI);
-    arm.add(camera);
     const scene = new THREE.Scene();
-    scene.add(arm);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor(0x000000, 0.0);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    const camera = new THREE.PerspectiveCamera(50, aspect(), 0.01, 100);
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.addEventListener('change', () => {
+        localStorage.setItem('camera', JSON.stringify(camera.matrix.toArray()));
+        localStorage.setItem('target', JSON.stringify(controls.target.toArray()))
+    });
+    const cameraJson = localStorage.getItem('camera');
+    if (cameraJson) {
+        camera.matrix.fromArray(JSON.parse(cameraJson));
+        camera.matrix.decompose(camera.position, camera.quaternion, camera.scale);
+    } else {
+        camera.position.set(0, 10, 0);
+        camera.lookAt(new THREE.Vector3(0, 0, 0));
+    }
+    const targetJson = localStorage.getItem('target');
+    if (targetJson) {
+        controls.target.fromArray(JSON.parse(targetJson));
+        controls.update();
+    }
+    scene.add(camera);
     scene.add(new THREE.GridHelper(10, 14, '#000000', '#636363'));
-    const data = [
-        [  1.33,   0.02 ],
-        [  1.34,  -0.46 ],
-        [  1.33,  -0.94 ],
-        [  1.20,  -1.41 ],
-        [  1.10,  -1.87 ],
-        [  0.68,  -2.11 ],
-        [  0.20,  -2.11 ],
-        [ -0.27,  -2.01 ],
-        [ -0.64,  -1.71 ],
-        [ -0.72,  -1.23 ],
-        [ -0.67,  -0.76 ],
-        [ -0.71,  -0.28 ],
-        [ -0.76,   0.20 ],
-        [ -0.81,   0.68 ],
-        [ -1.21,   0.94 ],
-        [ -1.69,   0.99 ],
-        [ -2.16,   0.89 ],
-        [ -2.61,   0.73 ],
-        [ -3.03,   0.49 ],
-        [ -3.32,   0.10 ],
-        [ -3.48,  -0.35 ],
-        [ -3.53,  -0.83 ],
-        [ -3.51,  -1.31 ],
-        [ -3.46,  -1.78 ],
-        [ -3.37,  -2.25 ],
-        [ -3.12,  -2.66 ],
-        [ -2.89,  -3.08 ],
-        [ -2.47,  -3.32 ],
-        [ -1.99,  -3.37 ],
-        [ -1.51,  -3.41 ],
-        [ -1.03,  -3.45 ],
-        [ -0.55,  -3.44 ],
-        [ -0.07,  -3.47 ],
-        [  0.40,  -3.50 ],
-        [  0.88,  -3.49 ],
-        [  1.36,  -3.47 ],
-        [  1.83,  -3.36 ],
-        [  2.31,  -3.36 ],
-        [  2.76,  -3.20 ],
-        [  3.22,  -3.05 ],
-        [  3.47,  -2.64 ],
-        [  3.45,  -2.16 ],
-        [  3.45,  -1.68 ],
-        [  3.43,  -1.20 ],
-        [  3.38,  -0.72 ],
-        [  3.35,  -0.24 ],
-        [  3.34,   0.24 ],
-        [  3.35,   0.72 ],
-        [  3.40,   1.19 ],
-        [  3.52,   1.66 ],
-        [  3.53,   2.14 ],
-        [  3.45,   2.61 ],
-        [  3.45,   3.09 ],
-        [  3.18,   3.49 ],
-        [  2.70,   3.50 ],
-        [  2.22,   3.48 ],
-        [  1.74,   3.46 ],
-        [  1.37,   3.16 ],
-        [  1.09,   2.77 ],
-        [  1.06,   2.29 ],
-        [  1.08,   1.81 ],
-        [  1.20,   1.34 ],
-        [  1.27,   0.87 ]
-     ];
-    const path = new THREE.Path(data.map(([x, y]) => new THREE.Vector2(x, y)));
-    path.closePath();
 
-    // Add Segments
-   	const geom = new THREE.BufferGeometry().setFromPoints(path.getPoints().map(vec2 => new THREE.Vector3(vec2.x, 0.0, vec2.y)));
-   	geom.computeBoundingBox();
-   	//scene.add(new THREE.Line(geom, new THREE.LineBasicMaterial({ color: 0xffffff, depthTest: false, transparent: true, opacity: 0.75 })));
-
-    // Simplify
-    paper.setup();
-    const pathCurve = new paper.Path({ segments: data, closed: true });
-    pathCurve.simplify(0.0625);
-
-    // Bezier
-    function paperToThreePath(paperPath) {
-        const threePath = new THREE.Path();
-        threePath.moveTo(paperPath.firstCurve.point1.x, paperPath.firstCurve.point1.y);
-        paperPath.curves.forEach((curve) => {
-            const cp1 = curve.point1.add(curve.handle1);
-            const cp2 = curve.point2.add(curve.handle2);
-            threePath.bezierCurveTo(cp1.x, cp1.y, cp2.x, cp2.y, curve.point2.x, curve.point2.y);
-        });
-        threePath.closed = paperPath.closed;
-        return threePath;
-    }
-    function paperToThreeCurve(paperPath) {
-        const threeCurve = new THREE.CurvePath();
-        paperPath.curves.forEach((curve) => {
-            const cp1 = curve.point1.add(curve.handle1);
-            const cp2 = curve.point2.add(curve.handle2);
-            threeCurve.add(new THREE.CubicBezierCurve3(
-                new THREE.Vector3(curve.point1.x, 0, curve.point1.y),
-                new THREE.Vector3(cp1.x, 0, cp1.y),
-                new THREE.Vector3(cp2.x, 0, cp2.y),
-                new THREE.Vector3(curve.point2.x, 0, curve.point2.y)
-            ));
-        });
-        return threeCurve;
-    }
-    const bezierPath = paperToThreeCurve(pathCurve);
+    const bezierPath = new THREE.CurvePath();
+//    bezierPath.add(new THREE.CubicBezierCurve3(new THREE.Vector3(-2.324442, 0.0, -0.920311), new THREE.Vector3(-2.3295965, 0.0, -0.44455814), new THREE.Vector3(-1.963851, 0.0, -2.0658007), new THREE.Vector3(-2.773778, 0.0, -3.005762)));
+//    bezierPath.add(new THREE.CubicBezierCurve3(new THREE.Vector3(-2.773778, 0.0, -3.005762), new THREE.Vector3(-3.836349, 0.0, -4.2389297), new THREE.Vector3(-7.603799, 0.0, -5.9665174), new THREE.Vector3(-4.0587106, 0.0, -7.704501)));
+//    bezierPath.add(new THREE.CubicBezierCurve3(new THREE.Vector3(-4.0587106, 0.0, -7.704501), new THREE.Vector3(1.4063778, 0.0, -10.383769), new THREE.Vector3(3.8216896, 0.0, -5.9190636), new THREE.Vector3(3.3059483, 0.0, -1.1489496)));
+//    bezierPath.add(new THREE.CubicBezierCurve3(new THREE.Vector3(3.3059483, 0.0, -1.1489496), new THREE.Vector3(3.1418161, 0.0, 0.36911774), new THREE.Vector3(3.1135845, 0.0, 2.8950863), new THREE.Vector3(2.2610426, 0.0, 4.204712)));
+//    bezierPath.add(new THREE.CubicBezierCurve3(new THREE.Vector3(2.2610426, 0.0, 4.204712), new THREE.Vector3(0.5516529, 0.0, 6.830576), new THREE.Vector3(-4.937368, 0.0, 6.535759), new THREE.Vector3(-6.346281, 0.0, 3.7399921)));
+//    bezierPath.add(new THREE.CubicBezierCurve3(new THREE.Vector3(-6.346281, 0.0, 3.7399921), new THREE.Vector3(-8.128668, 0.0, 0.20312595), new THREE.Vector3(-2.3478293, 0.0, 1.2383347), new THREE.Vector3(-2.324442, 0.0, -0.920311)));
+    bezierPath.add(new THREE.CubicBezierCurve3(new THREE.Vector3(-2.324442, 0.0, -0.920311), new THREE.Vector3(-2.2956152, 0.0, -3.5809755), new THREE.Vector3(-6.929308, 0.0, -4.3908625), new THREE.Vector3(-4.9120083, 0.0, -7.0202723)));bezierPath.add(new THREE.CubicBezierCurve3(new THREE.Vector3(-4.9120083, 0.0, -7.0202723), new THREE.Vector3(-2.2822762, 0.0, -10.447944), new THREE.Vector3(3.5477629, 0.0, -8.068299), new THREE.Vector3(3.5031872, 0.0, -3.3272524)));bezierPath.add(new THREE.CubicBezierCurve3(new THREE.Vector3(3.5031872, 0.0, -3.3272524), new THREE.Vector3(3.4819403, 0.0, -1.0674572), new THREE.Vector3(3.3753414, 0.0, 3.4971805), new THREE.Vector3(1.4556942, 0.0, 4.9447823)));bezierPath.add(new THREE.CubicBezierCurve3(new THREE.Vector3(1.4556942, 0.0, 4.9447823), new THREE.Vector3(-0.6081419, 0.0, 6.5011177), new THREE.Vector3(-6.720072, 0.0, 6.387377), new THREE.Vector3(-6.5942254, 0.0, 2.674716)));bezierPath.add(new THREE.CubicBezierCurve3(new THREE.Vector3(-6.5942254, 0.0, 2.674716), new THREE.Vector3(-6.51455, 0.0, 0.32416248), new THREE.Vector3(-2.3433576, 0.0, 0.8255434), new THREE.Vector3(-2.324442, 0.0, -0.920311)));
+   	scene.add(new THREE.Line(
+   	    new THREE.BufferGeometry().setFromPoints(bezierPath.getPoints(bezierPath.getLength() * 16)),
+   	    new THREE.LineBasicMaterial({ color: 0xffffff, depthTest: false, transparent: true, opacity: 0.75 })
+    ));
+    scene.add(new THREE.Points(
+        new THREE.BufferGeometry().setFromPoints(bezierPath.getPoints(0.1)),
+        new THREE.PointsMaterial({ color: 0xffffff, size: 0.125 })
+    ));
 
     const roadHeight = 0.075;
     const roadWidth = 0.5;
@@ -133,14 +61,13 @@
     shape.lineTo(0, roadWidth);
     shape.lineTo(0, -roadWidth);
     const roadGeometry = new THREE.ExtrudeGeometry(shape, {
-        steps: (bezierPath.getLength() * 4) | 0,
-        bevelEnabled: false,
+        steps: (bezierPath.getLength() * 6) | 0,
         extrudePath: bezierPath
     });
 
-   	const pathMesh = new THREE.Line(new THREE.BufferGeometry().setFromPoints(bezierPath.getPoints()), new THREE.LineBasicMaterial({ color: 0xffff00/*, depthTest: false, transparent: true*/ }));
-    pathMesh.position.setY(roadHeight);
-   	scene.add(pathMesh);
+//   	const pathMesh = new THREE.Line(new THREE.BufferGeometry().setFromPoints(bezierPath.getPoints()), new THREE.LineBasicMaterial({ color: 0xffff00/*, depthTest: false, transparent: true*/ }));
+//    pathMesh.position.setY(roadHeight);
+//   	scene.add(pathMesh);
     // Extrude Road Up
     /*
    	const bezierGeom = new THREE.BufferGeometry().setFromPoints(bezierPath.getPoints().map(vec2 => new THREE.Vector3(vec2.x, 0.0, vec2.y)));
@@ -174,16 +101,18 @@
     roadGeometry.rotateX(0.5 * Math.PI);
     roadGeometry.translate(0, roadHeight, 0);*/
 
-    const tex = new THREE.TextureLoader().load('images/road_surface.png');
-    tex.wrapS = THREE.RepeatWrapping;
-    tex.wrapT = THREE.RepeatWrapping;
-    tex.repeat.set(0.4, 0.4);
+    const tex = new THREE.TextureLoader().load('images/tile.png');
+    tex.wrapS = THREE.ClampToEdgeWrapping;
+    tex.wrapT = THREE.ClampToEdgeWrapping;
+    //tex.repeat.set(0.2, 0.2);
+    tex.center.set(0.5, 0.5);
     const roadMesh = new THREE.Mesh(roadGeometry, new THREE.MeshStandardMaterial({
          color: 0xffffff,//color: 0x2c2f33,
          roughness : 0.7,
-         map: tex,
-         //wireframe: true
-     }));
+         //map: tex,
+         wireframe: true
+    }));
+    roadMesh.position.set(0.0, 0.0, 0.0);
     roadMesh.receiveShadow = true;
     scene.add(roadMesh);
 
@@ -201,12 +130,6 @@
     light.castShadow = true;
     scene.add(light);
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setClearColor(0x000000, 0.0);
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     window.addEventListener('resize', function() {
             camera.aspect = aspect();
             camera.updateProjectionMatrix();

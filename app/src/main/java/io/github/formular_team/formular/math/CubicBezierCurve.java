@@ -60,4 +60,14 @@ public class CubicBezierCurve extends Curve {
     public CubicBezierCurve clone() {
         return new CubicBezierCurve(this.v0.clone(), this.v1.clone(), this.v2.clone(), this.v3.clone());
     }
+
+    @Override
+    public String toString() {
+        return "CubicBezierCurve{" +
+            "v0=" + this.v0 +
+            ", v1=" + this.v1 +
+            ", v2=" + this.v2 +
+            ", v3=" + this.v3 +
+            '}';
+    }
 }

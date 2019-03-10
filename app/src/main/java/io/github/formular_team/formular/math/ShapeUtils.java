@@ -17,8 +17,6 @@
  */
 package io.github.formular_team.formular.math;
 
-import android.util.Log;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -33,8 +31,6 @@ import java.util.Map;
  * @author thothbot
  */
 public final class ShapeUtils {
-    private static final String TAG = "ShapeUtils";
-
     private ShapeUtils() {}
 
     /**
@@ -168,7 +164,7 @@ public final class ShapeUtils {
                     ? holeIndex - 1
                     : hole.size() - 1;
             } else {
-                Log.e(TAG, "ERROR");
+//                Log.e(TAG, "ERROR");
             }
 
             final List<Vector2> tmpShape1 = new ArrayList<>(shape.subList(0, shapeIndex));
@@ -234,7 +230,7 @@ public final class ShapeUtils {
             final String key = allpoints.get(i).getX() + ":" + allpoints.get(i).getY();
 
             if (allPointsMap.containsKey(key)) {
-                Log.w(TAG, "Duplicate point " + key);
+//                Log.w(TAG, "Duplicate point " + key);
             }
 
             allPointsMap.put(key, i);
@@ -300,18 +296,6 @@ public final class ShapeUtils {
         return t * t * p;
     }
 
-    /*
-     * Cubic Bezier Functions
-     * @param t
-     * @param p0
-     * 		X or Y coordinate of vector 1
-     * @param p1
-     * 		X or Y coordinate of vector 2
-     * @param p2
-     * 		X or Y coordinate of vector 3
-     * @param p3
-     * 		X or Y coordinate of vector 4
-     */
     public static float b3(final float t, final float p0, final float p1, final float p2, final float p3) {
         return b3p0(t, p0) + b3p1(t, p1) + b3p2(t, p2) + b3p3(t, p3);
     }

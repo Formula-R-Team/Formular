@@ -17,15 +17,11 @@
  */
 package io.github.formular_team.formular.math;
 
-import android.util.Log;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public final class FontUtils {
-    private static final String TAG = "FontUtils";
-
     public static final float EPSILON = 0.00000001F;
 
     private FontUtils() {}
@@ -69,7 +65,7 @@ public final class FontUtils {
                 //throw ( "Warning, unable to triangulate polygon!" );
                 //return null;
                 // Sometimes warning is fine, especially polygons are triangulated in reverse.
-                Log.w(TAG, "Unable to triangulate polygon!");
+//                Log.w(TAG, "Unable to triangulate polygon!");
 
                 return;
             }

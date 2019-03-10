@@ -29,14 +29,17 @@ import com.google.ar.sceneform.rendering.MaterialFactory;
 import com.google.ar.sceneform.rendering.ModelRenderable;
 import com.google.ar.sceneform.rendering.Texture;
 import com.google.ar.sceneform.ux.ArFragment;
-import com.google.common.collect.Lists;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Function;
 
 import io.github.formular_team.formular.geometry.ExtrudeGeometry;
+import io.github.formular_team.formular.math.Bezier;
+import io.github.formular_team.formular.math.CubicBezierCurve;
 import io.github.formular_team.formular.math.CubicBezierCurve3;
+import io.github.formular_team.formular.math.Curve;
 import io.github.formular_team.formular.math.CurvePath;
 import io.github.formular_team.formular.math.Float32Array;
 import io.github.formular_team.formular.math.LineCurve3;
@@ -172,7 +175,19 @@ public class MainActivity extends AppCompatActivity {
                                         }
                                     }
                                 }
-                                final Path capturePath = this.findPath(capture);
+                                final Path captureSegments = this.findPath(capture);
+//                                final StringBuilder bob = new StringBuilder("final float[][] points = {");
+//                                for (final Vector2 ve : captureSegments.getPoints(true)) {
+//                                    bob.append(" { ").append(ve.getX()).append("F, ").append(ve.getY()).append("F },");
+//                                }
+//                                Log.i("waldo", bob.append(" };").toString());
+//                                final float[][] points = { { 49.123573F, 69.88999F }, { 49.19941F, 76.88958F }, { 46.24782F, 83.23688F }, { 40.406498F, 87.0942F }, { 34.338467F, 90.584045F }, { 29.385218F, 95.53029F }, { 29.747696F, 102.52089F }, { 32.56315F, 108.92973F }, { 38.024254F, 113.30881F }, { 44.830616F, 114.94388F }, { 51.463776F, 117.180214F }, { 58.452126F, 117.58394F }, { 65.36386F, 116.47583F }, { 72.225494F, 115.0909F }, { 78.21353F, 111.465515F }, { 82.16871F, 105.69F }, { 84.65629F, 99.14692F }, { 86.03334F, 92.28371F }, { 86.420395F, 85.29441F }, { 85.90199F, 78.31364F }, { 85.158066F, 71.35328F }, { 84.397095F, 64.39476F }, { 83.15025F, 57.506702F }, { 81.94709F, 50.610878F }, { 80.7159F, 43.72F }, { 78.47067F, 37.089848F }, { 73.316444F, 32.353397F }, { 67.345314F, 28.700237F }, { 60.623825F, 26.745358F }, { 53.691288F, 25.775856F }, { 46.691444F, 25.823013F }, { 40.02389F, 27.954613F }, { 33.51162F, 30.521774F }, { 27.919603F, 34.7324F }, { 23.383804F, 40.064053F }, { 21.79696F, 46.88182F }, { 23.84183F, 53.57648F }, { 29.241438F, 58.031166F }, { 35.712284F, 60.701023F }, { 42.07285F, 63.6239F }, { 49.123573F, 69.88999F } };
+//                                final Path captureSegments = new Path();
+//                                captureSegments.moveTo(points[0][0], points[0][1]);
+//                                for (int i = 1; i < points.length; i++) {
+//                                    captureSegments.lineTo(points[i][0], points[i][1]);
+//                                }
+                                final Path capturePath = Bezier.fitBezierCurve(captureSegments, 8.0F);
                                 this.updateOverlayPath(capture, capturePath);
                                 final Path trackPath = new Path();
                                 final float gameRange = captureRange / gameToSceneScale;
@@ -181,10 +196,12 @@ public class MainActivity extends AppCompatActivity {
                                     .translate(-1.0F, -1.0F)
                                     .scale(gameRange, -gameRange)
                                 ));
+                                this.tracks.forEach(view.getScene()::removeChild);
+                                this.tracks.clear();
                                 final Anchor planeAnchor = plane.createAnchor(planeAtPick);
                                 final AnchorNode planeAnchorNode = new AnchorNode(planeAnchor);
+                                this.tracks.add(planeAnchorNode);
                                 planeAnchorNode.setParent(view.getScene());
-                                this.anchors.add(planeAnchor);
                                 final int courseDiffuseSize = 512;
                                 final Bitmap courseDiffuse = Bitmap.createBitmap(courseDiffuseSize, courseDiffuseSize, Bitmap.Config.ARGB_8888);
                                 {
@@ -210,7 +227,7 @@ public class MainActivity extends AppCompatActivity {
                                 }
                                 Texture.builder().setSource(courseDiffuse).build().thenAccept(diffuse ->
                                     MaterialFactory.makeOpaqueWithTexture(MainActivity.this, diffuse).thenAccept(material -> {
-                                        final float roadHeight = 0.125F;
+                                        final float roadHeight = 0.225F;
                                         final float roadHalfWidth = gameRoadWidth * 0.5F;
                                         final Shape shape = new Shape();
                                         shape.moveTo(0.0F, -roadHalfWidth);
@@ -244,6 +261,21 @@ public class MainActivity extends AppCompatActivity {
                                                 return new Vector3(x, 0.0F, y);
                                             }
                                         });
+//                                        final StringBuilder bob = new StringBuilder();
+//                                        final Consumer<Vector3> addV = vec3 -> bob.append("new THREE.Vector3(").append(vec3.getX()).append(", ").append(vec3.getY()).append(", ").append(vec3.getZ()).append(")");
+//                                        for (final Curve c : trackPath3d.getCurves()) {
+//                                            final CubicBezierCurve3 cbc = (CubicBezierCurve3) c;
+//                                            bob.append("bezierPath.add(new THREE.CubicBezierCurve3(");
+//                                            addV.accept(cbc.v0);
+//                                            bob.append(", ");
+//                                            addV.accept(cbc.v1);
+//                                            bob.append(", ");
+//                                            addV.accept(cbc.v2);
+//                                            bob.append(", ");
+//                                            addV.accept(cbc.v3);
+//                                            bob.append("));");
+//                                        }
+//                                        Log.i("waldo", bob.toString());
                                         final ModelRenderable pathRenderable = Geometries.toRenderable(shape.extrude(new ExtrudeGeometry.ExtrudeGeometryParameters() {{
                                             this.steps = 8 * trackPath3d.getCurves().size();
                                             this.extrudePath = trackPath3d;
@@ -285,7 +317,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private final List<Anchor> anchors = Lists.newArrayList();
+    private List<Node> tracks = new ArrayList<>();
 
     private Path findPath(final Bitmap capture) {
         final TransformMapper mapper = new TransformMapper(new BilinearMapper(new ImageLineMap(new BitmapImageMap(capture))), 0.0F, 0.0F, 0.0F);
@@ -319,13 +351,28 @@ public class MainActivity extends AppCompatActivity {
         if (this.overlayView != null) {
             final android.graphics.Path graphicPath = new android.graphics.Path();
             pathInCapture.visit(new GraphicsPathVisitor(graphicPath));
-//            graphicPath.close();
+            graphicPath.close();
             final Canvas canvas = new Canvas(capture);
             final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
             paint.setStyle(Paint.Style.STROKE);
-            paint.setStrokeWidth(4.0F);
-            paint.setColor(0x75FF1A52);
+            paint.setStrokeWidth(3.0F);
+            paint.setColor(0x70FF1A52);
             canvas.drawPath(graphicPath, paint);
+            paint.setColor(0xE0FF1A52);
+            // TODO: CurveVisitor
+            for (final Curve c : pathInCapture.getCurves()) {
+                final CubicBezierCurve cc = (CubicBezierCurve) c;
+                paint.setStyle(Paint.Style.FILL);
+                paint.setColor(0xF0FF1A52);
+                canvas.drawCircle(cc.v0.getX(), cc.v0.getY(), 2.0F, paint);
+                paint.setColor(0x90FF1A52);
+                canvas.drawCircle(cc.v1.getX(), cc.v1.getY(), 1.5F, paint);
+                canvas.drawCircle(cc.v2.getX(), cc.v2.getY(), 1.5F, paint);
+                paint.setStyle(Paint.Style.STROKE);
+                paint.setStrokeWidth(1.0F);
+                canvas.drawLine(cc.v0.getX(), cc.v0.getY(), cc.v1.getX(), cc.v1.getY(), paint);
+                canvas.drawLine(cc.v3.getX(), cc.v3.getY(), cc.v2.getX(), cc.v2.getY(), paint);
+            }
             this.overlayView.setImageBitmap(capture);
         }
     }
