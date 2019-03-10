@@ -1,17 +1,17 @@
 package io.github.formular_team.formular;
 
-import android.animation.TimeAnimator;
-import android.support.v7.app.AppCompatActivity;
+import android.annotation.SuppressLint;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.Button;
 
 import com.google.ar.core.Anchor;
 import com.google.ar.core.HitResult;
 import com.google.ar.core.Plane;
 import com.google.ar.sceneform.AnchorNode;
 import com.google.ar.sceneform.Node;
+import com.google.ar.sceneform.Scene;
 import com.google.ar.sceneform.math.Quaternion;
 import com.google.ar.sceneform.math.Vector3;
 import com.google.ar.sceneform.rendering.Color;
@@ -19,95 +19,57 @@ import com.google.ar.sceneform.rendering.MaterialFactory;
 import com.google.ar.sceneform.rendering.ModelRenderable;
 import com.google.ar.sceneform.rendering.ShapeFactory;
 import com.google.ar.sceneform.ux.ArFragment;
-import com.google.ar.sceneform.ux.TransformableNode;
 
+import io.github.formular_team.formular.car.Car;
+import io.github.formular_team.formular.car.CarDefinition;
 import io.github.formular_team.formular.math.Mth;
 
 public class KartActivity extends AppCompatActivity {
-    private static final String TAG = MainActivity.class.getSimpleName();
-    private static final double MIN_OPENGL_VERSION = 3.0;
-    private static final int TIMER_MSEC = 30;
     ModelRenderable kartBody, kartTire;
+
     ArFragment arFragment;
-    TransformableNode controlPot;
-    Node tireFrontLeft, tireFrontRight, tireBackLeft, tireBackRight;
-    final float tireDiameter = 0.25F;
-    private Kart kart;
 
-    private boolean isDown = false; //determines if go button is being pressed down
-    private boolean isLeftDown = false; // determines if left button is being pressed down
-    private boolean isRightDown = false; // determines if right button is being pressed down
+    final CarDefinition definition = CarDefinition.createDefault();
 
-    private TimeAnimator mTimer;
-    private long mLastTime;
+    final Vector3 kartDim = new Vector3(this.definition.width, 1.0F, this.definition.length);
 
+    final float kartLift = 0.15F;
 
+    final Vector3 tirePos = new Vector3(this.kartDim.x * 0.5F + this.definition.wheelwidth * 0.5F, this.definition.wheellength * 0.5F, 0.4F * this.kartDim.z);
 
+    private CarController controller;
+
+    @SuppressLint("ClickableViewAccessibility")
     @Override
-    @SuppressWarnings({"AndroidApiChecker", "FutureReturnValueIgnored"})
-
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_kart);
+        this.setContentView(R.layout.activity_kart);
 
-        Button gasBtn = (Button) findViewById(R.id.goBtn);
-        gasBtn.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                switch(event.getAction()) {
-                    case MotionEvent.ACTION_MOVE:
-                        float x = Mth.clamp(event.getX() / v.getWidth() * 2.0F - 1.0F, -1.0F, 1.0F);
-                        float y = Mth.clamp(event.getY() / v.getHeight() * 2.0F - 1.0F, -1.0F, 1.0F);
-
-                        return true;
-                    case MotionEvent.ACTION_DOWN:
-                        isDown = true;
-                        return true;
-                    case MotionEvent.ACTION_UP:
-                        isDown = false;
-                        return true;
-                    case MotionEvent.ACTION_CANCEL:
-                        isDown = false;
-                        return true;
+        final View joystick = this.findViewById(R.id.joystick);
+        joystick.setOnTouchListener((v, event) -> {
+            switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+            case MotionEvent.ACTION_MOVE:
+                // TODO: flip x/y if landscape orientation
+                final float x = Mth.clamp(event.getX() / v.getWidth() * 2.0F - 1.0F, -1.0F, 1.0F);
+                final float y = Mth.clamp(event.getY() / v.getHeight() * 2.0F - 1.0F, -1.0F, 1.0F);
+                if (this.controller != null) {
+                    this.controller.car.steerangle = -Mth.PI / 4.0F * x;
+                    this.controller.car.throttle = Math.max(-y, 0.0F) * 50;
+                    this.controller.car.brake = Math.max(y, 0.0F) * 100;
                 }
-                return false;
+            case MotionEvent.ACTION_UP:
+                return true;
             }
+            return false;
         });
 
+        this.arFragment = (ArFragment) this.getSupportFragmentManager().findFragmentById(R.id.sceneform_ux_fragment);
 
-
-
-        mTimer = new TimeAnimator();
-        mLastTime = System.currentTimeMillis();
-        mTimer.setTimeListener(new TimeAnimator.TimeListener() {
-            @Override
-            public void onTimeUpdate(TimeAnimator animation, long totalTime, long deltaTime) {
-
-//                long now = System.currentTimeMillis();
-//                if((now - mLastTime) < TIMER_MSEC){
-//                    return;
-//                }
-//                mLastTime = now;
-                float delta = deltaTime / 1000.0f;
-                if (kart != null) {
-                    kart.step(delta);
-                }
-            }
-        });
-
-        mTimer.start();
-
-
-        arFragment = (ArFragment)getSupportFragmentManager().findFragmentById(R.id.sceneform_ux_fragment);
-
-        final float tireWidth = 0.1F;
-        final Vector3 kartDim = new Vector3(0.5F, 0.3F, 1.0F);
-        final float kartLift = 0.15F;
-        final Vector3 tirePos = new Vector3(kartDim.x / 2 + tireWidth * 0.5F, tireDiameter * 0.5F, 0.4F * kartDim.z);
         MaterialFactory.makeOpaqueWithColor(this, new Color(0x0F42DA))
-                .thenAccept(bodyMat -> kartBody = ShapeFactory.makeCube(kartDim, new Vector3(0.0F, kartDim.y - kartLift, 0.0F), bodyMat));
+            .thenAccept(bodyMat -> this.kartBody = ShapeFactory.makeCube(this.kartDim, new Vector3(0.0F, this.kartDim.y - this.kartLift, 0.0F), bodyMat));
         MaterialFactory.makeOpaqueWithColor(this, new Color(0x03001A))
-                .thenAccept(tireMat -> kartTire = ShapeFactory.makeCube(new Vector3(tireWidth, tireDiameter, tireDiameter), new Vector3(0.0F, 0.0F, 0.0F), tireMat));
+            .thenAccept(tireMat -> this.kartTire = ShapeFactory.makeCube(new Vector3(this.definition.wheelwidth, this.definition.wheellength, this.definition.wheellength), new Vector3(0.0F, 0.0F, 0.0F), tireMat));
 
         //        ModelRenderable.builder()
 //                .setSource(this, Uri.parse("teapot.sfb"))
@@ -120,101 +82,74 @@ public class KartActivity extends AppCompatActivity {
 //                    return null;
 //                });
 
+        final Scene scene = this.arFragment.getArSceneView().getScene();
+        scene.addOnUpdateListener(frameTime -> {
+            if (this.controller != null) {
+                this.controller.step(frameTime.getDeltaSeconds());
+            }
+        });
+        this.arFragment.setOnTapArPlaneListener((HitResult hitresult, Plane plane, MotionEvent motionevent) -> {
+            if (this.kartBody == null || this.kartTire == null){
+                return;
+            }
+            final Anchor anchor = hitresult.createAnchor();
+            final AnchorNode anchorNode = new AnchorNode(anchor);
+            anchorNode.setLocalScale(Vector3.one().scaled(0.04F));
+            anchorNode.setParent(scene);
 
-
-        arFragment.setOnTapArPlaneListener(
-                (HitResult hitresult, Plane plane, MotionEvent motionevent) -> {
-                    if (kartBody == null){
-                        return;
-                    }
-
-                    Anchor anchor = hitresult.createAnchor();
-                    AnchorNode anchorNode = new AnchorNode(anchor);
-                    anchorNode.setParent(arFragment.getArSceneView().getScene());
-
-                    Node node = new Node();
-                    node.setLocalScale(new Vector3(0.15f, 0.15f, 0.15f));
-                    node.setParent(anchorNode);
-                    node.setRenderable(kartBody);
-                    tireFrontLeft = new Node();
-                    tireFrontLeft.setLocalPosition(new Vector3(-tirePos.x, tirePos.y, -tirePos.z));
-                    tireFrontLeft.setParent(node);
-                    tireFrontLeft.setRenderable(kartTire);
-                    tireFrontRight = new Node();
-                    tireFrontRight.setLocalPosition(new Vector3(tirePos.x, tirePos.y, -tirePos.z));
-                    tireFrontRight.setLocalRotation(Quaternion.axisAngle(Vector3.up(), (float) Math.PI));
-                    tireFrontRight.setParent(node);
-                    tireFrontRight.setRenderable(kartTire);
-                    tireBackLeft = new Node();
-                    tireBackLeft.setLocalPosition(new Vector3(-tirePos.x, tirePos.y, tirePos.z));
-                    tireBackLeft.setParent(node);
-                    tireBackLeft.setRenderable(kartTire);
-                    tireBackRight = new Node();
-                    tireBackRight.setLocalPosition(new Vector3(tirePos.x, tirePos.y, tirePos.z));
-                    tireBackRight.setLocalRotation(Quaternion.axisAngle(Vector3.up(), (float) Math.PI));
-                    tireBackRight.setParent(node);
-                    tireBackRight.setRenderable(kartTire);
-                    this.kart = new Kart(node);
-                }
-        );
-
-
+            final Node bodyNode = new Node();
+            bodyNode.setParent(anchorNode);
+            bodyNode.setRenderable(this.kartBody);
+            final Node tireFrontLeft = new Node();
+            tireFrontLeft.setLocalPosition(new Vector3(-this.tirePos.x, this.tirePos.y, -this.tirePos.z));
+            tireFrontLeft.setParent(bodyNode);
+            tireFrontLeft.setRenderable(this.kartTire);
+            final Node tireFrontRight = new Node();
+            tireFrontRight.setLocalPosition(new Vector3(this.tirePos.x, this.tirePos.y, -this.tirePos.z));
+            tireFrontRight.setLocalRotation(Quaternion.axisAngle(Vector3.up(), (float) Math.PI));
+            tireFrontRight.setParent(bodyNode);
+            tireFrontRight.setRenderable(this.kartTire);
+            final Node tireRearLeft = new Node();
+            tireRearLeft.setLocalPosition(new Vector3(-this.tirePos.x, this.tirePos.y, this.tirePos.z));
+            tireRearLeft.setParent(bodyNode);
+            tireRearLeft.setRenderable(this.kartTire);
+            final Node tireRearRight = new Node();
+            tireRearRight.setLocalPosition(new Vector3(this.tirePos.x, this.tirePos.y, this.tirePos.z));
+            tireRearRight.setLocalRotation(Quaternion.axisAngle(Vector3.up(), (float) Math.PI));
+            tireRearRight.setParent(bodyNode);
+            tireRearRight.setRenderable(this.kartTire);
+            this.controller = new CarController(new Car(this.definition), bodyNode, new Node[] { tireFrontRight, tireRearRight, tireFrontLeft, tireRearLeft });
+        });
     }
 
-    private void turnRight(float delta) {
-        rotate(-140.0F * delta);
-    }
+    class CarController {
+        final Car car;
 
-    private void turnLeft(float delta) {
-        rotate(140.0F * delta);
-    }
+        final Node model;
 
-    private void rotate(final float theta) {
-        if(controlPot != null){
-            Quaternion rotation = controlPot.getLocalRotation();
-            Quaternion rotateDelta = Quaternion.axisAngle(Vector3.up(), theta);
-            controlPot.setLocalRotation(Quaternion.multiply(rotation, rotateDelta));
-        }
-    }
+        final Node[] wheels;
 
-    private void movePot(float delta) {
-        if(controlPot != null){
-            Vector3 curPos = controlPot.getLocalPosition();
-            Vector3 move = new Vector3(0.0F, 0.0F, -0.25F * delta);
-            Vector3 rm = Quaternion.rotateVector(controlPot.getLocalRotation(), move);
+        final Vector3 localPosition = new Vector3();
 
-            controlPot.setLocalPosition(Vector3.add(curPos, rm));
-            final float spin = -rm.length() / ((float) Math.PI * this.tireDiameter) * 2.0F * 360.0F;
-            this.applyRotation(tireFrontLeft, Vector3.right(), spin);
-            this.applyRotation(tireFrontRight, Vector3.right(), spin);
-            this.applyRotation(tireBackLeft, Vector3.right(), spin);
-            this.applyRotation(tireBackRight, Vector3.right(), spin);
-        }
-    }
+        final Quaternion localRotation = new Quaternion();
 
-    private void applyRotation(final Node node, final Vector3 axis, final float theta) {
-        this.applyRotation(node, Quaternion.axisAngle(axis, theta));
-    }
-
-    private void applyRotation(final Node node, final Quaternion q) {
-        node.setLocalRotation(Quaternion.multiply(node.getLocalRotation(), q));
-    }
-
-    public class Kart {
-        final Node body;
-        float controlDirection;
-        float physicalDirection;
-        float controlAngle;
-        float physicalAngle;
-
-        public Kart(Node body) {
-            this.body = body;
+        CarController(final Car car, final Node model, final Node[] wheels) {
+            this.car = car;
+            this.model = model;
+            this.wheels = wheels;
         }
 
-        public void step(final float delta){
-            physicalDirection += (controlDirection - physicalDirection) * 0.5F * delta;
-            physicalAngle += Mth.deltaAngle(controlAngle, physicalAngle) * 0.75F * delta;
+        void step(final float delta){
+            final float targetDt = 0.01F;
+            final int steps = Math.max((int) (delta / targetDt), 1);
+            final float dt = delta / steps;
+            for (int n = 0; n < steps; n++) {
+                this.car.step(dt);
+            }
+            this.localPosition.set(this.car.position.getX(), 0.0F, this.car.position.getY());
+            this.localRotation.set(Vector3.up(), Mth.toDegrees(this.car.rotation));
+            this.model.setLocalPosition(this.localPosition);
+            this.model.setLocalRotation(this.localRotation);
         }
     }
-
 }

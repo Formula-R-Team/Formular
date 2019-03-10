@@ -54,12 +54,11 @@ public final class Mth {
     }
 
     public static float atan2(final float a, final float b) {
-        return (float) Math.atan2(a,b);
+        return (float) Math.atan2(a, b);
     }
 
-    public static float clamp(final float value, final float min, final float max)
-    {
-        return Math.max( min, Math.min( max, value ) );
+    public static float clamp(final float value, final float min, final float max) {
+        return Math.max(min, Math.min(max, value));
     }
 
 }
