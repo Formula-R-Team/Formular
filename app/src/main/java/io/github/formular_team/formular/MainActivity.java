@@ -1,12 +1,21 @@
 package io.github.formular_team.formular;
 
+import android.content.res.AssetManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.BitmapShader;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
+import android.graphics.Shader;
 import android.media.Image;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.widget.ImageView;
 
@@ -30,6 +39,8 @@ import com.google.ar.sceneform.rendering.ModelRenderable;
 import com.google.ar.sceneform.rendering.Texture;
 import com.google.ar.sceneform.ux.ArFragment;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -65,6 +76,8 @@ import io.github.formular_team.formular.trace.TransformMapper;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
+
+    private final List<Node> tracks = new ArrayList<>();
 
     private ServerController controller;
 
@@ -122,8 +135,9 @@ public class MainActivity extends AppCompatActivity {
                         viewMat
                     );
                     final float captureRange = 0.15F;
-                    final float gameRoadWidth = 4.0F;
-                    final float gameToSceneScale = 0.06F / gameRoadWidth; // physical 6cm = virtual roadWidth meters
+                    final float worldRoadWidth = 4.0F;
+                    final float worldRoadHalfWidth = 0.5F * worldRoadWidth;
+                    final float gameToSceneScale = 0.06F / worldRoadWidth; // physical 6cm = virtual roadWidth meters
                     pickRay.intersectPlane(fplane, new io.github.formular_team.formular.math.Vector3())
                         .ifPresent(v -> {
                             final Pose planeAtPick = Pose.makeTranslation(v.getX(), v.getY(), v.getZ()).compose(planePose.extractRotation());
@@ -187,11 +201,11 @@ public class MainActivity extends AppCompatActivity {
 //                                for (int i = 1; i < points.length; i++) {
 //                                    captureSegments.lineTo(points[i][0], points[i][1]);
 //                                }
-                                final Path capturePath = Bezier.fitBezierCurve(captureSegments, 8.0F);
-                                this.updateOverlayPath(capture, capturePath);
-                                final Path trackPath = new Path();
+                                final Path captureTrackPath = Bezier.fitBezierCurve(captureSegments, 8.0F);
+                                this.updateOverlayPath(capture, captureTrackPath);
+                                final Path worldTrackPath = new Path();
                                 final float gameRange = captureRange / gameToSceneScale;
-                                capturePath.visit(new TransformingPathVisitor(trackPath, new Matrix3()
+                                captureTrackPath.visit(new TransformingPathVisitor(worldTrackPath, new Matrix3()
                                     .scale(2.0F / captureSize)
                                     .translate(-1.0F, -1.0F)
                                     .scale(gameRange, -gameRange)
@@ -202,65 +216,75 @@ public class MainActivity extends AppCompatActivity {
                                 final AnchorNode planeAnchorNode = new AnchorNode(planeAnchor);
                                 this.tracks.add(planeAnchorNode);
                                 planeAnchorNode.setParent(view.getScene());
-                                final int courseDiffuseSize = 512;
+                                final int courseDiffuseSize = 2048;
                                 final Bitmap courseDiffuse = Bitmap.createBitmap(courseDiffuseSize, courseDiffuseSize, Bitmap.Config.ARGB_8888);
                                 {
-                                    final android.graphics.Path coursePath = new android.graphics.Path();
-                                    capturePath.visit(new TransformingPathVisitor(new GraphicsPathVisitor(coursePath), new Matrix3()
-                                        .scale(courseDiffuseSize / (float) captureSize)
-                                    ));
-                                    coursePath.close();
-                                    final float gameToCoursePixel = courseDiffuseSize / (2.0F * gameRange);
+                                    final Bitmap pavementDiffuse = this.loadBitmap("materials/pavement_diffuse.png");
+                                    final Bitmap finishLineDiffuse = this.loadBitmap("materials/finish_line_diffuse.png");
+                                    final android.graphics.Path graphicsTrackPath = new android.graphics.Path();
+                                    worldTrackPath.visit(new GraphicsPathVisitor(graphicsTrackPath));
+                                    graphicsTrackPath.close();
                                     final Canvas canvas = new Canvas(courseDiffuse);
                                     final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+                                    final float worldToMap = courseDiffuseSize / (2.0F * gameRange);
+                                    {
+                                        canvas.scale(worldToMap, -worldToMap);
+                                        canvas.translate(gameRange, -gameRange);
+                                    }
                                     paint.setStyle(Paint.Style.FILL);
-                                    final int road = 0xFF565E66;
-                                    paint.setColor(road);
-                                    canvas.drawRect(new Rect(0, 0, canvas.getWidth(), canvas.getHeight()), paint);
-                                    paint.setStyle(Paint.Style.STROKE);
-                                    paint.setStrokeWidth(gameRoadWidth * 0.85F * gameToCoursePixel);
+                                    paint.setShader(this.createTileShader(pavementDiffuse, 1.0F));
+                                    canvas.drawRect(-gameRange, -gameRange, gameRange, gameRange, paint);
+                                    paint.setShader(null);
+                                    final float worldRoadMargin = 0.08F;
+                                    final float worldRoadStripeWidth = 0.15F;
+                                    {
+                                        final float outerRoadStripeWidth = worldRoadWidth - 2.0F * worldRoadMargin - worldRoadStripeWidth;
+                                        final float innerRoadStripeWidth = outerRoadStripeWidth - 2.0F * worldRoadStripeWidth;
+                                        final Bitmap roadStripDiffuse = Bitmap.createBitmap(courseDiffuseSize, courseDiffuseSize, Bitmap.Config.ARGB_8888);
+                                        final Canvas roadStripCanvas = new Canvas(roadStripDiffuse);
+                                        final Matrix m = new Matrix();
+                                        canvas.getMatrix(m);
+                                        roadStripCanvas.setMatrix(m);
+                                        paint.setStyle(Paint.Style.STROKE);
+                                        paint.setStrokeWidth(outerRoadStripeWidth);
+                                        paint.setColor(0xFFF2F3F4);
+                                        roadStripCanvas.drawPath(graphicsTrackPath, paint);
+                                        paint.setStrokeWidth(innerRoadStripeWidth);
+                                        paint.setColor(Color.TRANSPARENT);
+                                        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
+                                        roadStripCanvas.drawPath(graphicsTrackPath, paint);
+                                        paint.setXfermode(null);
+                                        m.setScale(1.0F / worldToMap, -1.0F / worldToMap);
+                                        m.postTranslate(-gameRange, gameRange);
+                                        canvas.drawBitmap(roadStripDiffuse, m, null);
+                                    }
+                                    final Vector2 finishLinePosition = worldTrackPath.getPoint(0.0F);
+                                    final Vector2 finishLineTangent = worldTrackPath.getTangent(0.0F);
                                     paint.setColor(0xFFFFFFFF);
-                                    canvas.drawPath(coursePath, paint);
-                                    paint.setStrokeWidth(gameRoadWidth * 0.78F * gameToCoursePixel);
-                                    paint.setColor(road);
-                                    canvas.drawPath(coursePath, paint);
+                                    paint.setStyle(Paint.Style.FILL);
+                                    canvas.save();
+                                    canvas.translate(finishLinePosition.getX(), finishLinePosition.getY());
+                                    canvas.rotate(Mth.toDegrees(Mth.atan2(finishLineTangent.getY(), finishLineTangent.getX())) - 90.0F);
+                                    final Shader shader = this.createTileShader(finishLineDiffuse, 1.0F);
+                                    final Matrix m = new Matrix();
+                                    shader.getLocalMatrix(m);
+                                    m.postTranslate(0.0F, -0.5F);
+                                    shader.setLocalMatrix(m);
+                                    paint.setShader(shader);
+                                    canvas.drawRect(-worldRoadHalfWidth, -0.5F, worldRoadHalfWidth, 0.5F, paint);
+                                    paint.setShader(null);
+                                    canvas.restore();
                                 }
                                 Texture.builder().setSource(courseDiffuse).build().thenAccept(diffuse ->
                                     MaterialFactory.makeOpaqueWithTexture(MainActivity.this, diffuse).thenAccept(material -> {
                                         final float roadHeight = 0.225F;
-                                        final float roadHalfWidth = gameRoadWidth * 0.5F;
                                         final Shape shape = new Shape();
-                                        shape.moveTo(0.0F, -roadHalfWidth);
-                                        shape.lineTo(-roadHeight, -roadHalfWidth);
-                                        shape.lineTo(-roadHeight, roadHalfWidth);
-                                        shape.lineTo(0.0F, roadHalfWidth);
-                                        shape.lineTo(0.0F, -roadHalfWidth);
-                                        final CurvePath trackPath3d = new CurvePath();
-                                        trackPath.visit(new PathVisitor() {
-                                            private Vector3 last = new Vector3();
-
-                                            @Override
-                                            public void moveTo(final float x, final float y) {
-                                                this.last = this.map(x, y);
-                                            }
-
-                                            @Override
-                                            public void lineTo(final float x, final float y) {
-                                                trackPath3d.add(new LineCurve3(this.last, this.last = this.map(x, y)));
-                                            }
-
-                                            @Override
-                                            public void bezierCurveTo(final float aCP1x, final float aCP1y, final float aCP2x, final float aCP2y, final float aX, final float aY) {
-                                                trackPath3d.add(new CubicBezierCurve3(this.last, this.map(aCP1x, aCP1y), this.map(aCP2x, aCP2y), this.last = this.map(aX, aY)));
-                                            }
-
-                                            @Override
-                                            public void closePath() {}
-
-                                            private Vector3 map(final float x, final float y) {
-                                                return new Vector3(x, 0.0F, y);
-                                            }
-                                        });
+                                        shape.moveTo(0.0F, -worldRoadHalfWidth);
+                                        shape.lineTo(-roadHeight, -worldRoadHalfWidth);
+                                        shape.lineTo(-roadHeight, worldRoadHalfWidth);
+                                        shape.lineTo(0.0F, worldRoadHalfWidth);
+                                        shape.lineTo(0.0F, -worldRoadHalfWidth);
+                                        final CurvePath trackPath3 = this.toCurve3(worldTrackPath);
 //                                        final StringBuilder bob = new StringBuilder();
 //                                        final Consumer<Vector3> addV = vec3 -> bob.append("new THREE.Vector3(").append(vec3.getX()).append(", ").append(vec3.getY()).append(", ").append(vec3.getZ()).append(")");
 //                                        for (final Curve c : trackPath3d.getCurves()) {
@@ -277,8 +301,8 @@ public class MainActivity extends AppCompatActivity {
 //                                        }
 //                                        Log.i("waldo", bob.toString());
                                         final ModelRenderable pathRenderable = Geometries.toRenderable(shape.extrude(new ExtrudeGeometry.ExtrudeGeometryParameters() {{
-                                            this.steps = 8 * trackPath3d.getCurves().size();
-                                            this.extrudePath = trackPath3d;
+                                            this.steps = (int) (6 * trackPath3.getLength());
+                                            this.extrudePath = trackPath3;
                                             this.uvGenerator = new ExtrudeGeometry.WorldUVGenerator(new Matrix4()
                                                 .multiply(new Matrix4().makeTranslation(0.5F, 0.0F, 0.5F))
                                                 .multiply(new Matrix4().makeScale(0.5F / gameRange, 0.0F, 0.5F / gameRange))
@@ -316,8 +340,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
-
-    private List<Node> tracks = new ArrayList<>();
 
     private Path findPath(final Bitmap capture) {
         final TransformMapper mapper = new TransformMapper(new BilinearMapper(new ImageLineMap(new BitmapImageMap(capture))), 0.0F, 0.0F, 0.0F);
@@ -375,6 +397,70 @@ public class MainActivity extends AppCompatActivity {
             }
             this.overlayView.setImageBitmap(capture);
         }
+    }
+
+    private CurvePath toCurve3(final Path path) {
+        final CurvePath curve3 = new CurvePath();
+        path.visit(new PathVisitor() {
+            private Vector3 last = new Vector3();
+
+            @Override
+            public void moveTo(final float x, final float y) {
+                this.last = this.map(x, y);
+            }
+
+            @Override
+            public void lineTo(final float x, final float y) {
+                curve3.add(new LineCurve3(this.last, this.last = this.map(x, y)));
+            }
+
+            @Override
+            public void bezierCurveTo(final float aCP1x, final float aCP1y, final float aCP2x, final float aCP2y, final float aX, final float aY) {
+                curve3.add(new CubicBezierCurve3(this.last, this.map(aCP1x, aCP1y), this.map(aCP2x, aCP2y), this.last = this.map(aX, aY)));
+            }
+
+            @Override
+            public void closePath() {}
+
+            private Vector3 map(final float x, final float y) {
+                return new Vector3(x, 0.0F, y);
+            }
+        });
+        return curve3;
+    }
+
+    private static final class MissingBitmap {
+        private static final Bitmap INSTANCE = Bitmap.createBitmap(
+            new int[] {
+                0xFF000000, 0xFFFF00FF,
+                0xFFFF00FF, 0xFF000000
+            }, 2, 2, Bitmap.Config.ARGB_8888
+        );
+    }
+
+    private Bitmap loadBitmap(final String fileName) {
+        final AssetManager assets = this.getAssets();
+        Bitmap map = null;
+        try (final InputStream is = assets.open(fileName)) {
+            map = BitmapFactory.decodeStream(is);
+            if (map == null) {
+                Log.e(TAG, "Unable to decode bitmap '" + fileName + "'");
+            }
+        } catch (final IOException e) {
+            Log.e(TAG, "Unable to read bitmap '" + fileName + "'", e);
+        }
+        if (map == null) {
+            return MissingBitmap.INSTANCE;
+        }
+        return map;
+    }
+
+    private Shader createTileShader(final Bitmap bitmap, final float size) {
+        final Shader shader = new BitmapShader(bitmap, Shader.TileMode.REPEAT, Shader.TileMode.REPEAT);
+        final Matrix local = new Matrix();
+        local.setScale(size / bitmap.getWidth(), size / bitmap.getHeight());
+        shader.setLocalMatrix(local);
+        return shader;
     }
 
     @Override

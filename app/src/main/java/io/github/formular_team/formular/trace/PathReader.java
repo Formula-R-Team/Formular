@@ -34,7 +34,7 @@ public class PathReader {
 			}
 			pos.add(step);
 			view.setTranslation(pos.getX(), pos.getY());
-			if (stepNo > 0 && pos.length() <= this.stepFunc.getSize()) {
+			if (stepNo > 1 && pos.length() <= this.stepFunc.getSize() * 2) {
 				visitor.closePath();
 				break;
 			}
