@@ -10,12 +10,6 @@ public class Car {
 
     private static final float RESISTANCE = 30.0F; // factor for rolling resistance
 
-    private static final float CA_R = -5.2F; // cornering stiffness
-
-    private static final float CA_F = -5.0F; // cornering stiffness
-
-    private static final float MAX_GRIP = 2.0F; // maximum (normalised) friction force, =diameter of friction circle
-
     public final CarDefinition definition;
 
     // position of car center in world coordinates
@@ -34,6 +28,12 @@ public class Car {
     public float throttle;
 
     public float brake;
+
+    public float tireGrip;
+
+    private static float fTireGrip;
+
+    private static float rTireGrip;
 
     public Vector2 velocity;
 
@@ -70,11 +70,14 @@ public class Car {
         // weight per axle = half car mass times 1G (=9.8m/s^2)
         final float weight = this.definition.mass * GRAVITY * 0.5F;
 
+        fTireGrip = tireGrip;
+        rTireGrip  = tireGrip;
+
         // lateral force on front wheels = (Ca * slip angle) capped to friction circle * load
-        final Vector2 flatf = new Vector2(0.0F, Mth.clamp(CA_F * slipanglefront, -MAX_GRIP, MAX_GRIP) * weight);
+        final Vector2 flatf = new Vector2(0.0F, Mth.clamp(definition.getCaF() * slipanglefront, -fTireGrip, fTireGrip) * weight);
 
         // lateral force on rear wheels
-        final Vector2 flatr = new Vector2(0.0F, Mth.clamp(CA_R * slipanglerear, -MAX_GRIP, MAX_GRIP) * weight);
+        final Vector2 flatr = new Vector2(0.0F, Mth.clamp(definition.getCaR() * slipanglerear, -rTireGrip, rTireGrip) * weight);
 
         // longitudinal force on rear wheels - very simple traction model
         final Vector2 ftraction = new Vector2(100 * (this.throttle - this.brake * Math.signum(velocity.getX())), 0.0F);
