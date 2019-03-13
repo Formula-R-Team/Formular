@@ -17,10 +17,14 @@
  */
 package io.github.formular_team.formular.geometry;
 
+import com.google.common.base.Preconditions;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.function.UnaryOperator;
 
 import io.github.formular_team.formular.math.Color;
 import io.github.formular_team.formular.math.Curve;
@@ -63,7 +67,7 @@ public class ExtrudeGeometry extends Geometry {
         // 2d/3d spline path to extrude shape orthogonality to
         public Curve extrudePath;
 
-        public UVGenerator uvGenerator = new WorldUVGenerator(new Matrix4());
+        public UVGenerator uvGenerator = new VertexUVGenerator(UnaryOperator.identity());
 
         // material index for front and back faces
         public int material;
@@ -94,6 +98,8 @@ public class ExtrudeGeometry extends Geometry {
 
     private int verticesCount;
 
+    private Shape shape = new Shape();
+
     public ExtrudeGeometry(final ExtrudeGeometryParameters options) {
         this(new ArrayList<>(), options);
     }
@@ -118,13 +124,7 @@ public class ExtrudeGeometry extends Geometry {
     public void addShape(final Shape shape, final ExtrudeGeometryParameters options) {
         List<Vector2> extrudePts = null;
         boolean extrudeByPath = false;
-
-        final Vector3 binormal = new Vector3();
-        final Vector3 normal = new Vector3();
-        final Vector3 position2 = new Vector3();
-
         FrenetFrames splineTube = null;
-
         if (options.extrudePath != null) {
             extrudePts = options.extrudePath.getSpacedPoints(options.steps);
             extrudeByPath = true;
@@ -137,27 +137,22 @@ public class ExtrudeGeometry extends Geometry {
             options.bevelSize = 0.0F;
         }
 
+        this.shape = shape;
         this.shapesOffset = this.getVertices().size();
-
         final List<Vector2> vertices = shape.getPoints(false);
-
         this.holes = shape.getPointsHoles();
 
         final boolean reverse = !ShapeUtils.isClockWise(vertices);
 
         if (reverse) {
             Collections.reverse(vertices);
-
             // Maybe we should also check if holes are in the opposite direction, just to be safe ...
-            for (int h = 0, hl = this.holes.size(); h < hl; h++) {
+            for (int h = 0; h < this.holes.size(); h++) {
                 final List<Vector2> ahole = this.holes.get(h);
-
                 if (ShapeUtils.isClockWise(ahole)) {
                     Collections.reverse(ahole);
                 }
             }
-
-            // If vertices are in order now, we shouldn't need to worry about them again (hopefully)!
         }
 
         this.localFaces = ShapeUtils.triangulateShape(vertices, this.holes);
@@ -240,6 +235,9 @@ public class ExtrudeGeometry extends Geometry {
 
         // Back facing vertices
 
+        final Vector3 binormal = new Vector3();
+        final Vector3 normal = new Vector3();
+        final Vector3 position2 = new Vector3();
         for (int i = 0; i < vertices.size(); i++) {
             final Vector2 vert = options.bevelEnabled
                 ? this.scalePt2(vertices.get(i), verticesMovements.get(i), options.bevelSize)
@@ -258,7 +256,6 @@ public class ExtrudeGeometry extends Geometry {
 
         // Add stepped vertices...
         // Including front facing vertices
-
         for (int s = 1; s <= options.steps; s++) {
             for (int i = 0; i < vertices.size(); i++) {
                 final Vector2 vert = options.bevelEnabled
@@ -503,8 +500,8 @@ public class ExtrudeGeometry extends Geometry {
         this.getFaces().add(new Face3(a, b, c, this.options.material));
 
         final List<Vector2> uvs = isBottom
-            ? this.options.uvGenerator.generateBottomUV(this, a, b, c)
-            : this.options.uvGenerator.generateTopUV(this, a, b, c);
+            ? this.options.uvGenerator.generateBottomUV(shape, this, a, b, c)
+            : this.options.uvGenerator.generateTopUV(shape, this, a, b, c);
 
         this.getFaceVertexUvs().get(0).add(uvs);
     }
@@ -522,46 +519,98 @@ public class ExtrudeGeometry extends Geometry {
         final List<Vector3> normals2 = new ArrayList<>();
         this.getFaces().add(new Face3(b, c, d, normals2, colors2, this.options.extrudeMaterial));
 
-        final List<Vector2> uvs = this.options.uvGenerator.generateSideWallUV(this, a, b, c, d);
+        final List<Vector2> uvs = this.options.uvGenerator.generateSideWallUV(shape, this, a, b, c, d);
         this.getFaceVertexUvs().get(0).add(Arrays.asList(uvs.get(0), uvs.get(1), uvs.get(3)));
         this.getFaceVertexUvs().get(0).add(Arrays.asList(uvs.get(1), uvs.get(2), uvs.get(3)));
 
     }
 
     public interface UVGenerator {
-        List<Vector2> generateTopUV(final Geometry geometry, final int indexA, final int indexB, final int indexC);
+        List<Vector2> generateTopUV(final Shape shape, final Geometry geometry, final int indexA, final int indexB, final int indexC);
 
-        default List<Vector2> generateBottomUV(final ExtrudeGeometry geometry, final int indexA, final int indexB, final int indexC) {
-            return this.generateTopUV(geometry, indexA, indexB, indexC);
+        default List<Vector2> generateBottomUV(final Shape shape, final ExtrudeGeometry geometry, final int indexA, final int indexB, final int indexC) {
+            return this.generateTopUV(shape, geometry, indexA, indexB, indexC);
         }
 
-        List<Vector2> generateSideWallUV(final Geometry geometry, final int indexA, final int indexB, final int indexC, final int indexD);
+        List<Vector2> generateSideWallUV(final Shape shape, final Geometry geometry, final int indexA, final int indexB, final int indexC, final int indexD);
     }
 
-    public static final class WorldUVGenerator implements UVGenerator {
-        private final Matrix4 transform;
+    public static final class ShapeUVGenerator implements UVGenerator {
+        private final IdentityHashMap<Shape, UVGenerator> generators;
 
-        private final Vector3 vertex = new Vector3();
+        private final UVGenerator defaultGenerator;
 
-        public WorldUVGenerator(final Matrix4 transform) {
-            this.transform = transform;
+        private ShapeUVGenerator(final Builder builder) {
+            this.generators = builder.generators;
+            this.defaultGenerator = builder.defaultGenerator;
         }
 
-        private void transform(final Vector3 v) {
-            this.vertex.copy(v).apply(this.transform);
+        private UVGenerator get(final Shape shape) {
+            return this.generators.getOrDefault(shape, this.defaultGenerator);
         }
 
         @Override
-        public List<Vector2> generateTopUV(final Geometry geometry, final int indexA, final int indexB, final int indexC) {
-            this.transform(geometry.getVertices().get(indexA));
-            final float ax = this.vertex.getX();
-            final float ay = this.vertex.getY();
-            this.transform(geometry.getVertices().get(indexB));
-            final float bx = this.vertex.getX();
-            final float by = this.vertex.getY();
-            this.transform(geometry.getVertices().get(indexC));
-            final float cx = this.vertex.getX();
-            final float cy = this.vertex.getY();
+        public List<Vector2> generateTopUV(final Shape shape, final Geometry geometry, final int indexA, final int indexB, final int indexC) {
+            return this.get(shape).generateTopUV(shape, geometry, indexA, indexB, indexC);
+        }
+
+        @Override
+        public List<Vector2> generateBottomUV(final Shape shape, final ExtrudeGeometry geometry, final int indexA, final int indexB, final int indexC) {
+            return this.get(shape).generateBottomUV(shape, geometry, indexA, indexB, indexC);
+        }
+
+        @Override
+        public List<Vector2> generateSideWallUV(final Shape shape, final Geometry geometry, final int indexA, final int indexB, final int indexC, final int indexD) {
+            return this.get(shape).generateSideWallUV(shape, geometry, indexA, indexB, indexC, indexD);
+        }
+
+        public static Builder builder() {
+            return new Builder();
+        }
+
+        public static final class Builder {
+            private final IdentityHashMap<Shape, UVGenerator> generators = new IdentityHashMap<>();
+
+            private UVGenerator defaultGenerator;
+
+            private Builder() {}
+
+            public Builder addShape(final Shape shape, final UVGenerator generator) {
+                this.generators.put(shape, generator);
+                return this;
+            }
+
+            public Builder setDefaultGenerator(final UVGenerator defaultGenerator) {
+                this.defaultGenerator = defaultGenerator;
+                return this;
+            }
+
+            public ShapeUVGenerator build() {
+                Preconditions.checkNotNull(this.defaultGenerator, "defaultGenerator");
+                return new ShapeUVGenerator(this);
+            }
+        }
+    }
+
+    public static final class VertexUVGenerator implements UVGenerator {
+        private final UnaryOperator<Vector3> mapper;
+
+        public VertexUVGenerator(final UnaryOperator<Vector3> mapper) {
+            this.mapper = mapper;
+        }
+
+        @Override
+        public List<Vector2> generateTopUV(final Shape shape, final Geometry geometry, final int indexA, final int indexB, final int indexC) {
+            Vector3 vertex;
+            vertex = this.mapper.apply(geometry.getVertices().get(indexA));
+            final float ax = vertex.getX();
+            final float ay = vertex.getY();
+            vertex = this.mapper.apply(geometry.getVertices().get(indexB));
+            final float bx = vertex.getX();
+            final float by = vertex.getY();
+            vertex = this.mapper.apply(geometry.getVertices().get(indexC));
+            final float cx = vertex.getX();
+            final float cy = vertex.getY();
             return Arrays.asList(
                 new Vector2(ax, ay),
                 new Vector2(bx, by),
@@ -570,23 +619,24 @@ public class ExtrudeGeometry extends Geometry {
         }
 
         @Override
-        public List<Vector2> generateSideWallUV(final Geometry geometry, final int indexA, final int indexB, final int indexC, final int indexD) {
-            this.transform(geometry.getVertices().get(indexA));
-            final float ax = this.vertex.getX();
-            final float ay = this.vertex.getY();
-            final float az = this.vertex.getZ();
-            this.transform(geometry.getVertices().get(indexB));
-            final float bx = this.vertex.getX();
-            final float by = this.vertex.getY();
-            final float bz = this.vertex.getZ();
-            this.transform(geometry.getVertices().get(indexC));
-            final float cx = this.vertex.getX();
-            final float cy = this.vertex.getY();
-            final float cz = this.vertex.getZ();
-            this.transform(geometry.getVertices().get(indexD));
-            final float dx = this.vertex.getX();
-            final float dy = this.vertex.getY();
-            final float dz = this.vertex.getZ();
+        public List<Vector2> generateSideWallUV(final Shape shape, final Geometry geometry, final int indexA, final int indexB, final int indexC, final int indexD) {
+            Vector3 vertex;
+            vertex = this.mapper.apply(geometry.getVertices().get(indexA));
+            final float ax = vertex.getX();
+            final float ay = vertex.getY();
+            final float az = vertex.getZ();
+            vertex = this.mapper.apply(geometry.getVertices().get(indexB));
+            final float bx = vertex.getX();
+            final float by = vertex.getY();
+            final float bz = vertex.getZ();
+            vertex = this.mapper.apply(geometry.getVertices().get(indexC));
+            final float cx = vertex.getX();
+            final float cy = vertex.getY();
+            final float cz = vertex.getZ();
+            vertex = this.mapper.apply(geometry.getVertices().get(indexD));
+            final float dx = vertex.getX();
+            final float dy = vertex.getY();
+            final float dz = vertex.getZ();
             if (Math.abs(ay - by) < 1.0e-6F) {
                 return Arrays.asList(
                     new Vector2(ax, az),
@@ -601,6 +651,11 @@ public class ExtrudeGeometry extends Geometry {
                 new Vector2(cy, cz),
                 new Vector2(dy, dz)
             );
+        }
+
+        public static VertexUVGenerator transform(final Matrix4 transform) {
+            final Vector3 vertex = new Vector3();
+            return new VertexUVGenerator(v -> vertex.copy(v).apply(transform));
         }
     }
 }

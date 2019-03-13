@@ -37,6 +37,7 @@ import com.google.ar.sceneform.rendering.MaterialFactory;
 import com.google.ar.sceneform.rendering.ModelRenderable;
 import com.google.ar.sceneform.rendering.Texture;
 import com.google.ar.sceneform.ux.ArFragment;
+import com.google.common.collect.ImmutableList;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -112,6 +113,11 @@ public class MainActivity extends AppCompatActivity {
         this.modelLoader.loadModel(KART_WHEEL, R.raw.wheel);
         this.arFragment.setOnTapArPlaneListener(this::onPlaneTap);
         this.createJoystick();
+        this.findViewById(R.id.reset).setOnClickListener(v -> {
+            if (MainActivity.this.courseNode != null) {
+                MainActivity.this.arFragment.getArSceneView().getScene().removeChild(MainActivity.this.courseNode);
+            }
+        });
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -326,16 +332,17 @@ public class MainActivity extends AppCompatActivity {
                     end += curvatureCount;
                 }
                 if (Math.abs(curvature[start % curvatureCount]) < Math.abs(curvature[(end - 1) % curvatureCount])) {
-                    finishLineT = start / (float) curvatureCount;
+                    finishLineT = (start / (float) curvatureCount) % 1.0F;
                     trackDirection = 1.0F;
                 } else {
-                    finishLineT = end / (float) curvatureCount;
+                    finishLineT = (end / (float) curvatureCount) % 1.0F;
                     trackDirection = -1.0F;
                 }
             }
 
             final float courseSize = 2.0F * courseRange;
             final int courseDiffuseSize = 2048;
+            final float wallTile = 0.25F;
             final Bitmap courseDiffuse = Bitmap.createBitmap(courseDiffuseSize, courseDiffuseSize, Bitmap.Config.ARGB_8888);
             {
                 final Bitmap pavementDiffuse = this.loadBitmap("materials/pavement_diffuse.png");
@@ -349,6 +356,11 @@ public class MainActivity extends AppCompatActivity {
                 paint.setShader(this.createTileShader(pavementDiffuse, 1.0F));
                 canvas.drawRect(-courseRange, -courseRange, courseRange, courseRange, paint);
                 paint.setShader(null);
+//                paint.setColor(0xFF2C2A30);
+//                canvas.drawRect(captureRange, -captureRange, captureRange + wallTile, -captureRange - wallTile, paint);
+//                paint.setColor(0xFFFFFFFF);
+//                canvas.drawRect(captureRange + wallTile * 0.5F, captureRange, captureRange + wallTile, -captureRange - wallTile * 0.5F, paint);
+//                canvas.drawRect(captureRange, -captureRange - wallTile * 0.5F, captureRange + wallTile * 0.5F, -captureRange - wallTile, paint);
                 final android.graphics.Path graphicsTrackPath = new android.graphics.Path();
                 courseTrackPath.visit(new GraphicsPathVisitor(graphicsTrackPath));
                 graphicsTrackPath.close();
@@ -375,6 +387,9 @@ public class MainActivity extends AppCompatActivity {
                     m.postTranslate(-courseRange, courseRange);
                     canvas.drawBitmap(roadStripDiffuse, m, null);
                 }
+                paint.setStyle(Paint.Style.STROKE);
+                paint.setStrokeWidth(0.25F);
+                paint.setColor(0xFFFF0000);
                 final Vector2 finishLineTranslation = courseTrackPath.getPoint(finishLineT);
                 final Vector2 finishLineRotation = courseTrackPath.getTangent(finishLineT);
                 paint.setColor(0xFFFFFFFF);
@@ -395,22 +410,38 @@ public class MainActivity extends AppCompatActivity {
             Texture.builder().setSource(courseDiffuse).build().thenAccept(diffuse ->
                 MaterialFactory.makeOpaqueWithTexture(MainActivity.this, diffuse).thenAccept(material -> {
                     final float roadHeight = 0.225F;
-                    final Shape shape = new Shape();
-                    shape.moveTo(0.0F, -courseRoadHalfWidth);
-                    shape.lineTo(-roadHeight, -courseRoadHalfWidth);
-                    shape.lineTo(-roadHeight, courseRoadHalfWidth);
-                    shape.lineTo(0.0F, courseRoadHalfWidth);
-                    shape.lineTo(0.0F, -courseRoadHalfWidth);
+                    final Shape roadShape = new Shape();
+                    roadShape.moveTo(0.0F, -courseRoadHalfWidth);
+                    roadShape.lineTo(-roadHeight, -courseRoadHalfWidth);
+                    roadShape.lineTo(-roadHeight, courseRoadHalfWidth);
+                    roadShape.lineTo(0.0F, courseRoadHalfWidth);
+                    roadShape.closePath();
+                    final float wallHeight = 0.3F, wallWidth = 0.26F;
+//                    final Shape wallLeft = new Shape();
+//                    wallLeft.moveTo(0.0F, -courseRoadHalfWidth - wallWidth);
+//                    wallLeft.lineTo(-roadHeight - wallHeight, -courseRoadHalfWidth - wallWidth);
+//                    wallLeft.lineTo(-roadHeight - wallHeight, -courseRoadHalfWidth);
+//                    wallLeft.lineTo(0.0F, -courseRoadHalfWidth);
+//                    wallLeft.closePath();
+//                    final Shape wallRight = new Shape();
+//                    wallRight.moveTo(0.0F, courseRoadHalfWidth + wallWidth);
+//                    wallRight.lineTo(-roadHeight - wallHeight, courseRoadHalfWidth + wallWidth);
+//                    wallRight.lineTo(-roadHeight - wallHeight, courseRoadHalfWidth);
+//                    wallRight.lineTo(0.0F, courseRoadHalfWidth);
+//                    wallRight.closePath();
                     final CurvePath trackPath3 = this.toCurve3(courseTrackPath);
-                    final ModelRenderable trackRenderable = Geometries.toRenderable(shape.extrude(new ExtrudeGeometry.ExtrudeGeometryParameters() {{
+                    final ModelRenderable trackRenderable = Geometries.toRenderable(new ExtrudeGeometry(ImmutableList.of(roadShape/*, wallLeft, wallRight*/), new ExtrudeGeometry.ExtrudeGeometryParameters() {{
                         this.steps = (int) (6 * trackPath3.getLength());
                         this.extrudePath = trackPath3;
-                        this.uvGenerator = new ExtrudeGeometry.WorldUVGenerator(new Matrix4()
-                            .multiply(new Matrix4().makeTranslation(0.5F, 0.0F, 0.5F))
-                            .multiply(new Matrix4().makeScale(1.0F / courseSize, 1.0F / courseSize, 1.0F / courseSize))
-                        );
+                        this.uvGenerator = ExtrudeGeometry.ShapeUVGenerator.builder()
+                            .setDefaultGenerator(ExtrudeGeometry.VertexUVGenerator.transform(new Matrix4()
+                                .multiply(new Matrix4().makeTranslation(0.5F, 0.0F, 0.5F))
+                                .multiply(new Matrix4().makeScale(1.0F / courseSize, 1.0F / courseSize, 1.0F / courseSize))
+                            ))
+//                            .addShape(wallLeft, new ExtrudeGeometry.VertexUVGenerator(v -> new Vector3(0.1F, 0.1F, 0.1F).multiply(1.0F / courseSize)))
+//                            .addShape(wallRight, new ExtrudeGeometry.VertexUVGenerator(v -> new Vector3(0.1F, 0.1F, 0.1F).multiply(1.0F / courseSize)))
+                            .build();
                     }}), material);
-
                     if (this.courseNode != null) {
                         view.getScene().removeChild(this.courseNode);
                     }
@@ -432,7 +463,7 @@ public class MainActivity extends AppCompatActivity {
                     surfaceNode.setLocalPosition(new com.google.ar.sceneform.math.Vector3(0.0F, roadHeight, 0.0F));
                     surfaceNode.setParent(this.courseNode);
                     this.kartNode.setParent(surfaceNode);
-                    final float kartT = finishLineT + trackDirection * 1.5F / courseTrackPath.getLength();
+                    final float kartT = finishLineT + 2.0F / courseTrackPath.getLength();
                     final Vector2 kartPos = courseTrackPath.getPoint(kartT);
                     final Vector2 kartRot = courseTrackPath.getTangent(kartT);
                     this.kart.position.copy(kartPos);

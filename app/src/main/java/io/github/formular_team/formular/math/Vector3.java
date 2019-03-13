@@ -446,7 +446,13 @@ public class Vector3 extends Vector2 {
         this.y = me.get(offset + 1);
         this.z = me.get(offset + 2);
         return this;
+    }
 
+    public Vector3 modulo(final float n) {
+        this.x = Mth.mod(this.x, n);
+        this.y = Mth.mod(this.y, n);
+        this.z = Mth.mod(this.z, n);
+        return this;
     }
 
     @Override
