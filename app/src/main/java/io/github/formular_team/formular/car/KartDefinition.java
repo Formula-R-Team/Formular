@@ -1,10 +1,6 @@
 package io.github.formular_team.formular.car;
 
-public class CarDefinition {
-
-    private static final float CA_R = -5.2F; // cornering stiffness
-
-    private static final float CA_F = -5.0F; // cornering stiffness
+public class KartDefinition {
     // wheelbase in m
     public float wheelbase;
     // in m, distance from CG to front axle
@@ -23,12 +19,16 @@ public class CarDefinition {
 
     public float width;
 
-    public float wheellength;
+    public float wheelradius;
 
-    public float wheelwidth;
+    public float tireGrip;
 
-    public static CarDefinition createDefault() {
-        final CarDefinition definition = new CarDefinition();
+    public float caF;
+
+    public float caR;
+
+    public static KartDefinition createDefault() {
+        final KartDefinition definition = new KartDefinition();
         definition.b = 0.9F;
         definition.c = 0.82F;
         definition.wheelbase = definition.b + definition.c;
@@ -37,16 +37,10 @@ public class CarDefinition {
         definition.inertia = 1500.0F;
         definition.width = 1.5F;
         definition.length = 3.0F;
-        definition.wheellength = 0.7F;
-        definition.wheelwidth = 0.3F;
+        definition.wheelradius = 0.7F;
+        definition.tireGrip = 2.0F;
+        definition.caF = -5.0F;
+        definition.caR = -5.2F;
         return definition;
-    }
-
-    public float getCaR(){
-        return CA_R;
-    }
-
-    public float getCaF(){
-        return CA_F;
     }
 }

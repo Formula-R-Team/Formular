@@ -3,14 +3,14 @@ package io.github.formular_team.formular.car;
 import io.github.formular_team.formular.math.Mth;
 import io.github.formular_team.formular.math.Vector2;
 
-public class Car {
+public class Kart {
     private static final float GRAVITY = 9.8F; // m/s^2
 
     private static final float DRAG = 5.0F; // factor for air resistance (drag)
 
     private static final float RESISTANCE = 30.0F; // factor for rolling resistance
 
-    public final CarDefinition definition;
+    public final KartDefinition definition;
 
     // position of car center in world coordinates
     public final Vector2 position = new Vector2();
@@ -29,16 +29,19 @@ public class Car {
 
     public float brake;
 
-    public float tireGrip;
+    public float wheelAngularVelocity;
 
-    private static float fTireGrip;
-
-    private static float rTireGrip;
-
-    public Vector2 velocity;
-
-    public Car(final CarDefinition type) {
+    public Kart(final KartDefinition type) {
         this.definition = type;
+    }
+
+    public void reset() {
+        this.steerangle = 0.0F;
+        this.throttle = 0.0F;
+        this.brake = 0.0F;
+        this.linearVelocity.set(0.0F, 0.0F);
+        this.angularVelocity = 0.0F;
+        this.wheelAngularVelocity = 0.0F;
     }
 
     public void step(final float dt) {
@@ -46,10 +49,12 @@ public class Car {
         final float cs = Mth.cos(this.rotation);
         // SAE convention: x is to the front of the car, y is to the right, z is down
         // transform velocity in world reference frame to velocity in car reference frame
-        velocity = new Vector2(
+        final Vector2 velocity = new Vector2(
             cs * this.linearVelocity.getY() + sn * this.linearVelocity.getX(),
             -sn * this.linearVelocity.getY() + cs * this.linearVelocity.getX()
         );
+
+        this.wheelAngularVelocity = velocity.getX() / this.definition.wheelradius;
 
         // Lateral force on wheels
         //
@@ -70,14 +75,15 @@ public class Car {
         // weight per axle = half car mass times 1G (=9.8m/s^2)
         final float weight = this.definition.mass * GRAVITY * 0.5F;
 
-        fTireGrip = tireGrip;
-        rTireGrip  = tireGrip;
+        final float fTireGrip = this.definition.tireGrip;
+        final float rTireGrip = this.definition.tireGrip;
 
+        // TODO: weight transfer
         // lateral force on front wheels = (Ca * slip angle) capped to friction circle * load
-        final Vector2 flatf = new Vector2(0.0F, Mth.clamp(definition.getCaF() * slipanglefront, -fTireGrip, fTireGrip) * weight);
+        final Vector2 flatf = new Vector2(0.0F, Mth.clamp(this.definition.caF * slipanglefront, -fTireGrip, fTireGrip) * weight);
 
         // lateral force on rear wheels
-        final Vector2 flatr = new Vector2(0.0F, Mth.clamp(definition.getCaR() * slipanglerear, -rTireGrip, rTireGrip) * weight);
+        final Vector2 flatr = new Vector2(0.0F, Mth.clamp(this.definition.caR * slipanglerear, -rTireGrip, rTireGrip) * weight);
 
         // longitudinal force on rear wheels - very simple traction model
         final Vector2 ftraction = new Vector2(100 * (this.throttle - this.brake * Math.signum(velocity.getX())), 0.0F);
@@ -119,9 +125,6 @@ public class Car {
 
         this.position.add(this.linearVelocity.clone().multiply(dt));
         this.rotation += dt * this.angularVelocity;
-    }
 
-    public Vector2 getLinearVelocity(){
-        return linearVelocity;
     }
 }

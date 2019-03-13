@@ -46,7 +46,7 @@
    	    new THREE.LineBasicMaterial({ color: 0xffffff, depthTest: false, transparent: true, opacity: 0.75 })
     ));
     scene.add(new THREE.Points(
-        new THREE.BufferGeometry().setFromPoints(bezierPath.getPoints(0.1)),
+        new THREE.BufferGeometry().setFromPoints(bezierPath.getSpacedPoints(10)),
         new THREE.PointsMaterial({ color: 0xffffff, size: 0.125 })
     ));
 
@@ -102,15 +102,14 @@
     roadGeometry.translate(0, roadHeight, 0);*/
 
     const tex = new THREE.TextureLoader().load('images/tile.png');
-    tex.wrapS = THREE.ClampToEdgeWrapping;
-    tex.wrapT = THREE.ClampToEdgeWrapping;
-    //tex.repeat.set(0.2, 0.2);
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(10.0, 10.0);
     tex.center.set(0.5, 0.5);
     const roadMesh = new THREE.Mesh(roadGeometry, new THREE.MeshStandardMaterial({
          color: 0xffffff,//color: 0x2c2f33,
          roughness : 0.7,
-         //map: tex,
-         wireframe: true
+         map: tex
     }));
     roadMesh.position.set(0.0, 0.0, 0.0);
     roadMesh.receiveShadow = true;

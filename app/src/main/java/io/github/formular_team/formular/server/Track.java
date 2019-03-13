@@ -9,18 +9,19 @@ import io.github.formular_team.formular.math.Vector2;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public class Track {
-
     private static class CheckPoint {
         Vector2 p1, p2;
 
-        CheckPoint(Vector2 p1, Vector2 p2) {
+        CheckPoint(final Vector2 p1, final Vector2 p2) {
             this.p1 = p1;
             this.p2 = p2;
         }
     }
 
     private final Path roadPath;
+
     private final Shape roadShape;
+
     private final ImmutableList<CheckPoint> checkPoints;
 
     private Track(final TrackBuilder trackBuilder){
@@ -29,12 +30,17 @@ public class Track {
         this.checkPoints = trackBuilder.checkPoints;
     }
 
-    public Path getRoadPath(){return this.roadPath;}
+    public Path getRoadPath() {
+        return this.roadPath;
+    }
 
-    public Shape getRoadShape(){return this.roadShape;}
+    public Shape getRoadShape() {
+        return this.roadShape;
+    }
 
-    public ImmutableList<CheckPoint> getCheckPoints(){return this.checkPoints;}
-
+    public ImmutableList<CheckPoint> getCheckPoints() {
+        return this.checkPoints;
+    }
 
     public static TrackBuilder builder() {
         return new TrackBuilder();
@@ -47,25 +53,25 @@ public class Track {
 
         private TrackBuilder() {}
 
-        public TrackBuilder roadPath(final Path roadPath) {
-            checkNotNull(this.roadPath, "Road Path Required for TrackBuilder");
+        public TrackBuilder setRoadPath(final Path roadPath) {
             this.roadPath = roadPath;
             return this;
         }
 
-        public TrackBuilder roadShape(final Shape roadShape) {
-            checkNotNull(this.roadShape, "Road Shape Required for TrackBuilder");
+        public TrackBuilder setRoadShape(final Shape roadShape) {
             this.roadShape = roadShape;
             return this;
         }
 
-        public TrackBuilder checkPoints(final ImmutableList<CheckPoint> checkPoints) {
-            checkNotNull(this.checkPoints, "Checkpoints are Required for TrackBuilder");
+        public TrackBuilder setCheckPoints(final ImmutableList<CheckPoint> checkPoints) {
             this.checkPoints = checkPoints;
             return this;
         }
 
         public Track build() {
+            checkNotNull(this.roadPath, "Road path required");
+            checkNotNull(this.roadShape, "Road shape required");
+            checkNotNull(this.checkPoints, "Check points required");
             return new Track(this);
         }
     }

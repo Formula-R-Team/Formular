@@ -34,6 +34,10 @@ public class CubicBezierCurve extends Curve {
         this.v3 = v3;
     }
 
+    public CubicBezierCurve reorient() {
+        return new CubicBezierCurve(this.v3, this.v2, this.v1, this.v0);
+    }
+
     @Override
     public Vector2 getPoint(final float t) {
         if (t == 0.0F) {
@@ -49,17 +53,50 @@ public class CubicBezierCurve extends Curve {
 
     @Override
     public Vector2 getTangent(final float t) {
-        final float tx = CurveUtils.tangentCubicBezier(t, this.v0.getX(), this.v1.getX(), this.v2.getX(), this.v3.getX());
-        final float ty = CurveUtils.tangentCubicBezier(t, this.v0.getY(), this.v1.getY(), this.v2.getY(), this.v3.getY());
-        final Vector2 tangent = new Vector2(tx, ty);
-        tangent.normalize();
-        return tangent;
+        final float tx = CurveUtils.derivativeCubicBezier(t, this.v0.getX(), this.v1.getX(), this.v2.getX(), this.v3.getX());
+        final float ty = CurveUtils.derivativeCubicBezier(t, this.v0.getY(), this.v1.getY(), this.v2.getY(), this.v3.getY());
+        return new Vector2(tx, ty).normalize();
+    }
+
+    @Override
+    public float getCurvature(final float t) {
+        if (t == 0.0F) {
+            return this.getCurvature();
+        }
+        if (t == 1.0F) {
+            return -this.reorient().getCurvature();
+        }
+        final CubicBezierCurve[] subCurves = this.split(t);
+        if (t <= 0.5F) {
+            return subCurves[1].getCurvature(0.0F);
+        }
+        return subCurves[0].getCurvature(1.0F);
+    }
+
+    private float getCurvature() {
+        final float a = this.v1.distanceTo(this.v0);
+        final float b = this.v1.clone().sub(this.v0).cross(this.v2.clone().sub(this.v1));
+        return 2.0F / 3.0F * b / (a * a * a);
+    }
+
+    public CubicBezierCurve[] split(final float t) {
+        final Vector2 v01 = this.v0.clone().lerp(this.v1, t);
+        final Vector2 v12 = this.v1.clone().lerp(this.v2, t);
+        final Vector2 v23 = this.v2.clone().lerp(this.v3, t);
+        final Vector2 vv1 = v01.clone().lerp(v12, t);
+        final Vector2 vv2 = v12.clone().lerp(v23, t);
+        final Vector2 vvv = vv1.clone().lerp(vv2, t);
+        return new CubicBezierCurve[] {
+            new CubicBezierCurve(this.v0, v01, vv1, vvv),
+            new CubicBezierCurve(vvv, vv2, v23, this.v3)
+        };
     }
 
     @Override
     public CubicBezierCurve clone() {
         return new CubicBezierCurve(this.v0.clone(), this.v1.clone(), this.v2.clone(), this.v3.clone());
     }
+
 
     @Override
     public String toString() {

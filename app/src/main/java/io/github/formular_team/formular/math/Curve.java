@@ -142,6 +142,12 @@ public abstract class Curve {
         return this.getTangent(this.getUtoTmapping(u));
     }
 
+    public abstract float getCurvature(final float t);
+
+    public float getCurvatureAt(final float u) {
+        return this.getCurvature(this.getUtoTmapping(u));
+    }
+
     @Override
     public abstract Curve clone();
 }

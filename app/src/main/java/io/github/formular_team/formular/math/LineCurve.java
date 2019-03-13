@@ -53,10 +53,12 @@ public class LineCurve extends Curve {
 
     @Override
     public Vector2 getTangent(final float t) {
-        final Vector2 tangent = this.v2.clone();
-        tangent.sub(this.v1);
-        tangent.normalize();
-        return tangent;
+        return this.v2.clone().sub(this.v1).normalize();
+    }
+
+    @Override
+    public float getCurvature(final float t) {
+        return 0.0F;
     }
 
     @Override

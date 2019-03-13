@@ -49,6 +49,16 @@ public class CubicBezierCurve3 extends Curve {
     }
 
     @Override
+    public Vector2 getTangent(final float t) {
+        return super.getTangent(t); // TODO
+    }
+
+    @Override
+    public float getCurvature(final float t) {
+        return 0.0F; // TODO
+    }
+
+    @Override
     public CubicBezierCurve3 clone() {
         return new CubicBezierCurve3(this.v0.clone(), this.v1.clone(), this.v2.clone(), this.v3.clone());
     }

@@ -1,7 +1,6 @@
 package io.github.formular_team.formular.math;
 
 import java.util.Objects;
-import java.util.Optional;
 
 public final class Ray {
     private final Vector3 origin;
@@ -63,12 +62,13 @@ public final class Ray {
         return t >= 0.0F ? t : Float.NaN;
     }
 
-    public Optional<Vector3> intersectPlane(final Plane plane, final Vector3 target) {
+    public boolean intersectPlane(final Plane plane, final Vector3 target) {
         final float t = this.distanceToPlane(plane);
         if (Float.isNaN(t)) {
-            return Optional.empty();
+            return false;
         }
-        return Optional.of(this.at(t, target));
+        this.at(t, target);
+        return true;
     }
 
 

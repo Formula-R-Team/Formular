@@ -42,3 +42,23 @@ sceneform.asset('sampledata/teapot.obj',
         'default',
         'sampledata/teapot.sfa',
         'src/main/assets/teapot')
+
+sceneform.asset('sampledata/kart/kart.fbx',
+        'default',
+        'sampledata/kart/kart.sfa',
+        'src/main/assets/kart')
+
+sceneform.asset('sampledata/kart/wheel.fbx',
+        'default',
+        'sampledata/kart/wheel.sfa',
+        'src/main/assets/wheel')
+
+sceneform.asset('sampledata/kart/kart.fbx',
+        'default',
+        'sampledata/kart/kart.sfa',
+        'src/main/res/raw/kart')
+
+sceneform.asset('sampledata/kart/wheel.fbx',
+        'default',
+        'sampledata/kart/wheel.sfa',
+        'src/main/res/raw/wheel')

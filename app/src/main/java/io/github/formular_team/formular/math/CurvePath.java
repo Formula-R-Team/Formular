@@ -77,6 +77,29 @@ public class CurvePath extends Curve {
         }
     }
 
+    // TODO remove duplicate get code
+    @Override
+    public float getCurvature(final float t) {
+        if (t == 0.0F) {
+            return this.getFirstCurve().getCurvature(0.0F);
+        }
+        if (t == 1.0F) {
+            return this.getLastCurve().getCurvature(1.0F);
+        }
+        final float d = (this.isClosed() ? Mth.mod(t, 1.0F) : t) * this.getLength();
+        final Iterator<Curve> curves = this.curves.iterator();
+        final Iterator<Float> lengths = this.getCurveLengths().iterator();
+        while (true) {
+            final Curve curve = curves.next();
+            final float length = lengths.next();
+            if (curves.hasNext() && d > length) {
+                continue;
+            }
+            final float u = 1.0F - (length - d) / curve.getLength();
+            return curve.getCurvatureAt(u);
+        }
+    }
+
     @Override
     public float getLength() {
         final List<Float> lens = this.getCurveLengths();

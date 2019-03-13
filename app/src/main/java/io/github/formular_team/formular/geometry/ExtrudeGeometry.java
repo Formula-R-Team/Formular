@@ -462,26 +462,21 @@ public class ExtrudeGeometry extends Geometry {
         this.sidewalls(contour, layeroffset);
         layeroffset += contour.size();
 
-        for (int h = 0, hl = this.holes.size(); h < hl; h++) {
+        for (int h = 0; h < this.holes.size(); h++) {
             final List<Vector2> ahole = this.holes.get(h);
             this.sidewalls(ahole, layeroffset);
-
-            //, true
             layeroffset += ahole.size();
         }
     }
 
     private void sidewalls(final List<Vector2> contour, final int layeroffset) {
         int i = contour.size();
-
         while (--i >= 0) {
             int k = i - 1;
             if (k < 0) {
                 k = contour.size() - 1;
             }
-
             final int sl = this.options.steps + this.options.bevelSegments * 2;
-
             for (int s = 0; s < sl; s++) {
                 final int slen1 = this.verticesCount * s;
                 final int slen2 = this.verticesCount * (s + 1);
@@ -489,7 +484,6 @@ public class ExtrudeGeometry extends Geometry {
                 final int b = layeroffset + k + slen1;
                 final int c = layeroffset + k + slen2;
                 final int d = layeroffset + i + slen2;
-
                 this.f4(a, b, c, d);
             }
         }
@@ -569,9 +563,9 @@ public class ExtrudeGeometry extends Geometry {
             final float cx = this.vertex.getX();
             final float cy = this.vertex.getY();
             return Arrays.asList(
-                new Vector2(ax, 1 - ay),
-                new Vector2(bx, 1 - by),
-                new Vector2(cx, 1 - cy)
+                new Vector2(ax, ay),
+                new Vector2(bx, by),
+                new Vector2(cx, cy)
             );
         }
 
@@ -593,7 +587,7 @@ public class ExtrudeGeometry extends Geometry {
             final float dx = this.vertex.getX();
             final float dy = this.vertex.getY();
             final float dz = this.vertex.getZ();
-            if (Math.abs(ay - by) < 0.01F) {
+            if (Math.abs(ay - by) < 1.0e-6F) {
                 return Arrays.asList(
                     new Vector2(ax, az),
                     new Vector2(bx, bz),

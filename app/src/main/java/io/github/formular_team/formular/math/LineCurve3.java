@@ -47,6 +47,11 @@ public class LineCurve3 extends Curve {
     }
 
     @Override
+    public float getCurvature(final float t) {
+        return 0.0F;
+    }
+
+    @Override
     public float getLength() {
         return this.v1.distanceTo(this.v2);
     }
