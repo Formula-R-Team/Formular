@@ -4,10 +4,12 @@ import com.google.common.collect.Lists;
 
 import java.util.List;
 
+import io.github.formular_team.formular.car.KartModel;
+
 public final class Game {
     private final List<Driver> drivers = Lists.newArrayList();
 
-    private final List<Kart> karts = Lists.newArrayList();
+    private final List<KartModel> karts = Lists.newArrayList();
 
     private final List<Race> races = Lists.newArrayList();
 
@@ -16,7 +18,7 @@ public final class Game {
     }
 
     public void step(final float delta) {
-        for (final Kart kart : this.karts) {
+        for (final KartModel kart : this.karts) {
             kart.step(delta);
         }
         for (final Race race : this.races) {

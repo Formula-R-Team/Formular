@@ -6,17 +6,17 @@ import com.google.ar.sceneform.math.Quaternion;
 import com.google.ar.sceneform.math.Vector3;
 import com.google.ar.sceneform.rendering.ModelRenderable;
 
-import io.github.formular_team.formular.car.Kart;
+import io.github.formular_team.formular.car.KartModel;
 import io.github.formular_team.formular.math.Mth;
 
 public class KartNode extends Node {
-    private final Kart kart;
+    private final KartModel kart;
 
     private final Vector3 localPosition = new Vector3();
 
     private final Quaternion localRotation = new Quaternion();
 
-    private KartNode(final Kart kart) {
+    private KartNode(final KartModel kart) {
         this.kart = kart;
     }
 
@@ -75,7 +75,7 @@ public class KartNode extends Node {
         }
     }
 
-    public static KartNode create(final Kart kart, final ModelRenderable bodyModel, final ModelRenderable wheelModel) {
+    public static KartNode create(final KartModel kart, final ModelRenderable bodyModel, final ModelRenderable wheelModel) {
         final float x = 0.5F * kart.definition.width;
         final float y = kart.definition.wheelradius;
         final float z = 0.5F * kart.definition.wheelbase;

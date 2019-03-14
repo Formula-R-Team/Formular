@@ -1,14 +1,18 @@
 package io.github.formular_team.formular.car;
 
+import io.github.formular_team.formular.User;
 import io.github.formular_team.formular.math.Mth;
 import io.github.formular_team.formular.math.Vector2;
+import io.github.formular_team.formular.server.Kart;
 
-public class Kart {
+public class KartModel implements Kart {
     private static final float GRAVITY = 9.8F; // m/s^2
 
     private static final float DRAG = 5.0F; // factor for air resistance (drag)
 
     private static final float RESISTANCE = 30.0F; // factor for rolling resistance
+
+    private final int uniqueId;
 
     public final KartDefinition definition;
 
@@ -31,8 +35,49 @@ public class Kart {
 
     public float wheelAngularVelocity;
 
-    public Kart(final KartDefinition type) {
+    public KartModel(final int uniqueId, final KartDefinition type) {
+        this.uniqueId = uniqueId;
         this.definition = type;
+    }
+
+    @Override
+    public User getDriver() {
+        return null;
+    }
+
+    @Override
+    public int getUniqueId() {
+        return this.uniqueId;
+    }
+
+    @Override
+    public void setPosition(final Vector2 position) {
+        this.position.copy(position);
+    }
+
+    @Override
+    public Vector2 getPosition() {
+        return this.position;
+    }
+
+    @Override
+    public void setRotation(final float rotation) {
+
+    }
+
+    @Override
+    public float getRotation() {
+        return 0;
+    }
+
+    @Override
+    public float getAngularVelocity() {
+        return 0;
+    }
+
+    @Override
+    public ControlState getControlState() {
+        return null;
     }
 
     public void reset() {

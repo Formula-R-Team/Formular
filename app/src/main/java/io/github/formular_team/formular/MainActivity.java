@@ -43,7 +43,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.function.Function;
 
-import io.github.formular_team.formular.car.Kart;
+import io.github.formular_team.formular.car.KartModel;
 import io.github.formular_team.formular.car.KartDefinition;
 import io.github.formular_team.formular.geometry.ExtrudeGeometry;
 import io.github.formular_team.formular.math.Bezier;
@@ -79,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
 
     private Node courseNode, kartNode;
 
-    private Kart kart;
+    private KartModel kart;
 
 //    private ServerController controller;
 
@@ -454,7 +454,7 @@ public class MainActivity extends AppCompatActivity {
                     trackNode.setRenderable(trackRenderable);
                     trackNode.setParent(this.courseNode);
                     if (this.kart == null) {
-                        this.kart = new Kart(this.createKartDefinition());
+                        this.kart = new KartModel(0, this.createKartDefinition());
                         this.kartNode = KartNode.create(this.kart, this.kartBody, this.kartWheel);
                     } else {
                         this.kart.reset();

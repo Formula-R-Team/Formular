@@ -4,20 +4,10 @@ package io.github.formular_team.formular.server;
 import com.google.common.collect.ImmutableList;
 import io.github.formular_team.formular.math.Path;
 import io.github.formular_team.formular.math.Shape;
-import io.github.formular_team.formular.math.Vector2;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public class Track {
-    private static class CheckPoint {
-        Vector2 p1, p2;
-
-        CheckPoint(final Vector2 p1, final Vector2 p2) {
-            this.p1 = p1;
-            this.p2 = p2;
-        }
-    }
-
+public final class Track {
     private final Path roadPath;
 
     private final Shape roadShape;

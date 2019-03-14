@@ -18,7 +18,7 @@ import com.google.ar.sceneform.math.Vector3;
 import com.google.ar.sceneform.rendering.ModelRenderable;
 import com.google.ar.sceneform.ux.ArFragment;
 
-import io.github.formular_team.formular.car.Kart;
+import io.github.formular_team.formular.car.KartModel;
 import io.github.formular_team.formular.car.KartDefinition;
 import io.github.formular_team.formular.math.Mth;
 
@@ -27,7 +27,7 @@ public class KartActivity extends AppCompatActivity {
 
     ArFragment arFragment;
 
-    private Kart kart;
+    private KartModel kart;
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -107,7 +107,7 @@ public class KartActivity extends AppCompatActivity {
             definition.tireGrip = 2.0F;
             definition.caF = -5.0F;
             definition.caR = -5.2F;
-            this.kart = new Kart(definition);
+            this.kart = new KartModel(0, definition);
             KartNode.create(this.kart, this.kartBody, this.kartWheel).setParent(anchorNode);
         });
     }
