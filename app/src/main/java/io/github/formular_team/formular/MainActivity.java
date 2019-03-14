@@ -20,6 +20,7 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.google.ar.core.Anchor;
@@ -43,8 +44,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.function.Function;
 
-import io.github.formular_team.formular.car.KartModel;
 import io.github.formular_team.formular.car.KartDefinition;
+import io.github.formular_team.formular.car.KartModel;
 import io.github.formular_team.formular.geometry.ExtrudeGeometry;
 import io.github.formular_team.formular.math.Bezier;
 import io.github.formular_team.formular.math.CubicBezierCurve3;
@@ -83,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
 
 //    private ServerController controller;
 
-//    private ImageView overlayView;
+    private ImageView overlayView;
 
     private ArFragment arFragment;
 
@@ -106,7 +107,7 @@ public class MainActivity extends AppCompatActivity {
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.setContentView(R.layout.activity_main);
-//        this.overlayView = this.findViewById(R.id.overlay);
+        this.overlayView = this.findViewById(R.id.overlay);
         this.arFragment = (ArFragment) this.getSupportFragmentManager().findFragmentById(R.id.ar);
         this.modelLoader = new ModelLoader(this);
         this.modelLoader.loadModel(KART_BODY, R.raw.kart);
@@ -342,7 +343,7 @@ public class MainActivity extends AppCompatActivity {
 
             final float courseSize = 2.0F * courseRange;
             final int courseDiffuseSize = 2048;
-            final float wallTile = 0.25F;
+            final float wallTileSize = 1.0F;
             final Bitmap courseDiffuse = Bitmap.createBitmap(courseDiffuseSize, courseDiffuseSize, Bitmap.Config.ARGB_8888);
             {
                 final Bitmap pavementDiffuse = this.loadBitmap("materials/pavement_diffuse.png");
@@ -356,11 +357,10 @@ public class MainActivity extends AppCompatActivity {
                 paint.setShader(this.createTileShader(pavementDiffuse, 1.0F));
                 canvas.drawRect(-courseRange, -courseRange, courseRange, courseRange, paint);
                 paint.setShader(null);
-//                paint.setColor(0xFF2C2A30);
-//                canvas.drawRect(captureRange, -captureRange, captureRange + wallTile, -captureRange - wallTile, paint);
-//                paint.setColor(0xFFFFFFFF);
-//                canvas.drawRect(captureRange + wallTile * 0.5F, captureRange, captureRange + wallTile, -captureRange - wallTile * 0.5F, paint);
-//                canvas.drawRect(captureRange, -captureRange - wallTile * 0.5F, captureRange + wallTile * 0.5F, -captureRange - wallTile, paint);
+                // begin wall tile
+                paint.setColor(0xFF2C2A30);
+                canvas.drawRect(-courseRange, courseRange, -courseRange + wallTileSize, courseRange - wallTileSize, paint);
+                // end wall tile
                 final android.graphics.Path graphicsTrackPath = new android.graphics.Path();
                 courseTrackPath.visit(new GraphicsPathVisitor(graphicsTrackPath));
                 graphicsTrackPath.close();
@@ -387,9 +387,6 @@ public class MainActivity extends AppCompatActivity {
                     m.postTranslate(-courseRange, courseRange);
                     canvas.drawBitmap(roadStripDiffuse, m, null);
                 }
-                paint.setStyle(Paint.Style.STROKE);
-                paint.setStrokeWidth(0.25F);
-                paint.setColor(0xFFFF0000);
                 final Vector2 finishLineTranslation = courseTrackPath.getPoint(finishLineT);
                 final Vector2 finishLineRotation = courseTrackPath.getTangent(finishLineT);
                 paint.setColor(0xFFFFFFFF);
@@ -406,7 +403,15 @@ public class MainActivity extends AppCompatActivity {
                 canvas.drawRect(-courseRoadHalfWidth, -0.5F, courseRoadHalfWidth, 0.5F, paint);
                 paint.setShader(null);
                 canvas.restore();
+
+//                final android.graphics.Path strokePath = new android.graphics.Path();
+//                PathStroker.stroke(courseTrackPath, (int) (courseTrackPath.getLength() * 0.5F), 2.5F).visit(new GraphicsPathVisitor(strokePath));
+//                paint.setStyle(Paint.Style.STROKE);
+//                paint.setStrokeWidth(0.25F);
+//                paint.setColor(0xFFFF0000);
+//                canvas.drawPath(strokePath, paint);
             }
+//            this.overlayView.setImageBitmap(courseDiffuse);
             Texture.builder().setSource(courseDiffuse).build().thenAccept(diffuse ->
                 MaterialFactory.makeOpaqueWithTexture(MainActivity.this, diffuse).thenAccept(material -> {
                     final float roadHeight = 0.225F;
@@ -417,20 +422,20 @@ public class MainActivity extends AppCompatActivity {
                     roadShape.lineTo(0.0F, courseRoadHalfWidth);
                     roadShape.closePath();
                     final float wallHeight = 0.3F, wallWidth = 0.26F;
-//                    final Shape wallLeft = new Shape();
-//                    wallLeft.moveTo(0.0F, -courseRoadHalfWidth - wallWidth);
-//                    wallLeft.lineTo(-roadHeight - wallHeight, -courseRoadHalfWidth - wallWidth);
-//                    wallLeft.lineTo(-roadHeight - wallHeight, -courseRoadHalfWidth);
-//                    wallLeft.lineTo(0.0F, -courseRoadHalfWidth);
-//                    wallLeft.closePath();
-//                    final Shape wallRight = new Shape();
-//                    wallRight.moveTo(0.0F, courseRoadHalfWidth + wallWidth);
-//                    wallRight.lineTo(-roadHeight - wallHeight, courseRoadHalfWidth + wallWidth);
-//                    wallRight.lineTo(-roadHeight - wallHeight, courseRoadHalfWidth);
-//                    wallRight.lineTo(0.0F, courseRoadHalfWidth);
-//                    wallRight.closePath();
+                    final Shape wallLeft = new Shape();
+                    wallLeft.moveTo(0.0F, -courseRoadHalfWidth - wallWidth);
+                    wallLeft.lineTo(-roadHeight - wallHeight, -courseRoadHalfWidth - wallWidth);
+                    wallLeft.lineTo(-roadHeight - wallHeight, -courseRoadHalfWidth);
+                    wallLeft.lineTo(0.0F, -courseRoadHalfWidth);
+                    wallLeft.closePath();
+                    final Shape wallRight = new Shape();
+                    wallRight.moveTo(0.0F, courseRoadHalfWidth + wallWidth);
+                    wallRight.lineTo(-roadHeight - wallHeight, courseRoadHalfWidth + wallWidth);
+                    wallRight.lineTo(-roadHeight - wallHeight, courseRoadHalfWidth);
+                    wallRight.lineTo(0.0F, courseRoadHalfWidth);
+                    wallRight.closePath();
                     final CurvePath trackPath3 = this.toCurve3(courseTrackPath);
-                    final ModelRenderable trackRenderable = Geometries.toRenderable(new ExtrudeGeometry(ImmutableList.of(roadShape/*, wallLeft, wallRight*/), new ExtrudeGeometry.ExtrudeGeometryParameters() {{
+                    final ModelRenderable trackRenderable = Geometries.toRenderable(new ExtrudeGeometry(ImmutableList.of(roadShape), new ExtrudeGeometry.ExtrudeGeometryParameters() {{
                         this.steps = (int) (6 * trackPath3.getLength());
                         this.extrudePath = trackPath3;
                         this.uvGenerator = ExtrudeGeometry.ShapeUVGenerator.builder()
@@ -438,8 +443,8 @@ public class MainActivity extends AppCompatActivity {
                                 .multiply(new Matrix4().makeTranslation(0.5F, 0.0F, 0.5F))
                                 .multiply(new Matrix4().makeScale(1.0F / courseSize, 1.0F / courseSize, 1.0F / courseSize))
                             ))
-//                            .addShape(wallLeft, new ExtrudeGeometry.VertexUVGenerator(v -> new Vector3(0.1F, 0.1F, 0.1F).multiply(1.0F / courseSize)))
-//                            .addShape(wallRight, new ExtrudeGeometry.VertexUVGenerator(v -> new Vector3(0.1F, 0.1F, 0.1F).multiply(1.0F / courseSize)))
+                            .addShape(wallLeft, new ExtrudeGeometry.VertexUVGenerator(v -> new Vector3(0.0F, 0.0F, 1.0F)))
+                            .addShape(wallRight, new ExtrudeGeometry.VertexUVGenerator(v -> new Vector3(0.0F, 0.0F, 1.0F)))
                             .build();
                     }}), material);
                     if (this.courseNode != null) {

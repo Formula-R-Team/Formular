@@ -56,6 +56,11 @@ public class CurvePath extends Curve {
     }
 
     @Override
+    public Vector2 getPointAt(final float u) {
+        return this.getPoint(u);
+    }
+
+    @Override
     public Vector2 getPoint(final float t) {
         if (t == 0.0F) {
             return this.getFirstCurve().getStart();

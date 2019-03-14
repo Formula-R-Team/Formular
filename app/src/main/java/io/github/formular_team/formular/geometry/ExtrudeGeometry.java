@@ -168,16 +168,15 @@ public class ExtrudeGeometry extends Geometry {
         // Find directions for point movement
         //
         final List<Vector2> contourMovements = new ArrayList<>();
-        for (int i = 0, il = contour.size(), j = il - 1, k = i + 1; i < il; i++, j++, k++) {
-            if (j == il) {
+        for (int i = 0, size = contour.size(), j = size - 1, k = i + 1; i < size; i++, j++, k++) {
+            if (j == size) {
                 j = 0;
             }
-            if (k == il) {
+            if (k == size) {
                 k = 0;
             }
 
-            contourMovements.add(
-                this.getBevelVec(contour.get(i), contour.get(j), contour.get(k)));
+            contourMovements.add(this.getBevelVec(contour.get(i), contour.get(j), contour.get(k)));
         }
 
         final List<List<Vector2>> holesMovements = new ArrayList<>();
