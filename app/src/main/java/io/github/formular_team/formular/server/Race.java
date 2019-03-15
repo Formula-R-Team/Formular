@@ -2,11 +2,11 @@ package io.github.formular_team.formular.server;
 
 import java.util.List;
 
-import io.github.formular_team.formular.GameServer;
+import io.github.formular_team.formular.GameModel;
 import io.github.formular_team.formular.math.Vector2;
 
 public final class Race {
-    private GameServer game;
+    private GameModel game;
 
     private final CheckPointNode[] quads = new CheckPointNode[0];
 

@@ -4,6 +4,8 @@ import io.github.formular_team.formular.User;
 import io.github.formular_team.formular.math.Vector2;
 
 public interface Kart {
+    KartDefinition getDefinition();
+
     User getDriver();
 
     int getUniqueId();
@@ -16,7 +18,7 @@ public interface Kart {
 
     float getRotation();
 
-    float getAngularVelocity();
+    float getWheelAngularVelocity();
 
     ControlState getControlState();
 

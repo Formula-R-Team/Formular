@@ -7,7 +7,7 @@ import io.github.formular_team.formular.math.Vector2;
 
 import static org.junit.Assert.*;
 
-public class IntersectionsTest {
+public class LineCircleIntersectionTest {
     @Test
     public void should_hit_when_lineEnterAndExit() {
         assertTrue(Intersections.lineCircle(new Vector2(-2.0F, 0.0F), new Vector2(2.0F, 0.0F), new Vector2(0.0F, 0.0F), 1.0F));

@@ -17,6 +17,7 @@
  */
 package io.github.formular_team.formular.math;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class Box2 {
@@ -56,6 +57,10 @@ public class Box2 {
         this.min.copy(min);
         this.max.copy(max);
         return this;
+    }
+
+    public Box2 setFromPoints(final Vector2... points) {
+        return this.setFromPoints(Arrays.asList(points));
     }
 
     public Box2 setFromPoints(final List<Vector2> points) {
@@ -108,7 +113,6 @@ public class Box2 {
     public Box2 expandByPoint(final Vector2 point) {
         this.min.min(point);
         this.max.max(point);
-
         return this;
     }
 

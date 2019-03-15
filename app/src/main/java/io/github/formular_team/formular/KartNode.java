@@ -6,11 +6,12 @@ import com.google.ar.sceneform.math.Quaternion;
 import com.google.ar.sceneform.math.Vector3;
 import com.google.ar.sceneform.rendering.ModelRenderable;
 
-import io.github.formular_team.formular.car.KartModel;
 import io.github.formular_team.formular.math.Mth;
+import io.github.formular_team.formular.server.Kart;
+import io.github.formular_team.formular.server.KartModel;
 
 public class KartNode extends Node {
-    private final KartModel kart;
+    private final Kart kart;
 
     private final Vector3 localPosition = new Vector3();
 
@@ -23,15 +24,8 @@ public class KartNode extends Node {
     @Override
     public void onUpdate(final FrameTime frameTime) {
         super.onUpdate(frameTime);
-        final float targetDt = 0.01F;
-        final float delta = frameTime.getDeltaSeconds();
-        final int steps = Math.max((int) (delta / targetDt), 1);
-        final float dt = delta / steps;
-        for (int n = 0; n < steps; n++) {
-            this.kart.step(dt);
-        }
-        this.localPosition.set(this.kart.position.getX(), 0.0F, this.kart.position.getY());
-        this.localRotation.set(Vector3.up(), Mth.toDegrees(this.kart.rotation));
+        this.localPosition.set(this.kart.getPosition().getX(), 0.0F, this.kart.getPosition().getY());
+        this.localRotation.set(Vector3.up(), Mth.toDegrees(this.kart.getRotation()));
         this.setLocalPosition(this.localPosition);
         this.setLocalRotation(this.localRotation);
     }
@@ -50,7 +44,8 @@ public class KartNode extends Node {
         @Override
         public void onUpdate(final FrameTime frameTime) {
             super.onUpdate(frameTime);
-            this.angle += KartNode.this.kart.wheelAngularVelocity;
+            // TODO: kart model holds wheel rotation
+            this.angle += KartNode.this.kart.getWheelAngularVelocity();
             this.localRotation.set(Vector3.right(), this.angle);
             this.localRotation.set(Quaternion.multiply(this.localRotation, this.initialRotation));
             this.amendLocal(frameTime);
@@ -70,15 +65,15 @@ public class KartNode extends Node {
         @Override
         protected void amendLocal(final FrameTime frameTime) {
             super.amendLocal(frameTime);
-            this.steer.set(Vector3.up(), Mth.toDegrees(KartNode.this.kart.steerangle));
+            this.steer.set(Vector3.up(), Mth.toDegrees(KartNode.this.kart.getControlState().getSteeringAngle()));
             this.localRotation.set(Quaternion.multiply(this.steer, this.localRotation));
         }
     }
 
     public static KartNode create(final KartModel kart, final ModelRenderable bodyModel, final ModelRenderable wheelModel) {
-        final float x = 0.5F * kart.definition.width;
-        final float y = kart.definition.wheelradius;
-        final float z = 0.5F * kart.definition.wheelbase;
+        final float x = 0.5F * kart.getDefinition().width;
+        final float y = kart.getDefinition().wheelradius;
+        final float z = 0.5F * kart.getDefinition().wheelbase;
         final KartNode root = new KartNode(kart);
         final Node body = new Node();
         body.setLocalPosition(new Vector3(0.0F, y, 0.0F));

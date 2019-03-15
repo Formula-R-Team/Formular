@@ -44,24 +44,27 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.function.Function;
 
-import io.github.formular_team.formular.car.KartDefinition;
-import io.github.formular_team.formular.car.KartModel;
 import io.github.formular_team.formular.geometry.ExtrudeGeometry;
 import io.github.formular_team.formular.math.Bezier;
 import io.github.formular_team.formular.math.CubicBezierCurve3;
 import io.github.formular_team.formular.math.CurvePath;
 import io.github.formular_team.formular.math.Float32Array;
+import io.github.formular_team.formular.math.LineCurve;
 import io.github.formular_team.formular.math.LineCurve3;
 import io.github.formular_team.formular.math.Matrix3;
 import io.github.formular_team.formular.math.Matrix4;
 import io.github.formular_team.formular.math.Mth;
 import io.github.formular_team.formular.math.Path;
+import io.github.formular_team.formular.math.PathStroker;
 import io.github.formular_team.formular.math.PathVisitor;
 import io.github.formular_team.formular.math.Ray;
 import io.github.formular_team.formular.math.Shape;
 import io.github.formular_team.formular.math.TransformingPathVisitor;
 import io.github.formular_team.formular.math.Vector2;
 import io.github.formular_team.formular.math.Vector3;
+import io.github.formular_team.formular.server.KartDefinition;
+import io.github.formular_team.formular.server.KartModel;
+import io.github.formular_team.formular.server.SimpleGameModel;
 import io.github.formular_team.formular.trace.BilinearMapper;
 import io.github.formular_team.formular.trace.ImageLineMap;
 import io.github.formular_team.formular.trace.OrientFunction;
@@ -79,6 +82,8 @@ public class MainActivity extends AppCompatActivity {
     private ModelRenderable kartBody, kartWheel;
 
     private Node courseNode, kartNode;
+
+    private GameModel game;
 
     private KartModel kart;
 
@@ -116,7 +121,21 @@ public class MainActivity extends AppCompatActivity {
         this.createJoystick();
         this.findViewById(R.id.reset).setOnClickListener(v -> {
             if (MainActivity.this.courseNode != null) {
-                MainActivity.this.arFragment.getArSceneView().getScene().removeChild(MainActivity.this.courseNode);
+                final ArSceneView view = MainActivity.this.arFragment.getArSceneView();
+                view.getScene().removeChild(MainActivity.this.courseNode);
+                view.getPlaneRenderer().setVisible(true);
+            }
+        });
+        this.arFragment.getArSceneView().getScene().addOnUpdateListener(frameTime -> {
+            if (this.game == null) {
+                return;
+            }
+            final float targetDt = 0.01F;
+            final float delta = frameTime.getDeltaSeconds();
+            final int steps = Math.max((int) (delta / targetDt), 1);
+            final float dt = delta / steps;
+            for (int n = 0; n < steps; n++) {
+                MainActivity.this.game.step(dt);
             }
         });
     }
@@ -132,11 +151,13 @@ public class MainActivity extends AppCompatActivity {
                 final float x = Mth.clamp(event.getX() / v.getWidth() * 2.0F - 1.0F, -1.0F, 1.0F);
                 final float y = Mth.clamp(event.getY() / v.getHeight() * 2.0F - 1.0F, -1.0F, 1.0F);
                 if (this.kart != null) {
-                    this.kart.steerangle = -Mth.PI / 4.0F * x;
-                    this.kart.throttle = Math.max(-y, 0.0F) * 40;
-                    this.kart.brake = Math.max(y, 0.0F) * 100;
+                    this.kart.getControlState().setSteeringAngle(-Mth.PI / 4.0F * x);
+                    this.kart.getControlState().setThrottle(-y * 40.0F);
+                    this.kart.getControlState().setBrake(0.0F);
                 }
+                return true;
             case MotionEvent.ACTION_UP:
+                this.kart.getControlState().setBrake(100.0F);
                 return true;
             }
             return false;
@@ -340,7 +361,7 @@ public class MainActivity extends AppCompatActivity {
                     trackDirection = -1.0F;
                 }
             }
-
+            final ImmutableList<PathStroker.Frame> frames = PathStroker.create(courseTrackPath, (int) (courseTrackPath.getLength() * 0.5F), courseRoadWidth + 0.5F);
             final float courseSize = 2.0F * courseRange;
             final int courseDiffuseSize = 2048;
             final float wallTileSize = 1.0F;
@@ -403,13 +424,6 @@ public class MainActivity extends AppCompatActivity {
                 canvas.drawRect(-courseRoadHalfWidth, -0.5F, courseRoadHalfWidth, 0.5F, paint);
                 paint.setShader(null);
                 canvas.restore();
-
-//                final android.graphics.Path strokePath = new android.graphics.Path();
-//                PathStroker.stroke(courseTrackPath, (int) (courseTrackPath.getLength() * 0.5F), 2.5F).visit(new GraphicsPathVisitor(strokePath));
-//                paint.setStyle(Paint.Style.STROKE);
-//                paint.setStrokeWidth(0.25F);
-//                paint.setColor(0xFFFF0000);
-//                canvas.drawPath(strokePath, paint);
             }
 //            this.overlayView.setImageBitmap(courseDiffuse);
             Texture.builder().setSource(courseDiffuse).build().thenAccept(diffuse ->
@@ -458,22 +472,49 @@ public class MainActivity extends AppCompatActivity {
                     final Node trackNode = new Node();
                     trackNode.setRenderable(trackRenderable);
                     trackNode.setParent(this.courseNode);
-                    if (this.kart == null) {
-                        this.kart = new KartModel(0, this.createKartDefinition());
-                        this.kartNode = KartNode.create(this.kart, this.kartBody, this.kartWheel);
-                    } else {
-                        this.kart.reset();
+                    this.game = new SimpleGameModel();
+                    for (int i = 0; i < frames.size(); i++) {
+                        final PathStroker.Frame f0 = frames.get(i);
+                        final PathStroker.Frame f1 = frames.get((i + 1) % frames.size());
+                        this.game.getWalls().add(new LineCurve(f0.getLeft(), f1.getLeft()));
+                        this.game.getWalls().add(new LineCurve(f0.getRight(), f1.getRight()));
                     }
+                    this.kart = new KartModel(this.game, 0, this.createKartDefinition());
+                    this.game.addKart(this.kart);
                     final Node surfaceNode = new Node();
                     surfaceNode.setLocalPosition(new com.google.ar.sceneform.math.Vector3(0.0F, roadHeight, 0.0F));
                     surfaceNode.setParent(this.courseNode);
+                    this.kartNode = KartNode.create(this.kart, this.kartBody, this.kartWheel);
                     this.kartNode.setParent(surfaceNode);
                     final float kartT = finishLineT + 2.0F / courseTrackPath.getLength();
                     final Vector2 kartPos = courseTrackPath.getPoint(kartT);
-                    final Vector2 kartRot = courseTrackPath.getTangent(kartT);
-                    this.kart.position.copy(kartPos);
-                    this.kart.rotation = Mth.atan2(kartRot.getY(), kartRot.getX()) - 0.5F * Mth.PI;
-                    view.getPlaneRenderer().setVisible(false);
+                    final Vector2 before = courseTrackPath.getPoint(kartT - 2.5F / courseTrackPath.getLength());
+                    final Vector2 after = courseTrackPath.getPoint(kartT + 2.5F / courseTrackPath.getLength());
+                    final Vector2 tangent = after.sub(before).normalize();
+                    this.kart.setPosition(kartPos);
+                    this.kart.setRotation(-Mth.atan2(tangent.getX(), -tangent.getY()));
+
+                    MaterialFactory.makeOpaqueWithColor(this, new com.google.ar.sceneform.rendering.Color(0.3F, 0.3F, 0.35F)).thenAccept(m -> {
+                        final ImmutableList.Builder<Vector3> points = ImmutableList.builder();
+                        for (int i = 0; i < frames.size(); i++) {
+                            final PathStroker.Frame f0 = frames.get(i);
+                            final PathStroker.Frame f1 = frames.get((i + 1) % frames.size());
+                            final float height = courseRoadHalfWidth;
+                            points.add(
+                                Vector3.xz(f0.getLeft(), 0.0F), Vector3.xz(f0.getRight(), 0.0F),
+                                Vector3.xz(f0.getLeft(), height), Vector3.xz(f0.getRight(), height),
+                                Vector3.xz(f0.getLeft(), 0.0F), Vector3.xz(f0.getLeft(), height),
+                                Vector3.xz(f0.getRight(), 0.0F), Vector3.xz(f0.getRight(), height),
+                                Vector3.xz(f0.getLeft(), 0.0F), Vector3.xz(f1.getLeft(), 0.0F),
+                                Vector3.xz(f0.getRight(), 0.0F), Vector3.xz(f1.getRight(), 0.0F),
+                                Vector3.xz(f0.getLeft(), height), Vector3.xz(f1.getLeft(), height),
+                                Vector3.xz(f0.getRight(), height), Vector3.xz(f1.getRight(), height)
+                            );
+                        }
+                        final Node frameNode = new Node();
+                        frameNode.setRenderable(Geometries.lines(points.build(), 0.15F, m));
+                        frameNode.setParent(this.courseNode);
+                    });
                 }));
         }
     }

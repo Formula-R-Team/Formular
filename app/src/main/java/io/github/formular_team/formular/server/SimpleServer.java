@@ -10,17 +10,17 @@ import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.TimeUnit;
 
 public final class SimpleServer implements Server {
-    private final Game game;
+    private final SimpleGameModel game;
 
     private final BlockingQueue<RunnableFuture<?>> queue;
 
     private final long ups;
 
-    private SimpleServer(final Game game, final long ups) {
+    private SimpleServer(final SimpleGameModel game, final long ups) {
         this(game, Queues.newLinkedBlockingDeque(), ups);
     }
 
-    private SimpleServer(final Game game, final BlockingQueue<RunnableFuture<?>> queue, final long ups) {
+    private SimpleServer(final SimpleGameModel game, final BlockingQueue<RunnableFuture<?>> queue, final long ups) {
         this.game = game;
         this.queue = queue;
         this.ups = ups;
@@ -67,7 +67,7 @@ public final class SimpleServer implements Server {
         return System.currentTimeMillis();
     }
 
-    public static SimpleServer create(final Game game, final long ups) {
+    public static SimpleServer create(final SimpleGameModel game, final long ups) {
         return new SimpleServer(game, ups);
     }
 }

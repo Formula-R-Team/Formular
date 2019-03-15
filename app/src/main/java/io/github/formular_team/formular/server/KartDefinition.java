@@ -1,70 +1,46 @@
 package io.github.formular_team.formular.server;
 
-import com.google.common.collect.Range;
-import static com.google.common.base.Preconditions.checkNotNull;
-import static io.github.formular_team.formular.util.MorePreconditions.checkBounded;
+public class KartDefinition {
+    // wheelbase in m
+    public float wheelbase;
+    // in m, distance from CG to front axle
+    public float b;
+    // in m, idem to rear axle
+    public float c;
+    // in m, height of CM from ground
+    public float h;
+    // in kg
+    public float mass;
+    // in kg.m
+    public float inertia;
 
-public final class KartDefinition {
-    private final String name;
+    // m, must be greater than wheelbase
+    public float length;
 
-    private final float size;
+    public float width;
 
-    private final float mass;
+    public float wheelradius;
 
-    private final float acceleration;
+    public float tireGrip;
 
-    private KartDefinition(final Builder builder){
-        this.name = builder.name;
-        this.size = builder.size;
-        this.mass = builder.mass;
-        this.acceleration = builder.acceleration;
-    }
+    public float caF;
 
-    public String getName(){return this.name;}
+    public float caR;
 
-    public float getSize(){return this.size;}
-
-    public float getMass(){return this.mass;}
-
-    public float getAcceleration(){return this.acceleration;}
-
-    public static Builder builder() {
-        return new Builder();
-    }
-
-    public final static class Builder {
-
-        private String name;
-        private float size;
-        private float mass;
-        private float acceleration;
-
-        private Builder(){}
-
-        public Builder name(final String name){
-            checkNotNull(name);
-            this.name = name;
-            return this;
-        }
-
-        public Builder size(final float size){
-            checkNotNull(size);
-            this.size = size;
-            return this;
-        }
-
-        public Builder mass(final float mass){
-            checkNotNull(mass);
-            this.mass = mass;
-            return this;
-        }
-
-        public Builder acceleration(final float acceleration){
-            checkNotNull(acceleration);
-            this.acceleration = acceleration;
-            return this;
-        }
-
-        public KartDefinition build(){return new KartDefinition(this);}
+    public static KartDefinition createDefault() {
+        final KartDefinition definition = new KartDefinition();
+        definition.b = 0.9F;
+        definition.c = 0.82F;
+        definition.wheelbase = definition.b + definition.c;
+        definition.h = 0.7F;
+        definition.mass = 1500.0F;
+        definition.inertia = 1500.0F;
+        definition.width = 1.5F;
+        definition.length = 3.0F;
+        definition.wheelradius = 0.7F;
+        definition.tireGrip = 2.0F;
+        definition.caF = -5.0F;
+        definition.caR = -5.2F;
+        return definition;
     }
 }

@@ -501,4 +501,16 @@ public class Vector3 extends Vector2 {
     public String toString() {
         return "(" + this.x + ", " + this.y + ", " + this.z + ")";
     }
+
+    public static Vector3 yz(final Vector2 vector, final float x) {
+        return new Vector3(x, vector.getX(), vector.getY());
+    }
+
+    public static Vector3 xz(final Vector2 vector, final float y) {
+        return new Vector3(vector.getX(), y, vector.getY());
+    }
+
+    public static Vector3 xy(final Vector2 vector, final float z) {
+        return new Vector3(vector.getX(), vector.getY(), z);
+    }
 }

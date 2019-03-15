@@ -16,9 +16,9 @@ public interface Server extends Runnable {
     void run();
 
     interface Job<V> {
-        V call(final Game game);
+        V call(final SimpleGameModel game);
 
-        static Job<Unit> of(final Consumer<Game> consumer) {
+        static Job<Unit> of(final Consumer<SimpleGameModel> consumer) {
             return game -> {
                 consumer.accept(game);
                 return Unit.INSTANCE;
@@ -35,7 +35,7 @@ public interface Server extends Runnable {
     interface Command<V> extends Job<V> {}
 
     interface Builder {
-        Builder game(final Game game);
+        Builder game(final SimpleGameModel game);
 
         Builder ups(final int ups);
 

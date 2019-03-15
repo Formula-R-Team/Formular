@@ -426,4 +426,8 @@ public class Vector2 {
     public String toString() {
         return "(" + this.x + ", " + this.y + ")";
     }
+
+    public Vector2 reflect(final Vector2 normal) {
+        return this.sub(normal.clone().multiply(2.0F * this.dot(normal)));
+    }
 }
