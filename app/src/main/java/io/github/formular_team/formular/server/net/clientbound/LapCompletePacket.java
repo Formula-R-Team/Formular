@@ -10,7 +10,7 @@ public class LapCompletePacket implements Packet {
     private int number;
 
     public LapCompletePacket(final Parcel source) {
-
+        source.readInt();
     }
 
     @Override
@@ -20,7 +20,7 @@ public class LapCompletePacket implements Packet {
 
     @Override
     public void writeToParcel(final Parcel dest, final int flags) {
-
+        dest.writeInt(number);
     }
 
     public static class Handler implements PacketHandler<GameClient> {
