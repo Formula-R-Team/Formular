@@ -42,14 +42,14 @@
   </path>
   <path
       android:strokeWidth="1"
-      android:pathData="M2.8,2472.1l1437.7,0l0,487.9l-1437.7,0z"
+      android:pathData="M-0.5,2472.1l1441,0l0,487.9l-1441,0z"
       android:strokeColor="#000000">
     <aapt:attr name="android:fillColor">
       <gradient 
           android:startY="2472.097"
-          android:startX="721.6516"
+          android:startX="720"
           android:endY="2960"
-          android:endX="721.6516"
+          android:endX="720"
           android:type="linear">
         <item android:offset="0.3176" android:color="#FFCECECE"/>
         <item android:offset="0.3784" android:color="#FFA9A9A9"/>
