@@ -5,8 +5,8 @@ import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.util.Log;
 
-import com.skozubenko.wifip2p_3.WifiDirect.listeners.PeerConnectedListener;
-import com.skozubenko.wifip2p_3.WifiDirect.listeners.ServiceDisconnectedListener;
+import io.github.formular_team.formular.wifidirect.listeners.PeerConnectedListener;
+import io.github.formular_team.formular.wifidirect.listeners.ServiceDisconnectedListener;
 
 public class P2PInstance implements WifiP2pManager.ConnectionInfoListener {
     private static final String TAG = P2PInstance.class.getSimpleName();

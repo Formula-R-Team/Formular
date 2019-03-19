@@ -1,8 +1,8 @@
 package io.github.formular_team.formular.wifidirect.messages;
 
-import com.skozubenko.wifip2p_3.WifiDirect.WroupDevice;
-
 import java.util.List;
+
+import io.github.formular_team.formular.wifidirect.WroupDevice;
 
 public class RegisteredDevicesMessageContent {
 

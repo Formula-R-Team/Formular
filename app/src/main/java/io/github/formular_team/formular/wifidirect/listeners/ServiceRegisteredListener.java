@@ -1,9 +1,6 @@
 package io.github.formular_team.formular.wifidirect.listeners;
 
-import com.skozubenko.wifip2p_3.WifiDirect.P2PError;
-import com.skozubenko.wifip2p_3.WifiDirect.WroupServiceDevice;
-
-import java.util.List;
+import io.github.formular_team.formular.wifidirect.P2PError;
 
 public interface ServiceRegisteredListener {
     void onSuccessServiceRegistered();

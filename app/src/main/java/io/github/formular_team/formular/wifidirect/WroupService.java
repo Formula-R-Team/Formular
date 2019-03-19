@@ -13,12 +13,13 @@ import android.util.Log;
 import com.google.common.base.Charsets;
 import com.google.common.io.CharStreams;
 import com.google.gson.Gson;
-import com.skozubenko.wifip2p_3.WifiDirect.listeners.*;
-import com.skozubenko.wifip2p_3.WifiDirect.messages.*;
 
 import java.io.*;
 import java.net.*;
 import java.util.*;
+
+import io.github.formular_team.formular.wifidirect.listeners.*;
+import io.github.formular_team.formular.wifidirect.messages.*;
 
 public class WroupService implements PeerConnectedListener {
     private static final String TAG = WroupService.class.getSimpleName();
