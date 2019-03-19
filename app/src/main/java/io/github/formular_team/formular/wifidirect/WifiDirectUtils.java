@@ -79,7 +79,7 @@ public class WifiDirectUtils {
 
             @Override
             public void onSuccess() {
-                Log.d(TAG, "Peer disconvering stopped");
+                Log.d(TAG, "Peer discovering stopped");
             }
 
             @Override

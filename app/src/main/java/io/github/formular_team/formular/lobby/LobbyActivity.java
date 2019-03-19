@@ -117,7 +117,7 @@ public class LobbyActivity extends AppCompatActivity implements DataReceivedList
 
     private void setActionBarTitle(String title) {
         if (getActionBar() != null) {
-            getActionBar().setTitle(title);
+            getActionBar().setTitle(title + "  Lobby");
         }
     }
 }
