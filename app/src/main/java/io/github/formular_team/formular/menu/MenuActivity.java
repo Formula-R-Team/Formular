@@ -1,7 +1,9 @@
 package io.github.formular_team.formular.menu;
 
-import android.app.Activity;
+import android.Manifest;
 import android.content.*;
+import android.content.pm.PackageManager;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.*;
 import android.net.wifi.WifiManager;
@@ -33,11 +35,13 @@ public class MenuActivity extends AppCompatActivity implements GroupCreationDial
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
-        this.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        supportRequestWindowFeature(Window.FEATURE_NO_TITLE);       //this.requestWindowFeature(Window.FEATURE_NO_TITLE);   for normal Activity
         this.setContentView(R.layout.activity_menu);
 
         this.setupButtons();
+
+        wifiManager = (WifiManager)getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        this.makeSurePermissionsAreEnabled();
     }
 
     @Override
@@ -56,12 +60,19 @@ public class MenuActivity extends AppCompatActivity implements GroupCreationDial
     @Override
     protected void onPause() {
         super.onPause();
-        this.unregisterReceiver(broadcastReceiver);
+
+        try {                       //threw this try in here to avoid exception on screen rotation. java.lang.IllegalArgumentException: Receiver not registered: null
+            this.unregisterReceiver(broadcastReceiver);
+        }
+        catch(Exception e) {
+            Log.i(TAG, "Exception: " + e.getMessage());
+        }
+
     }
 
     private void setupButtons() {
 
-        this.btnStartGame =findViewById(R.id.btnStartGame);
+        this.btnStartGame = findViewById(R.id.btnStartGame);
         this.btnJoinGame = findViewById(R.id.btnJoinGame);
         this.btnStartHosting = findViewById(R.id.btnStartHosting);
 
@@ -96,7 +107,7 @@ public class MenuActivity extends AppCompatActivity implements GroupCreationDial
                 public void onSuccessServiceRegistered() {
 
                     Log.i(TAG, "Group created.");
-                    startMessagingInGroup(groupName, true);
+                    moveUserIntoLobby(groupName, true);
 
 //                    startGroupChatActivity(groupName, true);
                     groupCreationDialog.dismiss();
@@ -127,10 +138,16 @@ public class MenuActivity extends AppCompatActivity implements GroupCreationDial
         });
     }
 
-    private void startMessagingInGroup(String groupName, boolean isGroupOwner) {
+    private void moveUserIntoLobby(String groupName, boolean isGroupOwner) {
         Intent intent = new Intent(getApplicationContext(), LobbyActivity.class);
         intent.putExtra(LobbyActivity.EXTRA_GROUP_NAME, groupName);
         intent.putExtra(LobbyActivity.EXTRA_IS_GROUP_OWNER, isGroupOwner);
         startActivity(intent);
+    }
+
+
+    public void makeSurePermissionsAreEnabled() {
+        if (ActivityCompat.checkSelfPermission(MenuActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(MenuActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
+            ActivityCompat.requestPermissions(MenuActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
     }
 }

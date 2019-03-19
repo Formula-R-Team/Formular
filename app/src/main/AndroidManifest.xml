@@ -23,16 +23,16 @@
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
         <activity android:name=".lobby.LobbyActivity"></activity>
-        <activity android:name=".MainActivity" />
+        <activity android:name=".MainActivity"
+            android:configChanges="orientation|screenSize"
+            android:exported="true"/>
 
         <meta-data
             android:name="com.google.ar.core"
             android:value="required" />
 
         <activity
-            android:name=".menu.MenuActivity"
-            android:configChanges="orientation|screenSize"
-            android:exported="true">
+            android:name=".menu.MenuActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
