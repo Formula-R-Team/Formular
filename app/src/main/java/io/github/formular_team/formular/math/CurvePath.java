@@ -77,7 +77,7 @@ public class CurvePath extends Curve {
             if (curves.hasNext() && d > length) {
                 continue;
             }
-            final float u = 1.0F - (length - d) / curve.getLength();
+            final float u = Math.max(1.0F - (length - d) / curve.getLength(), 0.0F);
             return curve.getPointAt(u);
         }
     }
@@ -100,7 +100,7 @@ public class CurvePath extends Curve {
             if (curves.hasNext() && d > length) {
                 continue;
             }
-            final float u = 1.0F - (length - d) / curve.getLength();
+            final float u = Math.max(1.0F - (length - d) / curve.getLength(), 0.0F);
             return curve.getCurvatureAt(u);
         }
     }

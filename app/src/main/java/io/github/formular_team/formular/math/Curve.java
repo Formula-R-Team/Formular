@@ -106,7 +106,7 @@ public abstract class Curve {
         final float distance = u * arcLengths.get(end);
         int high = end;
         for (int low = 0; low <= high; ) {
-            final int i = low + (high - low);
+            final int i = low + (high - low) / 2;
             final float comparison = arcLengths.get(i) - distance;
             if (comparison < 0) {
                 low = i + 1;

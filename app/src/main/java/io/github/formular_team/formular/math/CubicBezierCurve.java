@@ -97,7 +97,6 @@ public class CubicBezierCurve extends Curve {
         return new CubicBezierCurve(this.v0.clone(), this.v1.clone(), this.v2.clone(), this.v3.clone());
     }
 
-
     @Override
     public String toString() {
         return "CubicBezierCurve{" +

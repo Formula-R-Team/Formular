@@ -367,6 +367,11 @@ public class Vector2 {
         return this;
     }
 
+    public Vector2 rotate() {
+        //noinspection SuspiciousNameCombination
+        return new Vector2(-this.y, this.x);
+    }
+
     public Vector2 rotateAround(final Vector2 center, final float angle) {
         final float c = Mth.cos(angle), s = Mth.sin(angle);
         final float x = this.x - center.x;
