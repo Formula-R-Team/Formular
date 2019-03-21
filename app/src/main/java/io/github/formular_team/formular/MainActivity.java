@@ -250,7 +250,7 @@ public class MainActivity extends AppCompatActivity {
             final Vector2 b11 = planeToImage.apply(new Vector3(captureRange, 0.0F, -captureRange));
             final Vector2 min, max;
             final Bitmap image;
-            final int captureSize = 128;
+            final int captureSize = 200; //used to be 128
             try (final Image cameraImage = arFrame.acquireCameraImage()) {
                 min = b00.clone().min(b01).min(b10).min(b11).floor().max(new Vector2(0, 0));
                 max = b00.clone().max(b01).max(b10).max(b11).ceil().min(new Vector2(cameraImage.getWidth() - 1, cameraImage.getHeight() - 1));
