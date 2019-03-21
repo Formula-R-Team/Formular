@@ -221,7 +221,7 @@ public class MainActivity extends AppCompatActivity {
             projMat,
             viewMat
         );
-        final float captureRange = 0.15F;
+        final float captureRange = 0.20F;
         final float courseRoadWidth = 6.0F;
         final float courseToSceneScale = 0.05F / courseRoadWidth;
         final io.github.formular_team.formular.math.Vector3 v = new io.github.formular_team.formular.math.Vector3();
