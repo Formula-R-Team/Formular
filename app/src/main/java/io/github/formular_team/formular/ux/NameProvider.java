@@ -1,11 +1,12 @@
 package io.github.formular_team.formular.ux;
 
 import android.content.Context;
-import io.github.formular_team.formular.R;
-import io.github.formular_team.formular.math.Path;
-import io.github.formular_team.formular.scene.SceneEnvironment;
 
 import java.util.Random;
+
+import io.github.formular_team.formular.R;
+import io.github.formular_team.formular.math.Path;
+import io.github.formular_team.formular.server.SceneEnvironment;
 
 public class NameProvider implements NameSuggestionProvider {
 

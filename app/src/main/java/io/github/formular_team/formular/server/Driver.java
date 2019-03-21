@@ -6,7 +6,7 @@ import io.github.formular_team.formular.server.net.Packet;
 public interface Driver {
     User getUser();
 
-    Kart getVehicle();
+    KartModel getVehicle();
 
     void step(final float delta);
 

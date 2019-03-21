@@ -1,4 +1,4 @@
-package io.github.formular_team.formular;
+package io.github.formular_team.formular.ar.scene;
 
 import com.google.ar.sceneform.FrameTime;
 import com.google.ar.sceneform.Node;

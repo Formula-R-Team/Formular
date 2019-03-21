@@ -1,7 +1,6 @@
 package io.github.formular_team.formular;
 
-public class RacerStats {
+public class RacerStatus {
     int position;
     int lap;
-    float time;
 }

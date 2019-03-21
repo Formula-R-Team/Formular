@@ -1,17 +1,15 @@
 package io.github.formular_team.formular.server;
 
-import java.time.Instant;
-
 import io.github.formular_team.formular.User;
 
 public final class CourseMetadata {
     private final User creator;
 
-    private final Instant creationDate;
+    private final long creationDate;
 
     private final String name;
 
-    private CourseMetadata(final User creator, final Instant creationDate, final String name) {
+    private CourseMetadata(final User creator, final long creationDate, final String name) {
         this.creator = creator;
         this.creationDate = creationDate;
         this.name = name;
@@ -21,7 +19,7 @@ public final class CourseMetadata {
         return this.creator;
     }
 
-    public Instant creationDate() {
+    public long creationDate() {
         return this.creationDate;
     }
 
@@ -29,7 +27,7 @@ public final class CourseMetadata {
         return this.name;
     }
 
-    public CourseMetadata create(final User creator, final Instant creationDate, final String name) {
+    public static CourseMetadata create(final User creator, final long creationDate, final String name) {
         return new CourseMetadata(creator, creationDate, name);
     }
 }

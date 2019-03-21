@@ -1,4 +1,4 @@
-/*
+package io.github.formular_team.formular.math;/*
  * Copyright 2012 Alex Usachev, thothbot@gmail.com
  *
  * This file is part of Parallax project.
@@ -15,8 +15,6 @@
  * 3.0 Unported License along with Parallax.
  * If not, see http://creativecommons.org/licenses/by/3.0/.
  */
-
-package io.github.formular_team.formular.math;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -51,13 +49,20 @@ public class CurvePath extends Curve {
         return this.curves.get(this.curves.size() - 1);
     }
 
-    public Curve removeLast() {
-        return this.curves.remove(this.curves.size() - 1);
+    @Override
+    public void setStart(final Vector2 point) {
+        if (this.isClosed()) {
+            this.getLastCurve().setEnd(point);
+        }
+        this.getFirstCurve().setStart(point);
     }
 
     @Override
-    public Vector2 getPointAt(final float u) {
-        return this.getPoint(u);
+    public void setEnd(final Vector2 point) {
+        if (this.isClosed()) {
+            this.getFirstCurve().setStart(point);
+        }
+        this.getLastCurve().setEnd(point);
     }
 
     @Override
@@ -109,6 +114,16 @@ public class CurvePath extends Curve {
     public float getLength() {
         final List<Float> lens = this.getCurveLengths();
         return lens.get(lens.size() - 1);
+    }
+
+    @Override
+    public void refresh() {
+        for (final Curve curve : this.curves) {
+            curve.refresh();
+        }
+        super.refresh();
+        this.cacheLengths = null;
+        this.getCurveLengths();
     }
 
     public List<Float> getCurveLengths() {

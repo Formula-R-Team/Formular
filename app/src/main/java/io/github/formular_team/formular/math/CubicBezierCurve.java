@@ -19,19 +19,29 @@
 package io.github.formular_team.formular.math;
 
 public class CubicBezierCurve extends Curve {
-    public final Vector2 v0;
+    public Vector2 v0;
 
     public final Vector2 v1;
 
     public final Vector2 v2;
 
-    public final Vector2 v3;
+    public Vector2 v3;
 
     public CubicBezierCurve(final Vector2 v0, final Vector2 v1, final Vector2 v2, final Vector2 v3) {
         this.v0 = v0;
         this.v1 = v1;
         this.v2 = v2;
         this.v3 = v3;
+    }
+
+    @Override
+    public void setStart(final Vector2 point) {
+        this.v0 = point;
+    }
+
+    @Override
+    public void setEnd(final Vector2 point) {
+        this.v3 = point;
     }
 
     public CubicBezierCurve reorient() {

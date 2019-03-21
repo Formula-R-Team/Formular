@@ -6,8 +6,8 @@ import io.github.formular_team.formular.collision.Intersections;
 import io.github.formular_team.formular.math.Vector2;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class LineLineIntersectionTest {
     @Test

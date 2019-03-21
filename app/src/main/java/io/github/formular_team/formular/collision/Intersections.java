@@ -6,9 +6,9 @@ import io.github.formular_team.formular.math.Vector2;
 
 public final class Intersections {
     // TODO intersection point result
-    public static boolean lineCircle(final Vector2 lineStart, final Vector2 lineEnd, final Vector2 circleCenter, final float circleRadius) {
+    public static boolean lineCircle(final Vector2 lineStart, final Vector2 lineEnd, final Vector2 circleOrigin, final float circleRadius) {
         final Vector2 lineDirection = lineEnd.clone().sub(lineStart);
-        final Vector2 delta = lineStart.clone().sub(circleCenter);
+        final Vector2 delta = lineStart.clone().sub(circleOrigin);
         final float a = lineDirection.dot(lineDirection);
         final float b = 2.0F * delta.dot(lineDirection);
         final float c = delta.dot(delta) - circleRadius * circleRadius;
@@ -44,5 +44,18 @@ public final class Intersections {
         result.set((b2 * c1 - b1 * c2) / determinant, (a1 * c2 - a2 * c1) / determinant);
         final Box2 box = new Box2();
         return box.setFromPoints(A, B).isContainsPoint(result) && box.setFromPoints(C, D).isContainsPoint(result);
+    }
+
+    public static float lineRay(final Vector2 lineStart, final Vector2 lineEnd, final Vector2 rayOrigin, final Vector2 rayNormal) {
+        final Vector2 lineDirection = lineEnd.clone().sub(lineEnd);
+        final Vector2 delta = rayOrigin.clone().sub(lineStart);
+        final Vector2 rayPerp = rayNormal.clone().rotate();
+        final float dot = lineDirection.dot(rayPerp);
+        if (dot == 0.0F) {
+            return Float.NaN;
+        }
+        final float t1 = lineDirection.cross(delta) / dot;
+        final float t2 = delta.dot(rayPerp) / dot;
+        return t1 >= 0.0F && t2 >= 0.0F && t2 <= 1.0F ? t1 : Float.NaN;
     }
 }

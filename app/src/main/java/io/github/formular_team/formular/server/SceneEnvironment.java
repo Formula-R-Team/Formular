@@ -1,4 +1,4 @@
-package io.github.formular_team.formular.scene;
+package io.github.formular_team.formular.server;
 
 import io.github.formular_team.formular.color.ColorPalette;
 

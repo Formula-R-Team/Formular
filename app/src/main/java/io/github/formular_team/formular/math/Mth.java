@@ -14,7 +14,14 @@ public final class Mth {
     }
 
     public static float deltaAngle(final float a, final float b) {
-        return mod(a - b + 180,360) - 180;
+        return deltaMod(a, b, 360.0F);
+    }
+
+    public static float deltaMod(final float a, final float b, final float n) {
+        return mod(a - b + 0.5F * n, n) - 0.5F * n;
+    }
+    public static int deltaMod(final int a, final int b, final int n) {
+        return Math.floorMod(a - b + n / 2, n) - n / 2;
     }
 
     public static float mod(final float a, final float b) {

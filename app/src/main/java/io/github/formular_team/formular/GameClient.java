@@ -3,7 +3,7 @@ package io.github.formular_team.formular;
 import io.github.formular_team.formular.server.Kart;
 
 public interface GameClient extends Game {
-    RacerStats getStats();
+    RacerStatus getStatus();
 
     void addKart(final Kart kart);
 

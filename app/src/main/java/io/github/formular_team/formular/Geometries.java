@@ -15,6 +15,7 @@ import io.github.formular_team.formular.geometry.Face3;
 import io.github.formular_team.formular.geometry.Geometry;
 import io.github.formular_team.formular.math.Vector2;
 
+// TODO: mesh construction api
 public final class Geometries {
     private Geometries() {}
 
@@ -100,25 +101,26 @@ public final class Geometries {
         return Futures.getUnchecked(ModelRenderable.builder().setSource(def).build());
     }
 
-    public static ModelRenderable toRenderable(final Geometry geometry, final Material material) {
-        final List<io.github.formular_team.formular.math.Vector3> vertexArray = geometry.getVertices();
-        final List<Face3> faces = geometry.getFaces();
-        final Iterator<List<Vector2>> uvArray = geometry.getFaceVertexUvs().get(0).iterator();
-        // TODO remove duplicates
+    public static ModelRenderable toRenderable(final List<Geometry> geometries, final Material material) {
         final ImmutableList.Builder<Vertex> vertices = ImmutableList.builder();
         final ImmutableList.Builder<Integer> indices = ImmutableList.builder();
-        int i = 0;
-        for (final Face3 face : faces) {
-            final List<Vector2> uv = uvArray.next();
-            final int[] v = face.getFlat();
-            for (int j = 0; j < 3; j++) {
-                vertices.add(Vertex.builder()
-                    .setPosition(v(vertexArray.get(v[j])))
-                    .setUvCoordinate(new Vertex.UvCoordinate(uv.get(j).getX(), uv.get(j).getY()))
-                    .setNormal(v(face.getNormal()))
-                    .build()
-                );
-                indices.add(i++);
+        int vertexIndex = 0;
+        for (final Geometry geometry : geometries) {
+            final Iterator<Face3> faces = geometry.getFaces().iterator();
+            final Iterator<List<Vector2>> uvArray = geometry.getFaceVertexUvs().get(0).iterator();
+            while (faces.hasNext() && uvArray.hasNext()) {
+                final Face3 face = faces.next();
+                final List<Vector2> uv = uvArray.next();
+                final int[] v = face.getFlat();
+                for (int i = 0; i < v.length; i++) {
+                    vertices.add(Vertex.builder()
+                        .setPosition(v(geometry.getVertices().get(v[i])))
+                        .setUvCoordinate(new Vertex.UvCoordinate(uv.get(i).getX(), uv.get(i).getY()))
+                        .setNormal(v(face.getNormal()))
+                        .build()
+                    );
+                    indices.add(vertexIndex++);
+                }
             }
         }
         final RenderableDefinition.Submesh mesh = RenderableDefinition.Submesh.builder()

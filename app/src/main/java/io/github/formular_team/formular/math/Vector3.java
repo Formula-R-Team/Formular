@@ -32,6 +32,10 @@ public class Vector3 extends Vector2 {
         this(0.0F, 0.0F, 0.0F);
     }
 
+    public Vector3(final Vector2 v) {
+        this(v.getX(), v.getY(), v.getZ());
+    }
+
     public Vector3(final float x, final float y, final float z) {
         super(x, y);
         this.z = z;

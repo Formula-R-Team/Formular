@@ -22,13 +22,24 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class LineCurve3 extends Curve {
-    public Vector3 v1;
+    private Vector3 v1;
 
-    public Vector3 v2;
+    private Vector3 v2;
 
     public LineCurve3(final Vector3 v1, final Vector3 v2) {
         this.v1 = v1;
         this.v2 = v2;
+    }
+
+    @Override
+    public void setStart(final Vector2 point) {
+        // TODO: redesign
+        this.v1 = (Vector3) point;
+    }
+
+    @Override
+    public void setEnd(final Vector2 point) {
+        this.v2 = (Vector3) point;
     }
 
     @Override

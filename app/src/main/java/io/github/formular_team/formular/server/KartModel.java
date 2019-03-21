@@ -1,7 +1,6 @@
 package io.github.formular_team.formular.server;
 
 import io.github.formular_team.formular.GameModel;
-import io.github.formular_team.formular.User;
 import io.github.formular_team.formular.collision.Intersections;
 import io.github.formular_team.formular.math.LineCurve;
 import io.github.formular_team.formular.math.Mth;
@@ -48,11 +47,6 @@ public class KartModel implements Kart {
     @Override
     public KartDefinition getDefinition() {
         return this.definition;
-    }
-
-    @Override
-    public User getDriver() {
-        return User.create("User 1", 0xFF1D37A8);
     }
 
     @Override
@@ -211,7 +205,7 @@ public class KartModel implements Kart {
         this.position.add(this.linearVelocity.clone().multiply(dt));
         this.rotation += dt * this.angularVelocity;
 
-        // todo good collision
+        // TODO: good collision
         for (final LineCurve wall : this.game.getWalls()) {
             if (Intersections.lineCircle(wall.getStart(), wall.getEnd(), this.position, this.definition.length * 0.4F)) {
                 final Vector2 normal = wall.getEnd().sub(wall.getStart()).normalize().rotateAround(new Vector2(), 0.5F * Mth.PI);

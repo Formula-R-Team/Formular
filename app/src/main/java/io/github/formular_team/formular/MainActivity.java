@@ -1,18 +1,8 @@
 package io.github.formular_team.formular;
 
 import android.annotation.SuppressLint;
-import android.content.res.AssetManager;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.BitmapShader;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Matrix;
-import android.graphics.Paint;
-import android.graphics.PorterDuff;
-import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
-import android.graphics.Shader;
 import android.media.Image;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -20,7 +10,7 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.ar.core.Anchor;
@@ -34,37 +24,43 @@ import com.google.ar.core.exceptions.NotYetAvailableException;
 import com.google.ar.sceneform.AnchorNode;
 import com.google.ar.sceneform.ArSceneView;
 import com.google.ar.sceneform.Node;
-import com.google.ar.sceneform.rendering.MaterialFactory;
+import com.google.ar.sceneform.rendering.Color;
 import com.google.ar.sceneform.rendering.ModelRenderable;
-import com.google.ar.sceneform.rendering.Texture;
 import com.google.ar.sceneform.ux.ArFragment;
 import com.google.common.collect.ImmutableList;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
-import io.github.formular_team.formular.geometry.ExtrudeGeometry;
+import io.github.formular_team.formular.ar.scene.CourseNode;
+import io.github.formular_team.formular.ar.scene.KartNode;
 import io.github.formular_team.formular.math.Bezier;
-import io.github.formular_team.formular.math.CubicBezierCurve3;
-import io.github.formular_team.formular.math.CurvePath;
 import io.github.formular_team.formular.math.Float32Array;
 import io.github.formular_team.formular.math.LineCurve;
-import io.github.formular_team.formular.math.LineCurve3;
 import io.github.formular_team.formular.math.Matrix3;
 import io.github.formular_team.formular.math.Matrix4;
 import io.github.formular_team.formular.math.Mth;
 import io.github.formular_team.formular.math.Path;
-import io.github.formular_team.formular.math.PathStroker;
-import io.github.formular_team.formular.math.PathVisitor;
+import io.github.formular_team.formular.math.PathOffset;
 import io.github.formular_team.formular.math.Ray;
 import io.github.formular_team.formular.math.Shape;
 import io.github.formular_team.formular.math.TransformingPathVisitor;
 import io.github.formular_team.formular.math.Vector2;
 import io.github.formular_team.formular.math.Vector3;
+import io.github.formular_team.formular.server.Checkpoint;
+import io.github.formular_team.formular.server.Course;
+import io.github.formular_team.formular.server.CourseMetadata;
+import io.github.formular_team.formular.server.Driver;
+import io.github.formular_team.formular.server.FinishLineOptimizer;
 import io.github.formular_team.formular.server.KartDefinition;
 import io.github.formular_team.formular.server.KartModel;
+import io.github.formular_team.formular.server.Race;
+import io.github.formular_team.formular.server.RaceConfiguration;
+import io.github.formular_team.formular.server.RaceListener;
+import io.github.formular_team.formular.server.SimpleDriver;
 import io.github.formular_team.formular.server.SimpleGameModel;
+import io.github.formular_team.formular.server.Track;
 import io.github.formular_team.formular.trace.BilinearMapper;
 import io.github.formular_team.formular.trace.ImageLineMap;
 import io.github.formular_team.formular.trace.OrientFunction;
@@ -81,15 +77,16 @@ public class MainActivity extends AppCompatActivity {
 
     private ModelRenderable kartBody, kartWheel;
 
-    private Node courseNode, kartNode;
+    private Node courseAnchor;
 
     private GameModel game;
 
     private KartModel kart;
 
+    private final User user = User.create("John Smith", 0xFFF0F0F0);
 //    private ServerController controller;
 
-    private ImageView overlayView;
+    private TextView lapView;
 
     private ArFragment arFragment;
 
@@ -112,7 +109,7 @@ public class MainActivity extends AppCompatActivity {
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.setContentView(R.layout.activity_main);
-        this.overlayView = this.findViewById(R.id.overlay);
+        this.lapView = this.findViewById(R.id.lap);
         this.arFragment = (ArFragment) this.getSupportFragmentManager().findFragmentById(R.id.ar);
         this.modelLoader = new ModelLoader(this);
         this.modelLoader.loadModel(KART_BODY, R.raw.kart);
@@ -120,9 +117,9 @@ public class MainActivity extends AppCompatActivity {
         this.arFragment.setOnTapArPlaneListener(this::onPlaneTap);
         this.createJoystick();
         this.findViewById(R.id.reset).setOnClickListener(v -> {
-            if (MainActivity.this.courseNode != null) {
+            if (MainActivity.this.courseAnchor != null) {
                 final ArSceneView view = MainActivity.this.arFragment.getArSceneView();
-                view.getScene().removeChild(MainActivity.this.courseNode);
+                view.getScene().removeChild(MainActivity.this.courseAnchor);
                 view.getPlaneRenderer().setVisible(true);
             }
         });
@@ -187,8 +184,8 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
         final ArSceneView view = this.arFragment.getArSceneView();
-        final Frame frame = view.getArFrame();
-        if (frame == null) {
+        final Frame arFrame = view.getArFrame();
+        if (arFrame == null) {
             throw new AssertionError();
         }
         final Pose planePose = scenePlane.getCenterPose();
@@ -199,7 +196,7 @@ public class MainActivity extends AppCompatActivity {
             new io.github.formular_team.formular.math.Vector3(planeNormal[0], planeNormal[1], planeNormal[2]),
             new io.github.formular_team.formular.math.Vector3(planeTranslation[0], planeTranslation[1], planeTranslation[2])
         );
-        final Camera camera = frame.getCamera();
+        final Camera camera = arFrame.getCamera();
         final Matrix4 projMat = new Matrix4();
         final float[] buf = new float[16];
         camera.getProjectionMatrix(buf, 0, 0.1F, 6.0F);
@@ -215,7 +212,7 @@ public class MainActivity extends AppCompatActivity {
         in2.set(0, event.getX());
         in2.set(1, event.getY());
         final Float32Array out2 = Float32Array.create(2);
-        frame.transformCoordinates2d(
+        arFrame.transformCoordinates2d(
             Coordinates2d.VIEW, in2.getTypedBuffer(),
             Coordinates2d.OPENGL_NORMALIZED_DEVICE_COORDINATES, out2.getTypedBuffer()
         );
@@ -226,7 +223,6 @@ public class MainActivity extends AppCompatActivity {
         );
         final float captureRange = 0.15F;
         final float courseRoadWidth = 6.0F;
-        final float courseRoadHalfWidth = 0.5F * courseRoadWidth;
         final float courseToSceneScale = 0.05F / courseRoadWidth;
         final io.github.formular_team.formular.math.Vector3 v = new io.github.formular_team.formular.math.Vector3();
         if (pickRay.intersectPlane(plane, v)) {
@@ -242,7 +238,7 @@ public class MainActivity extends AppCompatActivity {
                     .applyProjection(projMat);
                 in2.set(0, ndc.getX());
                 in2.set(1, ndc.getY());
-                frame.transformCoordinates2d(
+                arFrame.transformCoordinates2d(
                     Coordinates2d.OPENGL_NORMALIZED_DEVICE_COORDINATES, in2.getTypedBuffer(),
                     Coordinates2d.IMAGE_PIXELS, out2.getTypedBuffer()
                 );
@@ -255,7 +251,7 @@ public class MainActivity extends AppCompatActivity {
             final Vector2 min, max;
             final Bitmap image;
             final int captureSize = 128;
-            try (final Image cameraImage = frame.acquireCameraImage()) {
+            try (final Image cameraImage = arFrame.acquireCameraImage()) {
                 min = b00.clone().min(b01).min(b10).min(b11).floor().max(new Vector2(0, 0));
                 max = b00.clone().max(b01).max(b10).max(b11).ceil().min(new Vector2(cameraImage.getWidth() - 1, cameraImage.getHeight() - 1));
                 image = Images.yuvToBitmap(cameraImage, new Rect((int) min.getX(), (int) min.getY(), (int) max.getX(), (int) max.getY()));
@@ -291,231 +287,119 @@ public class MainActivity extends AppCompatActivity {
                 .translate(-1.0F, -1.0F)
                 .scale(courseCaptureSize, -courseCaptureSize)
             ));
+
+            final float finishLinePosition = new FinishLineOptimizer().get(courseTrackPath);
+            final List<PathOffset.Frame> frames = PathOffset.createFrames(courseTrackPath, finishLinePosition, (int) (courseTrackPath.getLength() * 0.4F), courseRoadWidth + 1.0F);
+
+            final int requiredCheckPointCount = 8;
+            final ImmutableList.Builder<Checkpoint> bob = ImmutableList.builder();
+            final int requiredInterval = frames.size() / requiredCheckPointCount;
+            for (int i = 0; i < frames.size(); i++) {
+                final PathOffset.Frame fm = frames.get(i);
+                final Checkpoint cp = new Checkpoint(fm.getP1(), fm.getP2(), i, fm.getT(), frames.size() - i > requiredInterval / 2 && i % requiredInterval == 0);
+                bob.add(cp);
+            }
+            final ImmutableList<Checkpoint> checkpoints = bob.build();
             final float coursePad = 2.0F;
             final float courseRange = courseCaptureSize + coursePad;
-
-            final int curvatureCount = (int) (courseTrackPath.getLength() * 2.0F);
-            final float[] curvature = new float[curvatureCount];
-            for (int i = 0; i < curvatureCount; i++) {
-                curvature[i] = courseTrackPath.getCurvature(i / (float) curvatureCount);
-            }
-            final float[] delta = new float[curvatureCount];
-            for (int i = 0; i < curvatureCount; i++) {
-                delta[i] = Math.signum(curvature[(i + 1) % curvatureCount] - curvature[i]);
-            }
-            final int[] sections = new int[curvatureCount];
-            int sectionCount = 0;
-            for (int i = 0; i < curvatureCount; i++) {
-                if (delta[(i + 1) % curvatureCount] != delta[i]) {
-                    sections[sectionCount++] = i + 1;
-                }
-            }
-            final float[] weights = new float[sectionCount];
-            int section = -1;
-            float greatest = Float.NEGATIVE_INFINITY;
-            int maxN = 0;
-            for (int i = 0; i < sectionCount; i++) {
-                final int start = sections[i];
-                int end = sections[(i + 1) % sectionCount];
-                if (end < start) {
-                    end += curvatureCount;
-                }
-                if (end - start > maxN) {
-                    maxN = end - start;
-                }
-            }
-            for (int i = 0; i < sectionCount; i++) {
-                final int start = sections[i];
-                int end = sections[(i + 1) % sectionCount];
-                if (end < start) {
-                    end += curvatureCount;
-                }
-                final int n = end - start;
-                final float K = curvature[start % curvatureCount];
-                float Ex = 0.0F, Ex2 = 0.0F;
-                for (int j = start; j < end; j++) {
-                    final float x = curvature[j % curvatureCount];
-                    Ex += x - K;
-                    Ex2 += (x - K) * (x - K);
-                }
-                final float value = (n / (float) maxN) - 2.0F * ((Ex2 - (Ex * Ex) / n) / n);
-                weights[i] = value;
-                if (value > greatest) {
-                    section = i;
-                    greatest = value;
-                }
-            }
-            final float finishLineT;
-            final float trackDirection;
-            {
-                final int start = sections[section];
-                int end = sections[(section + 1) % sectionCount];
-                if (end < start) {
-                    end += curvatureCount;
-                }
-                if (Math.abs(curvature[start % curvatureCount]) < Math.abs(curvature[(end - 1) % curvatureCount])) {
-                    finishLineT = (start / (float) curvatureCount) % 1.0F;
-                    trackDirection = 1.0F;
-                } else {
-                    finishLineT = (end / (float) curvatureCount) % 1.0F;
-                    trackDirection = -1.0F;
-                }
-            }
-            final ImmutableList<PathStroker.Frame> frames = PathStroker.create(courseTrackPath, (int) (courseTrackPath.getLength() * 0.5F), courseRoadWidth + 0.5F);
             final float courseSize = 2.0F * courseRange;
-            final int courseDiffuseSize = 2048;
-            final float wallTileSize = 1.0F;
-            final Bitmap courseDiffuse = Bitmap.createBitmap(courseDiffuseSize, courseDiffuseSize, Bitmap.Config.ARGB_8888);
-            {
-                final Bitmap pavementDiffuse = this.loadBitmap("materials/pavement_diffuse.png");
-                final Bitmap finishLineDiffuse = this.loadBitmap("materials/finish_line_diffuse.png");
-                final Canvas canvas = new Canvas(courseDiffuse);
-                final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-                final float courseToMap = courseDiffuseSize / courseSize;
-                canvas.scale(courseToMap, -courseToMap);
-                canvas.translate(courseRange, -courseRange);
-                paint.setStyle(Paint.Style.FILL);
-                paint.setShader(this.createTileShader(pavementDiffuse, 1.0F));
-                canvas.drawRect(-courseRange, -courseRange, courseRange, courseRange, paint);
-                paint.setShader(null);
-                // begin wall tile
-                paint.setColor(0xFF2C2A30);
-                canvas.drawRect(-courseRange, courseRange, -courseRange + wallTileSize, courseRange - wallTileSize, paint);
-                // end wall tile
-                final android.graphics.Path graphicsTrackPath = new android.graphics.Path();
-                courseTrackPath.visit(new GraphicsPathVisitor(graphicsTrackPath));
-                graphicsTrackPath.close();
-                final float courseRoadMargin = 0.1F;
-                final float courseRoadStripeWidth = 0.2F;
-                {
-                    final float outerRoadStripeWidth = courseRoadWidth - 2.0F * courseRoadMargin;
-                    final float innerRoadStripeWidth = outerRoadStripeWidth - courseRoadStripeWidth;
-                    final Bitmap roadStripDiffuse = Bitmap.createBitmap(courseDiffuseSize, courseDiffuseSize, Bitmap.Config.ARGB_8888);
-                    final Canvas roadStripCanvas = new Canvas(roadStripDiffuse);
-                    final Matrix m = new Matrix();
-                    canvas.getMatrix(m);
-                    roadStripCanvas.setMatrix(m);
-                    paint.setStyle(Paint.Style.STROKE);
-                    paint.setStrokeWidth(outerRoadStripeWidth);
-                    paint.setColor(0xFFF2F3F4);
-                    roadStripCanvas.drawPath(graphicsTrackPath, paint);
-                    paint.setStrokeWidth(innerRoadStripeWidth);
-                    paint.setColor(Color.TRANSPARENT);
-                    paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
-                    roadStripCanvas.drawPath(graphicsTrackPath, paint);
-                    paint.setXfermode(null);
-                    m.setScale(1.0F / courseToMap, -1.0F / courseToMap);
-                    m.postTranslate(-courseRange, courseRange);
-                    canvas.drawBitmap(roadStripDiffuse, m, null);
-                }
-                final Vector2 finishLineTranslation = courseTrackPath.getPoint(finishLineT);
-                final Vector2 finishLineRotation = courseTrackPath.getTangent(finishLineT);
-                paint.setColor(0xFFFFFFFF);
-                paint.setStyle(Paint.Style.FILL);
-                canvas.save();
-                canvas.translate(finishLineTranslation.getX(), finishLineTranslation.getY());
-                canvas.rotate(Mth.toDegrees(Mth.atan2(finishLineRotation.getY(), finishLineRotation.getX())) - 90.0F);
-                final Shader shader = this.createTileShader(finishLineDiffuse, 1.0F);
-                final Matrix m = new Matrix();
-                shader.getLocalMatrix(m);
-                m.postTranslate(0.0F, -0.5F);
-                shader.setLocalMatrix(m);
-                paint.setShader(shader);
-                canvas.drawRect(-courseRoadHalfWidth, -0.5F, courseRoadHalfWidth, 0.5F, paint);
-                paint.setShader(null);
-                canvas.restore();
+            final Track track = Track.builder()
+                .setRoadPath(courseTrackPath)
+                .setRoadWidth(courseRoadWidth)
+                .setRoadShape(new Shape()) // TODO: road shape
+                .setCheckpoints(checkpoints)
+                .build();
+            final Course course = Course.builder()
+                .setMetadata(CourseMetadata.create(this.user, TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()), "Generic Circuit"))
+                .setSize(courseSize)
+                .setTrack(track)
+                .build();
+            this.game = new SimpleGameModel();
+            for (int i = 0; i < checkpoints.size(); i++) {
+                this.game.getWalls().add(new LineCurve(checkpoints.get(i).getP1(), checkpoints.get((i + 1) % checkpoints.size()).getP1()));
+                this.game.getWalls().add(new LineCurve(checkpoints.get(i).getP2(), checkpoints.get((i + 1) % checkpoints.size()).getP2()));
             }
-//            this.overlayView.setImageBitmap(courseDiffuse);
-            Texture.builder().setSource(courseDiffuse).build().thenAccept(diffuse ->
-                MaterialFactory.makeOpaqueWithTexture(MainActivity.this, diffuse).thenAccept(material -> {
-                    final float roadHeight = 0.225F;
-                    final Shape roadShape = new Shape();
-                    roadShape.moveTo(0.0F, -courseRoadHalfWidth);
-                    roadShape.lineTo(-roadHeight, -courseRoadHalfWidth);
-                    roadShape.lineTo(-roadHeight, courseRoadHalfWidth);
-                    roadShape.lineTo(0.0F, courseRoadHalfWidth);
-                    roadShape.closePath();
-                    final float wallHeight = 0.3F, wallWidth = 0.26F;
-                    final Shape wallLeft = new Shape();
-                    wallLeft.moveTo(0.0F, -courseRoadHalfWidth - wallWidth);
-                    wallLeft.lineTo(-roadHeight - wallHeight, -courseRoadHalfWidth - wallWidth);
-                    wallLeft.lineTo(-roadHeight - wallHeight, -courseRoadHalfWidth);
-                    wallLeft.lineTo(0.0F, -courseRoadHalfWidth);
-                    wallLeft.closePath();
-                    final Shape wallRight = new Shape();
-                    wallRight.moveTo(0.0F, courseRoadHalfWidth + wallWidth);
-                    wallRight.lineTo(-roadHeight - wallHeight, courseRoadHalfWidth + wallWidth);
-                    wallRight.lineTo(-roadHeight - wallHeight, courseRoadHalfWidth);
-                    wallRight.lineTo(0.0F, courseRoadHalfWidth);
-                    wallRight.closePath();
-                    final CurvePath trackPath3 = this.toCurve3(courseTrackPath);
-                    final ModelRenderable trackRenderable = Geometries.toRenderable(new ExtrudeGeometry(ImmutableList.of(roadShape), new ExtrudeGeometry.ExtrudeGeometryParameters() {{
-                        this.steps = (int) (6 * trackPath3.getLength());
-                        this.extrudePath = trackPath3;
-                        this.uvGenerator = ExtrudeGeometry.ShapeUVGenerator.builder()
-                            .setDefaultGenerator(ExtrudeGeometry.VertexUVGenerator.transform(new Matrix4()
-                                .multiply(new Matrix4().makeTranslation(0.5F, 0.0F, 0.5F))
-                                .multiply(new Matrix4().makeScale(1.0F / courseSize, 1.0F / courseSize, 1.0F / courseSize))
-                            ))
-                            .addShape(wallLeft, new ExtrudeGeometry.VertexUVGenerator(v -> new Vector3(0.0F, 0.0F, 1.0F)))
-                            .addShape(wallRight, new ExtrudeGeometry.VertexUVGenerator(v -> new Vector3(0.0F, 0.0F, 1.0F)))
-                            .build();
-                    }}), material);
-                    if (this.courseNode != null) {
-                        view.getScene().removeChild(this.courseNode);
-                    }
-                    final Anchor anchor = scenePlane.createAnchor(planeAtPick);
-                    this.courseNode = new AnchorNode(anchor);
-                    this.courseNode.setLocalScale(com.google.ar.sceneform.math.Vector3.one().scaled(courseToSceneScale));
-                    this.courseNode.setLocalPosition(new com.google.ar.sceneform.math.Vector3(0.0F, 0.01F, 0.0F));
-                    this.courseNode.setParent(view.getScene());
-                    final Node trackNode = new Node();
-                    trackNode.setRenderable(trackRenderable);
-                    trackNode.setParent(this.courseNode);
-                    this.game = new SimpleGameModel();
-                    for (int i = 0; i < frames.size(); i++) {
-                        final PathStroker.Frame f0 = frames.get(i);
-                        final PathStroker.Frame f1 = frames.get((i + 1) % frames.size());
-                        this.game.getWalls().add(new LineCurve(f0.getLeft(), f1.getLeft()));
-                        this.game.getWalls().add(new LineCurve(f0.getRight(), f1.getRight()));
-                    }
-                    this.kart = new KartModel(this.game, 0, this.createKartDefinition());
-                    this.game.addKart(this.kart);
-                    final Node surfaceNode = new Node();
-                    surfaceNode.setLocalPosition(new com.google.ar.sceneform.math.Vector3(0.0F, roadHeight, 0.0F));
-                    surfaceNode.setParent(this.courseNode);
-                    this.kartNode = KartNode.create(this.kart, this.kartBody, this.kartWheel);
-                    this.kartNode.setParent(surfaceNode);
-                    final float kartT = finishLineT + 2.0F / courseTrackPath.getLength();
-                    final Vector2 kartPos = courseTrackPath.getPoint(kartT);
-                    final Vector2 before = courseTrackPath.getPoint(kartT - 2.5F / courseTrackPath.getLength());
-                    final Vector2 after = courseTrackPath.getPoint(kartT + 2.5F / courseTrackPath.getLength());
-                    final Vector2 tangent = after.sub(before).normalize();
-                    this.kart.setPosition(kartPos);
-                    this.kart.setRotation(-Mth.atan2(tangent.getX(), -tangent.getY()));
+            this.kart = new KartModel(this.game, 0, this.createKartDefinition());
+            final Driver self = SimpleDriver.create(this.user, this.kart);
+            final Race race = Race.create(this.game, RaceConfiguration.create(3, 1), this.user, course);
+            race.addListener(new RaceListener() {
+                int lap;
+                float progress;
 
-                    MaterialFactory.makeOpaqueWithColor(this, new com.google.ar.sceneform.rendering.Color(0.3F, 0.3F, 0.35F)).thenAccept(m -> {
-                        final ImmutableList.Builder<Vector3> points = ImmutableList.builder();
-                        for (int i = 0; i < frames.size(); i++) {
-                            final PathStroker.Frame f0 = frames.get(i);
-                            final PathStroker.Frame f1 = frames.get((i + 1) % frames.size());
-                            final float height = courseRoadHalfWidth;
-                            points.add(
-                                Vector3.xz(f0.getLeft(), 0.0F), Vector3.xz(f0.getRight(), 0.0F),
-                                Vector3.xz(f0.getLeft(), height), Vector3.xz(f0.getRight(), height),
-                                Vector3.xz(f0.getLeft(), 0.0F), Vector3.xz(f0.getLeft(), height),
-                                Vector3.xz(f0.getRight(), 0.0F), Vector3.xz(f0.getRight(), height),
-                                Vector3.xz(f0.getLeft(), 0.0F), Vector3.xz(f1.getLeft(), 0.0F),
-                                Vector3.xz(f0.getRight(), 0.0F), Vector3.xz(f1.getRight(), 0.0F),
-                                Vector3.xz(f0.getLeft(), height), Vector3.xz(f1.getLeft(), height),
-                                Vector3.xz(f0.getRight(), height), Vector3.xz(f1.getRight(), height)
-                            );
-                        }
-                        final Node frameNode = new Node();
-                        frameNode.setRenderable(Geometries.lines(points.build(), 0.15F, m));
-                        frameNode.setParent(this.courseNode);
-                    });
-                }));
+                private void update() {
+                    MainActivity.this.lapView.setText("Lap " + (1 + lap) + ", " + ((int) (progress * 100)) + "%");
+                }
+
+                @Override
+                public void onLapComplete(final Driver driver, final int lap) {
+                    if (self.equals(driver)) {
+                        this.lap = lap;
+                        this.update();
+                    }
+                }
+
+                @Override
+                public void onProgress(final Driver driver, final float progress) {
+                    if (self.equals(driver)) {
+                        this.progress = progress;
+                        this.update();
+                    }
+                }
+
+                @Override
+                public void onForward(final Driver driver) {
+                    if (self.equals(driver)) {
+                        Log.i("waldo", "forward");
+                    }
+                }
+
+                @Override
+                public void onReverse(final Driver driver) {
+                    if (self.equals(driver)) {
+                        Log.i("waldo", "reverse");
+                    }
+                }
+            });
+            this.game.addRace(race);
+            this.game.addKart(this.kart);
+            this.game.addDriver(self);
+            race.add(self);
+
+            // Add cpus
+//            final ColorPalette cpuColors = SimplePaletteFactory.builder()
+//                .color(SimpleColorRange.builder()
+//                    .saturation(Range.closedOpen(0.5F, 0.95F))
+//                    .value(Range.closedOpen(0.5F, 1.0F))
+//                    .build()
+//                )
+//                .size(Range.singleton(3))
+//                .build()
+//                .create(new Random());
+//            for (int n = 0; n < cpuColors.size(); n++) {
+//                final KartModel kart = new KartModel(this.game, 1 + n, this.createKartDefinition());
+//                this.game.addKart(kart);
+//                final Driver driver = CpuDriver.create(User.create("CPU #" + n, cpuColors.get(n)), kart);
+//                this.game.addDriver(driver);
+//                race.add(driver);
+//            }
+
+            CourseNode.create(MainActivity.this, course).thenAccept(courseNode -> {
+                if (this.courseAnchor != null) {
+                    view.getScene().removeChild(this.courseAnchor);
+                }
+                final Anchor anchor = scenePlane.createAnchor(planeAtPick);
+                this.courseAnchor = new AnchorNode(anchor);
+                this.courseAnchor.setLocalScale(com.google.ar.sceneform.math.Vector3.one().scaled(courseToSceneScale));
+                this.courseAnchor.setLocalPosition(new com.google.ar.sceneform.math.Vector3(0.0F, 0.01F, 0.0F));
+                this.courseAnchor.addChild(courseNode);
+                view.getScene().addChild(this.courseAnchor);
+
+                for (final Driver driver : this.game.getDrivers()) {
+                    final ModelRenderable body = this.kartBody.makeCopy();
+                    body.getMaterial(0).setFloat4("baseColor", new Color(0xFF000000 | driver.getUser().getColor()));
+                    courseNode.add(KartNode.create(driver.getVehicle(), body, this.kartWheel));
+                }
+            });
         }
     }
 
@@ -576,70 +460,6 @@ public class MainActivity extends AppCompatActivity {
 //            this.overlayView.setImageBitmap(capture);
 //        }
 //    }
-
-    private CurvePath toCurve3(final Path path) {
-        final CurvePath curve3 = new CurvePath();
-        path.visit(new PathVisitor() {
-            private Vector3 last = new Vector3();
-
-            @Override
-            public void moveTo(final float x, final float y) {
-                this.last = this.map(x, y);
-            }
-
-            @Override
-            public void lineTo(final float x, final float y) {
-                curve3.add(new LineCurve3(this.last, this.last = this.map(x, y)));
-            }
-
-            @Override
-            public void bezierCurveTo(final float aCP1x, final float aCP1y, final float aCP2x, final float aCP2y, final float aX, final float aY) {
-                curve3.add(new CubicBezierCurve3(this.last, this.map(aCP1x, aCP1y), this.map(aCP2x, aCP2y), this.last = this.map(aX, aY)));
-            }
-
-            @Override
-            public void closePath() {}
-
-            private Vector3 map(final float x, final float y) {
-                return new Vector3(x, 0.0F, y);
-            }
-        });
-        return curve3;
-    }
-
-    private static final class MissingBitmap {
-        private static final Bitmap INSTANCE = Bitmap.createBitmap(
-            new int[] {
-                0xFF000000, 0xFFFF00FF,
-                0xFFFF00FF, 0xFF000000
-            }, 2, 2, Bitmap.Config.ARGB_8888
-        );
-    }
-
-    private Bitmap loadBitmap(final String fileName) {
-        final AssetManager assets = this.getAssets();
-        Bitmap map = null;
-        try (final InputStream is = assets.open(fileName)) {
-            map = BitmapFactory.decodeStream(is);
-            if (map == null) {
-                Log.e(TAG, "Unable to decode bitmap '" + fileName + "'");
-            }
-        } catch (final IOException e) {
-            Log.e(TAG, "Unable to read bitmap '" + fileName + "'", e);
-        }
-        if (map == null) {
-            return MissingBitmap.INSTANCE;
-        }
-        return map;
-    }
-
-    private Shader createTileShader(final Bitmap bitmap, final float size) {
-        final Shader shader = new BitmapShader(bitmap, Shader.TileMode.REPEAT, Shader.TileMode.REPEAT);
-        final Matrix local = new Matrix();
-        local.setScale(size / bitmap.getWidth(), size / bitmap.getHeight());
-        shader.setLocalMatrix(local);
-        return shader;
-    }
 
     @Override
     protected void onStart() {

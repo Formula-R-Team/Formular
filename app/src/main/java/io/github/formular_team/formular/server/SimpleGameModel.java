@@ -22,18 +22,23 @@ public final class SimpleGameModel implements GameModel {
     }
 
     @Override
-    public void step(final float delta) {
-        for (final KartModel kart : this.karts) {
-            kart.step(delta);
-        }
-        for (final Race race : this.races) {
-            race.step(delta);
-        }
+    public List<LineCurve> getWalls() {
+        return this.walls;
     }
 
     @Override
-    public List<LineCurve> getWalls() {
-        return this.walls;
+    public List<Driver> getDrivers() {
+        return this.drivers;
+    }
+
+    @Override
+    public void addDriver(final Driver driver) {
+        this.drivers.add(driver);
+    }
+
+    @Override
+    public List<KartModel> getKarts() {
+        return this.karts;
     }
 
     public void stop() {}
@@ -64,5 +69,23 @@ public final class SimpleGameModel implements GameModel {
             }
         }
         return null;
+    }
+
+    @Override
+    public void addRace(final Race race) {
+        this.races.add(race);
+    }
+
+    @Override
+    public void step(final float delta) {
+        for (final Driver driver : this.drivers) {
+            driver.step(delta);
+        }
+        for (final KartModel kart : this.karts) {
+            kart.step(delta);
+        }
+        for (final Race race : this.races) {
+            race.step(delta);
+        }
     }
 }

@@ -24,11 +24,13 @@ import java.util.List;
 public abstract class Curve {
     public List<Float> cacheArcLengths;
 
-    public boolean needsUpdate;
+    public abstract void setStart(final Vector2 point);
 
     public Vector2 getStart() {
         return this.getPoint(0.0F);
     }
+
+    public abstract void setEnd(final Vector2 point);
 
     public Vector2 getEnd() {
         return this.getPoint(1.0F);
@@ -79,8 +81,7 @@ public abstract class Curve {
     }
 
     public List<Float> getLengths(final int divisions) {
-        if (this.cacheArcLengths == null || this.cacheArcLengths.size() != (divisions + 1) || this.needsUpdate) {
-            this.needsUpdate = false;
+        if (this.cacheArcLengths == null || this.cacheArcLengths.size() != (divisions + 1)) {
             this.cacheArcLengths = new ArrayList<>();
             this.cacheArcLengths.add(0.0F);
             Vector2 last = this.getPoint(0.0F);
@@ -95,8 +96,8 @@ public abstract class Curve {
         return this.cacheArcLengths;
     }
 
-    public void updateArcLengths() {
-        this.needsUpdate = true;
+    public void refresh() {
+        this.cacheArcLengths = null;
         this.getLengths();
     }
 

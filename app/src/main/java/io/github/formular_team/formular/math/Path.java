@@ -1,4 +1,4 @@
-/*
+package io.github.formular_team.formular.math;/*
  * Copyright 2012 Alex Usachev, thothbot@gmail.com
  *
  * This file is part of Parallax project.
@@ -16,8 +16,6 @@
  * If not, see http://creativecommons.org/licenses/by/3.0/.
  */
 
-package io.github.formular_team.formular.math;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,14 +30,7 @@ public class Path extends CurvePath implements PathVisitor {
 
     public Path(final List<Vector2> points) {
         this();
-        this.fromPoints(points);
-    }
-
-    @Override
-    public Curve removeLast() {
-        final Curve last = super.removeLast();
-        this.actions.remove(this.actions.size() - 1);
-        return last;
+        this.fromPoints(points, false);
     }
 
     public void visit(final PathVisitor visitor) {
@@ -48,28 +39,35 @@ public class Path extends CurvePath implements PathVisitor {
         }
     }
 
-    public void fromPoints(final List<Vector2> vectors) {
+    public Path fromPoints(final List<Vector2> vectors, final boolean autoClose) {
         this.moveTo(vectors.get(0).getX(), vectors.get(0).getY());
         for (int n = 1; n < vectors.size(); n++) {
             this.lineTo(vectors.get(n).getX(), vectors.get(n).getY());
         }
+        if (autoClose && !this.isClosed()) {
+            this.closePath();
+        }
+        return this;
     }
 
     @Override
     public void moveTo(final float x, final float y) {
-        this.actions.add(new MoveToAction(x, y));
+        this.actions.add(new MoveToAction(new Vector2(x, y)));
     }
 
     @Override
     public void lineTo(final float x, final float y) {
-        final Action last = this.actions.get(this.actions.size() - 1);
-        final float x0 = last.getX();
-        final float y0 = last.getY();
-        final LineCurve curve = new LineCurve(new Vector2(x0, y0), new Vector2(x, y));
-        this.add(curve);
-        this.actions.add(new LineToAction(x, y));
+        this.lineTo(new Vector2(x, y));
     }
 
+    private void lineTo(final Vector2 point) {
+        final Action last = this.actions.get(this.actions.size() - 1);
+        if (!point.equals(last.getEnd())) {
+            final LineCurve curve = new LineCurve(last.getEnd(), point);
+            this.add(curve);
+            this.actions.add(new LineToAction(point));
+        }
+    }
 //	public void quadraticCurveTo(float aCPx, float aCPy, float aX, float aY) {
 //		List<Object> lastargs = this.actions.get(this.actions.size() - 1).args;
 //
@@ -88,14 +86,11 @@ public class Path extends CurvePath implements PathVisitor {
     @Override
     public void bezierCurveTo(final float aCP1x, final float aCP1y, final float aCP2x, final float aCP2y, final float aX, final float aY) {
         final Action last = this.actions.get(this.actions.size() - 1);
-        final float x0 = last.getX();
-        final float y0 = last.getY();
-        final CubicBezierCurve curve = new CubicBezierCurve(new Vector2(x0, y0),
-            new Vector2(aCP1x, aCP1y),
-            new Vector2(aCP2x, aCP2y),
-            new Vector2(aX, aY));
-        this.add(curve);
-        this.actions.add(new BezierCurveToAction(aCP1x, aCP1y, aCP2x, aCP2y, aX, aY));
+        final Vector2 v1 = new Vector2(aCP1x, aCP1y);
+        final Vector2 v2 = new Vector2(aCP2x, aCP2y);
+        final Vector2 v3 = new Vector2(aX, aY);
+        this.add(new CubicBezierCurve(last.getEnd(), v1, v2, v3));
+        this.actions.add(new BezierCurveToAction(v1, v2, v3));
     }
 
 //	public void splineThru(List<Vector2> pts) {
@@ -153,9 +148,14 @@ public class Path extends CurvePath implements PathVisitor {
 
     @Override
     public void closePath() {
-        if (!this.isClosed()) {
-            final Vector2 start = this.getStart();
-            this.lineTo(start.x, start.y);
+        final Vector2 s0 = this.getFirstCurve().getStart();
+        final Vector2 s1 = this.getLastCurve().getEnd();
+        if (s0 != s1) {
+            if (s0.equals(s1)) {
+                this.getLastCurve().setEnd(s0);
+            } else {
+                this.lineTo(this.getFirstCurve().getStart());
+            }
         }
     }
 
@@ -205,9 +205,9 @@ public class Path extends CurvePath implements PathVisitor {
                     final float tx = ShapeUtils.b3(t, x0, aCP1x, aCP2x, aX);
                     final float ty = ShapeUtils.b3(t, y0, aCP1y, aCP2y, aY);
                     final Vector2 point = new Vector2(tx, ty);
+                    this.last.copy(point);
                     points.add(point);
                 }
-                this.last.set(aX, aY);
             }
 
             @Override
@@ -289,7 +289,7 @@ public class Path extends CurvePath implements PathVisitor {
 //					}
         if (points.size() >= 2) {
             final Vector2 lastPoint = points.get(points.size() - 1);
-            final float epsilon = 1.0e-6F;
+            final float epsilon = 0.0000001F;
             if (Math.abs(lastPoint.getX() - points.get(0).getX()) < epsilon &&
                 Math.abs(lastPoint.getY() - points.get(0).getY()) < epsilon) {
                 points.remove(points.size() - 1);
@@ -301,118 +301,118 @@ public class Path extends CurvePath implements PathVisitor {
         return points;
     }
 
-    public List<Shape> toShapes() {
-        return this.toShapes(false, false);
-    }
-
-    public List<Shape> toShapes(final boolean isCCW, final boolean noHoles) {
-        final List<Shape> shapes = new ArrayList<>();
-        final List<Path> subPaths = this.extractSubPaths();
-        if (subPaths.isEmpty()) {
-            return shapes;
-        }
-        if (noHoles) {
-            return this.toShapesNoHoles(subPaths);
-        }
-        if (subPaths.size() == 1) {
-            shapes.add(new Shape().copy(subPaths.get(0)));
-            return shapes;
-        }
-        boolean holesFirst = !ShapeUtils.isClockWise(subPaths.get(0).getPoints());
-        holesFirst = isCCW != holesFirst;
-        final class ShapeHole {
-            private final Shape s;
-
-            private final List<Vector2> p;
-
-            private ShapeHole(final Shape s, final List<Vector2> p) {
-                this.s = s;
-                this.p = p;
-            }
-        }
-
-        final class PathHole {
-            private final Path h;
-
-            private final Vector2 p;
-
-            private PathHole(final Path h, final Vector2 p) {
-                this.h = h;
-                this.p = p;
-            }
-        }
-        final List<ShapeHole> newShapes = new ArrayList<>();
-        final List<List<PathHole>> betterShapeHoles = new ArrayList<>();
-        List<List<PathHole>> newShapeHoles = new ArrayList<>();
-        newShapeHoles.add(new ArrayList<>());
-        int mainIdx = 0;
-        for (int i = 0, l = subPaths.size(); i < l; i++) {
-            final Path tmpPath = subPaths.get(i);
-            final List<Vector2> tmpPoints = tmpPath.getPoints();
-            boolean solid = ShapeUtils.isClockWise(tmpPoints);
-            solid = isCCW != solid;
-            if (solid) {
-                if ((!holesFirst) && (mainIdx < newShapes.size() && newShapes.get(mainIdx) != null)) {
-                    mainIdx++;
-                }
-                final Shape s = new Shape().copy(tmpPath);
-                newShapes.add(mainIdx, new ShapeHole(s, tmpPoints));
-                if (holesFirst) {
-                    mainIdx++;
-                }
-                newShapeHoles.add(mainIdx, new ArrayList<>());
-            } else {
-                newShapeHoles.get(mainIdx).add(new PathHole(tmpPath, tmpPoints.get(0)));
-            }
-
-        }
-        // only Holes? -> probably all Shapes with wrong orientation
-        if (newShapes.get(0) == null) {
-            return this.toShapesNoHoles(subPaths);
-        }
-        if (newShapes.size() > 1) {
-            boolean ambiguous = false;
-            final List<Integer> toChange = new ArrayList<>();
-            for (int sIdx = 0, sLen = newShapes.size(); sIdx < sLen; sIdx++) {
-                betterShapeHoles.add(new ArrayList<>());
-            }
-            for (int sIdx = 0, sLen = newShapes.size(); sIdx < sLen; sIdx++) {
-                final List<PathHole> sho = newShapeHoles.get(sIdx);
-                for (int hIdx = 0; hIdx < sho.size(); hIdx++) {
-                    final PathHole ho = sho.get(hIdx);
-                    boolean holeUnassigned = true;
-                    for (int s2Idx = 0; s2Idx < newShapes.size(); s2Idx++) {
-                        if (this.isPointInsidePolygon(ho.p, newShapes.get(s2Idx).p)) {
-                            if (sIdx != s2Idx) {
-                                toChange.add(hIdx);
-                            }
-                            if (holeUnassigned) {
-                                holeUnassigned = false;
-                                betterShapeHoles.get(s2Idx).add(ho);
-                            } else {
-                                ambiguous = true;
-                            }
-                        }
-                    }
-                    if (holeUnassigned) {
-                        betterShapeHoles.get(sIdx).add(ho);
-                    }
-                }
-            }
-            if (!toChange.isEmpty() && !ambiguous) {
-                newShapeHoles = betterShapeHoles;
-            }
-        }
-        for (int i = 0, il = newShapes.size(); i < il; i++) {
-            final Shape tmpShape = newShapes.get(i).s;
-            shapes.add(tmpShape);
-            final List<PathHole> tmpHoles = newShapeHoles.get(i);
-            for (int j = 0, jl = tmpHoles.size(); j < jl; j++) {
-                tmpShape.getHoles().add(tmpHoles.get(j).h);
-            }
-        }
-        return shapes;
-    }
+//    public List<Shape> toShapes() {
+//        return this.toShapes(false, false);
+//    }
+//
+//    public List<Shape> toShapes(final boolean isCCW, final boolean noHoles) {
+//        final List<Shape> shapes = new ArrayList<>();
+//        final List<Path> subPaths = this.extractSubPaths();
+//        if (subPaths.isEmpty()) {
+//            return shapes;
+//        }
+//        if (noHoles) {
+//            return this.toShapesNoHoles(subPaths);
+//        }
+//        if (subPaths.size() == 1) {
+//            shapes.add(new Shape().copy(subPaths.get(0)));
+//            return shapes;
+//        }
+//        boolean holesFirst = !ShapeUtils.isClockWise(subPaths.get(0).getPoints());
+//        holesFirst = isCCW != holesFirst;
+//        final class ShapeHole {
+//            private final Shape s;
+//
+//            private final List<Vector2> p;
+//
+//            private ShapeHole(final Shape s, final List<Vector2> p) {
+//                this.s = s;
+//                this.p = p;
+//            }
+//        }
+//
+//        final class PathHole {
+//            private final Path h;
+//
+//            private final Vector2 p;
+//
+//            private PathHole(final Path h, final Vector2 p) {
+//                this.h = h;
+//                this.p = p;
+//            }
+//        }
+//        final List<ShapeHole> newShapes = new ArrayList<>();
+//        final List<List<PathHole>> betterShapeHoles = new ArrayList<>();
+//        List<List<PathHole>> newShapeHoles = new ArrayList<>();
+//        newShapeHoles.add(new ArrayList<>());
+//        int mainIdx = 0;
+//        for (int i = 0, l = subPaths.size(); i < l; i++) {
+//            final Path tmpPath = subPaths.get(i);
+//            final List<Vector2> tmpPoints = tmpPath.getPoints();
+//            boolean solid = ShapeUtils.isClockWise(tmpPoints);
+//            solid = isCCW != solid;
+//            if (solid) {
+//                if ((!holesFirst) && (mainIdx < newShapes.size() && newShapes.get(mainIdx) != null)) {
+//                    mainIdx++;
+//                }
+//                final Shape s = new Shape().copy(tmpPath);
+//                newShapes.add(mainIdx, new ShapeHole(s, tmpPoints));
+//                if (holesFirst) {
+//                    mainIdx++;
+//                }
+//                newShapeHoles.add(mainIdx, new ArrayList<>());
+//            } else {
+//                newShapeHoles.get(mainIdx).add(new PathHole(tmpPath, tmpPoints.get(0)));
+//            }
+//
+//        }
+//        // only Holes? -> probably all Shapes with wrong orientation
+//        if (newShapes.get(0) == null) {
+//            return this.toShapesNoHoles(subPaths);
+//        }
+//        if (newShapes.size() > 1) {
+//            boolean ambiguous = false;
+//            final List<Integer> toChange = new ArrayList<>();
+//            for (int sIdx = 0, sLen = newShapes.size(); sIdx < sLen; sIdx++) {
+//                betterShapeHoles.add(new ArrayList<>());
+//            }
+//            for (int sIdx = 0, sLen = newShapes.size(); sIdx < sLen; sIdx++) {
+//                final List<PathHole> sho = newShapeHoles.get(sIdx);
+//                for (int hIdx = 0; hIdx < sho.size(); hIdx++) {
+//                    final PathHole ho = sho.get(hIdx);
+//                    boolean holeUnassigned = true;
+//                    for (int s2Idx = 0; s2Idx < newShapes.size(); s2Idx++) {
+//                        if (this.isPointInsidePolygon(ho.p, newShapes.get(s2Idx).p)) {
+//                            if (sIdx != s2Idx) {
+//                                toChange.add(hIdx);
+//                            }
+//                            if (holeUnassigned) {
+//                                holeUnassigned = false;
+//                                betterShapeHoles.get(s2Idx).add(ho);
+//                            } else {
+//                                ambiguous = true;
+//                            }
+//                        }
+//                    }
+//                    if (holeUnassigned) {
+//                        betterShapeHoles.get(sIdx).add(ho);
+//                    }
+//                }
+//            }
+//            if (!toChange.isEmpty() && !ambiguous) {
+//                newShapeHoles = betterShapeHoles;
+//            }
+//        }
+//        for (int i = 0, il = newShapes.size(); i < il; i++) {
+//            final Shape tmpShape = newShapes.get(i).s;
+//            shapes.add(tmpShape);
+//            final List<PathHole> tmpHoles = newShapeHoles.get(i);
+//            for (int j = 0, jl = tmpHoles.size(); j < jl; j++) {
+//                tmpShape.getHoles().add(tmpHoles.get(j).h);
+//            }
+//        }
+//        return shapes;
+//    }
 
     private List<Path> extractSubPaths() {
         final List<Path> subPaths = new ArrayList<>();
@@ -450,13 +450,13 @@ public class Path extends CurvePath implements PathVisitor {
         return subPaths;
     }
 
-    private List<Shape> toShapesNoHoles(final List<Path> inSubpaths) {
-        final List<Shape> shapes = new ArrayList<>();
-        for (int i = 0; i < inSubpaths.size(); i++) {
-            shapes.add(new Shape().copy(inSubpaths.get(i)));
-        }
-        return shapes;
-    }
+//    private List<Shape> toShapesNoHoles(final List<Path> inSubpaths) {
+//        final List<Shape> shapes = new ArrayList<>();
+//        for (int i = 0; i < inSubpaths.size(); i++) {
+//            shapes.add(new Shape().copy(inSubpaths.get(i)));
+//        }
+//        return shapes;
+//    }
 
     private boolean isPointInsidePolygon(final Vector2 inPt, final List<Vector2> inPolygon) {
         final int polyLen = inPolygon.size();
@@ -593,22 +593,15 @@ public class Path extends CurvePath implements PathVisitor {
     }
 
     private interface Action {
-        float getX();
-
-        float getY();
+        Vector2 getEnd();
 
         void visit(final PathVisitor visitor);
     }
 
     private final class DummyAction implements Action {
         @Override
-        public float getY() {
-            return 0.0F;
-        }
-
-        @Override
-        public float getX() {
-            return 0.0F;
+        public Vector2 getEnd() {
+            return new Vector2();
         }
 
         @Override
@@ -616,92 +609,62 @@ public class Path extends CurvePath implements PathVisitor {
     }
 
     private final class MoveToAction implements Action {
-        private final float x;
+        private final Vector2 position;
 
-        private final float y;
-
-        private MoveToAction(final float x, final float y) {
-            this.x = x;
-            this.y = y;
+        private MoveToAction(final Vector2 position) {
+            this.position = position;
         }
 
         @Override
-        public float getX() {
-            return this.x;
-        }
-
-        @Override
-        public float getY() {
-            return this.y;
+        public Vector2 getEnd() {
+            return this.position;
         }
 
         @Override
         public void visit(final PathVisitor visitor) {
-            visitor.moveTo(this.x, this.y);
+            visitor.moveTo(this.position.getX(), this.position.getY());
         }
     }
 
     private final class LineToAction implements Action {
-        private final float x;
+        private final Vector2 position;
 
-        private final float y;
-
-        private LineToAction(final float x, final float y) {
-            this.x = x;
-            this.y = y;
+        private LineToAction(final Vector2 position) {
+            this.position = position;
         }
 
         @Override
-        public float getX() {
-            return this.x;
-        }
-
-        @Override
-        public float getY() {
-            return this.y;
+        public Vector2 getEnd() {
+            return this.position;
         }
 
         @Override
         public void visit(final PathVisitor visitor) {
-            visitor.lineTo(this.x, this.y);
+            visitor.lineTo(this.position.getX(), this.position.getY());
         }
     }
 
     private final class BezierCurveToAction implements Action {
-        private final float aCP1x;
+        private final Vector2 v1;
 
-        private final float aCP1y;
+        private final Vector2 v2;
 
-        private final float aCP2x;
+        private final Vector2 v3;
 
-        private final float aCP2y;
-
-        private final float aX;
-
-        private final float aY;
-
-        private BezierCurveToAction(final float aCP1x, final float aCP1y, final float aCP2x, final float aCP2y, final float aX, final float aY) {
-            this.aCP1x = aCP1x;
-            this.aCP1y = aCP1y;
-            this.aCP2x = aCP2x;
-            this.aCP2y = aCP2y;
-            this.aX = aX;
-            this.aY = aY;
+        private BezierCurveToAction(final Vector2 v1, final Vector2 v2, final Vector2 v3) {
+            this.v1 = v1;
+            this.v2 = v2;
+            this.v3 = v3;
         }
 
         @Override
-        public float getX() {
-            return this.aX;
-        }
-
-        @Override
-        public float getY() {
-            return this.aY;
+        public Vector2 getEnd() {
+            return this.v3;
         }
 
         @Override
         public void visit(final PathVisitor visitor) {
-            visitor.bezierCurveTo(this.aCP1x, this.aCP1y, this.aCP2x, this.aCP2y, this.aX, this.aY);
+            visitor.bezierCurveTo(this.v1.getX(), this.v1.getY(), this.v2.getX(), this.v2.getY(), this.v3.getX(), this.v3.getY());
         }
     }
 }
