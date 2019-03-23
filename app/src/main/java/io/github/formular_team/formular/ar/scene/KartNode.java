@@ -13,12 +13,15 @@ import io.github.formular_team.formular.server.KartModel;
 public class KartNode extends Node {
     private final Kart kart;
 
+    private final Node pivot;
+
     private final Vector3 localPosition = new Vector3();
 
     private final Quaternion localRotation = new Quaternion();
 
-    private KartNode(final KartModel kart) {
+    private KartNode(final KartModel kart, final Node pivot) {
         this.kart = kart;
+        this.pivot = pivot;
     }
 
     @Override
@@ -27,7 +30,7 @@ public class KartNode extends Node {
         this.localPosition.set(this.kart.getPosition().getX(), 0.0F, this.kart.getPosition().getY());
         this.localRotation.set(Vector3.up(), Mth.toDegrees(this.kart.getRotation()));
         this.setLocalPosition(this.localPosition);
-        this.setLocalRotation(this.localRotation);
+        this.pivot.setLocalRotation(this.localRotation);
     }
 
     private class WheelNode extends Node {
@@ -74,27 +77,29 @@ public class KartNode extends Node {
         final float x = 0.5F * kart.getDefinition().width;
         final float y = kart.getDefinition().wheelradius;
         final float z = 0.5F * kart.getDefinition().wheelbase;
-        final KartNode root = new KartNode(kart);
+        final Node pivotRoot = new Node();
+        final KartNode root = new KartNode(kart, pivotRoot);
+        pivotRoot.setParent(root);
         final Node body = new Node();
         body.setLocalPosition(new Vector3(0.0F, y, 0.0F));
         body.setRenderable(bodyModel);
-        body.setParent(root);
+        body.setParent(pivotRoot);
         final WheelNode frontLeft = root.new SteerWheelNode(Quaternion.axisAngle(Vector3.up(), 180.0F));
         frontLeft.setRenderable(wheelModel);
         frontLeft.setLocalPosition(new Vector3(-x, y, z));
-        frontLeft.setParent(root);
+        frontLeft.setParent(pivotRoot);
         final WheelNode frontRight = root.new SteerWheelNode(Quaternion.identity());
         frontRight.setRenderable(wheelModel);
         frontRight.setLocalPosition(new Vector3(x, y, z));
-        frontRight.setParent(root);
+        frontRight.setParent(pivotRoot);
         final WheelNode rearLeft = root.new WheelNode(Quaternion.axisAngle(Vector3.up(), 180.0F));
         rearLeft.setRenderable(wheelModel);
         rearLeft.setLocalPosition(new Vector3(-x, y, -z));
-        rearLeft.setParent(root);
+        rearLeft.setParent(pivotRoot);
         final WheelNode rearRight = root.new WheelNode(Quaternion.identity());
         rearRight.setRenderable(wheelModel);
         rearRight.setLocalPosition(new Vector3(x, y, -z));
-        rearRight.setParent(root);
+        rearRight.setParent(pivotRoot);
         return root;
     }
 }

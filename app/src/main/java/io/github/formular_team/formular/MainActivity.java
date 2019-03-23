@@ -28,13 +28,19 @@ import com.google.ar.sceneform.rendering.Color;
 import com.google.ar.sceneform.rendering.ModelRenderable;
 import com.google.ar.sceneform.ux.ArFragment;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Range;
 
 import java.util.List;
+import java.util.Locale;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 import io.github.formular_team.formular.ar.scene.CourseNode;
 import io.github.formular_team.formular.ar.scene.KartNode;
+import io.github.formular_team.formular.color.ColorPalette;
+import io.github.formular_team.formular.color.SimpleColorRange;
+import io.github.formular_team.formular.color.SimplePaletteFactory;
 import io.github.formular_team.formular.math.Bezier;
 import io.github.formular_team.formular.math.Float32Array;
 import io.github.formular_team.formular.math.LineCurve;
@@ -51,6 +57,7 @@ import io.github.formular_team.formular.math.Vector3;
 import io.github.formular_team.formular.server.Checkpoint;
 import io.github.formular_team.formular.server.Course;
 import io.github.formular_team.formular.server.CourseMetadata;
+import io.github.formular_team.formular.server.CpuDriver;
 import io.github.formular_team.formular.server.Driver;
 import io.github.formular_team.formular.server.FinishLineOptimizer;
 import io.github.formular_team.formular.server.KartDefinition;
@@ -277,7 +284,12 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
             }
+            // TODO: path failure feedback
             final Path captureSegments = this.findPath(capture);
+            if (!captureSegments.isClosed()) {
+                Log.v(TAG, "Curve not continuous");
+                return;
+            }
             final Path captureTrackPath = Bezier.fitBezierCurve(captureSegments, 8.0F);
 //                this.updateOverlayPath(capture, captureTrackPath);
             final Path courseTrackPath = new Path();
@@ -327,7 +339,7 @@ public class MainActivity extends AppCompatActivity {
                 float progress;
 
                 private void update() {
-                    MainActivity.this.lapView.setText("Lap " + (1 + lap) + ", " + ((int) (progress * 100)) + "%");
+                    MainActivity.this.lapView.setText(String.format(Locale.ROOT, "Lap %d, %.0f%%", (1 + this.lap), this.progress * 100.0F));
                 }
 
                 @Override
@@ -366,22 +378,22 @@ public class MainActivity extends AppCompatActivity {
             race.add(self);
 
             // Add cpus
-//            final ColorPalette cpuColors = SimplePaletteFactory.builder()
-//                .color(SimpleColorRange.builder()
-//                    .saturation(Range.closedOpen(0.5F, 0.95F))
-//                    .value(Range.closedOpen(0.5F, 1.0F))
-//                    .build()
-//                )
-//                .size(Range.singleton(3))
-//                .build()
-//                .create(new Random());
-//            for (int n = 0; n < cpuColors.size(); n++) {
-//                final KartModel kart = new KartModel(this.game, 1 + n, this.createKartDefinition());
-//                this.game.addKart(kart);
-//                final Driver driver = CpuDriver.create(User.create("CPU #" + n, cpuColors.get(n)), kart);
-//                this.game.addDriver(driver);
-//                race.add(driver);
-//            }
+            final ColorPalette cpuColors = SimplePaletteFactory.builder()
+                .color(SimpleColorRange.builder()
+                    .saturation(Range.closedOpen(0.5F, 0.95F))
+                    .value(Range.closedOpen(0.5F, 1.0F))
+                    .build()
+                )
+                .size(Range.singleton(3))
+                .build()
+                .create(new Random());
+            for (int n = 0; n < cpuColors.size(); n++) {
+                final KartModel kart = new KartModel(this.game, 1 + n, this.createKartDefinition());
+                this.game.addKart(kart);
+                final Driver driver = CpuDriver.create(User.create("CPU #" + (1 + n), cpuColors.get(n)), kart);
+                this.game.addDriver(driver);
+                race.add(driver);
+            }
 
             CourseNode.create(MainActivity.this, course).thenAccept(courseNode -> {
                 if (this.courseAnchor != null) {
@@ -397,7 +409,13 @@ public class MainActivity extends AppCompatActivity {
                 for (final Driver driver : this.game.getDrivers()) {
                     final ModelRenderable body = this.kartBody.makeCopy();
                     body.getMaterial(0).setFloat4("baseColor", new Color(0xFF000000 | driver.getUser().getColor()));
-                    courseNode.add(KartNode.create(driver.getVehicle(), body, this.kartWheel));
+                    final KartNode kart = KartNode.create(driver.getVehicle(), body, this.kartWheel);
+                    LabelFactory.create(this, driver.getUser() == this.user ? "YOU" : driver.getUser().getName(), 2.0F)
+                        .thenAccept(label -> {
+                            label.setLocalPosition(com.google.ar.sceneform.math.Vector3.up().scaled(2.0F));
+                            kart.addChild(label);
+                        });
+                    courseNode.add(kart);
                 }
             });
         }

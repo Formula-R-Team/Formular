@@ -19,8 +19,23 @@ import io.github.formular_team.formular.math.Vector2;
 public final class Geometries {
     private Geometries() {}
 
-    public static ModelRenderable lines(final List<io.github.formular_team.formular.math.Vector3> points, final float width, final Material material) {
+    public static ModelRenderable lines(final List<List<io.github.formular_team.formular.math.Vector3>> pointsLists, final float width, final List<Material> materials) {
         final ImmutableList.Builder<Vertex> vertices = ImmutableList.builder();
+        final ImmutableList.Builder<RenderableDefinition.Submesh> submeshes = ImmutableList.builder();
+        final Iterator<List<io.github.formular_team.formular.math.Vector3>> pointsIter = pointsLists.iterator();
+        final Iterator<Material> materialIter = materials.iterator();
+        int box = 0;
+        while (pointsIter.hasNext() && materialIter.hasNext()) {
+            box += lines(pointsIter.next(), materialIter.next(), width, vertices, submeshes, box);
+        }
+        final RenderableDefinition def = RenderableDefinition.builder()
+            .setVertices(vertices.build())
+            .setSubmeshes(submeshes.build())
+            .build();
+        return Futures.getUnchecked(ModelRenderable.builder().setSource(def).build());
+    }
+
+    private static int lines(final List<io.github.formular_team.formular.math.Vector3> points, final Material material, final float width, final ImmutableList.Builder<Vertex> vertices, final ImmutableList.Builder<RenderableDefinition.Submesh> submeshs, int box) {
         final ImmutableList.Builder<Integer> indices = ImmutableList.builder();
         final Vector3 worldUp = Vector3.up();
         final Vector3 worldRight = Vector3.right();
@@ -28,7 +43,7 @@ public final class Geometries {
         final Vertex.UvCoordinate uv10 = new Vertex.UvCoordinate(1.0F, 0.0F);
         final Vertex.UvCoordinate uv01 = new Vertex.UvCoordinate(0.0F, 1.0F);
         final Vertex.UvCoordinate uv11 = new Vertex.UvCoordinate(1.0F, 1.0F);
-        for (int i = 0, box = 0; i < points.size(); box++) {
+        for (int i = 0; i < points.size(); box++) {
             final Vector3 v0 = v(points.get(i++));
             final Vector3 v1 = v(points.get(i++));
             final Vector3 dir = Vector3.subtract(v1, v0);
@@ -90,15 +105,11 @@ public final class Geometries {
                 indices.add(box * 24 + 1 + 4 * j);
             }
         }
-        final RenderableDefinition.Submesh mesh = RenderableDefinition.Submesh.builder()
+        submeshs.add(RenderableDefinition.Submesh.builder()
             .setTriangleIndices(indices.build())
             .setMaterial(material)
-            .build();
-        final RenderableDefinition def = RenderableDefinition.builder()
-            .setVertices(vertices.build())
-            .setSubmeshes(ImmutableList.of(mesh))
-            .build();
-        return Futures.getUnchecked(ModelRenderable.builder().setSource(def).build());
+            .build());
+        return box;
     }
 
     public static ModelRenderable toRenderable(final List<Geometry> geometries, final Material material) {

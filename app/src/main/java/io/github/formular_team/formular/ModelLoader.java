@@ -61,7 +61,7 @@ public class ModelLoader {
     boolean loadModel(final int id, final int resourceId) {
         final MainActivity activity = this.owner.get();
         if (activity == null) {
-            Log.d(TAG, "Activity is null.  Cannot load model.");
+            Log.d(TAG, "Activity is null, cannot load model");
             return false;
         }
         final CompletableFuture<ModelRenderable> future =

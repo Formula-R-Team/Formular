@@ -24,6 +24,7 @@ public final class Race {
 
     private final List<Racer> racers = Lists.newArrayList();
 
+    private final float finishline;
     private final CheckPointNode[] checkpoints;
 
     private final State state = State.READY;
@@ -34,6 +35,7 @@ public final class Race {
         this.owner = owner;
         this.course = course;
         this.checkpoints = this.createCheckpointNodes(course.getTrack().getCheckpoints());
+        this.finishline = this.checkpoints[0].point.getPosition();
     }
 
     public void addListener(final RaceListener listener) {
@@ -52,6 +54,14 @@ public final class Race {
             last = nodes[index++] = (cur.prev = last).next = cur;
         }
         (first.prev = last).next = first;
+        CheckPointNode nextRequired = first;
+        for (CheckPointNode cur = last; cur != first; cur = cur.prev) {
+            cur.nextRequired = nextRequired;
+            if (cur.point.isRequired()) {
+                nextRequired = cur;
+            }
+        }
+        first.nextRequired = nextRequired;
         return nodes;
     }
 
@@ -59,8 +69,9 @@ public final class Race {
         final Track.Pose pose = this.course.getTrack().getStartPlacement(this.racers.size());
         driver.getVehicle().setPosition(pose.position);
         driver.getVehicle().setRotation(-pose.rotation);
-        this.racers.add(new Racer(driver));
-        this.onLapComplete(driver, 0);
+        final Racer racer = new Racer(driver);
+        this.racers.add(racer);
+        this.onLapComplete(driver, racer.lap);
     }
 
     public void step(final float delta) {
@@ -116,13 +127,11 @@ public final class Race {
 
         private int historyEnd;
 
-        private int index;
+        private CheckPointNode node;
 
         private int position;
 
         private int lap = 0;
-
-        private float check;
 
         private float progress;
 
@@ -130,29 +139,32 @@ public final class Race {
 
         private Racer(final Driver driver) {
             this.driver = driver;
+            this.node = Race.this.checkpoints[0];
         }
 
         private void step(final float delta) {
-            final Vector2 p = this.driver.getVehicle().getPosition();
-            final CheckPointNode cp = this.test(p);
+            final Vector2 pos = this.driver.getVehicle().getPosition();
+            final CheckPointNode cp = this.test(pos);
             if (cp != null) {
                 final int i = cp.point.getIndex();
                 if (i != this.history[Math.floorMod(this.historyEnd - 1, this.history.length)]) {
-                    final float progress = cp.point.getPosition();
-                    final float d = Mth.deltaMod(progress, this.check, 1.0F);
+                    final float progress = cp.getProgress();
+                    final float d = Mth.deltaMod(progress, this.node.getProgress(), 1.0F);
                     if (cp.point.isRequired() && d > 0.0F && d < 0.5F) {
-                        this.index = i;
-                        this.check = progress;
-                        if (this.index == 0) {
+                        this.node = cp;
+                        if (cp.point.getIndex() == 0) {
                             this.lap++;
                             Race.this.onLapComplete(this.driver, this.lap);
+                            if (this.lap == Race.this.configuration.getLapCount()) {
+                                Race.this.onEnd();
+                            }
                         }
                     }
                     this.history[this.historyEnd] = i;
                     this.travel();
                     this.historyEnd = Math.floorMod(this.historyEnd + 1, this.history.length);
                 }
-                this.progress(cp, p);
+                this.progress(cp, pos);
             }
         }
 
@@ -175,18 +187,25 @@ public final class Race {
             }
         }
 
-        private void progress(final CheckPointNode cp, final Vector2 p) {
-            final Vector2 uv = this.invBilinear(p, cp.point.getP1(), cp.point.getP2(), cp.next.point.getP2(), cp.next.point.getP1());
-            if (uv.getY() != -1.0F) {
-                final float p0 = cp.point.getPosition() - Race.this.checkpoints[0].point.getPosition();
-                final float p1 = cp.next.point.getPosition() - Race.this.checkpoints[0].point.getPosition();
-                this.progress = Mth.mod(p0 + Mth.deltaMod(p1, p0, 1.0F) * uv.getX(), 1.0F);
+        private void progress(final CheckPointNode cp, final Vector2 pos) {
+            final Vector2 uv = new Vector2();
+            if (this.ibilinear(pos, cp.point.getP1(), cp.point.getP2(), cp.next.point.getP2(), cp.next.point.getP1(), uv)) {
+                final float p0 = cp.getProgress();
+                final float p1 = cp.next.getProgress();
+                final float p = Mth.mod(p0 + Mth.deltaMod(p1, p0, 1.0F) * uv.getX(), 1.0F);
+                final CheckPointNode next = this.node.nextRequired;
+                if (next.point.getIndex() != 0 && p > Mth.mod(next.getProgress(), 1.0F)) {
+                    this.progress = p - 1.0F;
+                } else {
+                    this.progress = p;
+                }
                 Race.this.onProgress(this.driver, this.progress);
             }
         }
 
         // https://iquilezles.org/www/articles/ibilinear/ibilinear.htm
-        private Vector2 invBilinear(final Vector2 p, final Vector2 a, final Vector2 b, Vector2 c, Vector2 d) {
+        private boolean ibilinear(final Vector2 p, final Vector2 a, final Vector2 b, Vector2 c, Vector2 d, final Vector2 result) {
+            // TODO: better triangle case
             if (a.equals(d)) {
                 d = c.clone().sub(b).setLength(1e-3F).add(d);
             } else if (b.equals(c)) {
@@ -200,25 +219,27 @@ public final class Race {
             final float k1 = e.cross(f) + h.cross(g);
             final float k0 = h.cross(e);
             float w = k1 * k1 - 4.0F * k0 * k2;
-            if (w < 0.0F) {
-                return new Vector2(-1.0F, -1.0F);
+            if (w >= 0.0F) {
+                w = Mth.sqrt(w);
+                final float v1 = (-k1 - w) / (2.0F * k2);
+                final float u1 = (h.getX() - f.getX() * v1) / (e.getX() + g.getX() * v1);
+                final float v2 = (-k1 + w) / (2.0F * k2);
+                final float u2 = (h.getX() - f.getX() * v2) / (e.getX() + g.getX() * v2);
+                final float u;
+                final float v;
+                if (v1 >= 0.0F && v1 <= 1.0F && u1 >= 0.0F && u1 <= 1.0F) {
+                    u = u1;
+                    v = v1;
+                } else {
+                    u = u2;
+                    v = v2;
+                }
+                if (v >= 0.0F && v <= 1.0F && u >= 0.0F && u <= 1.0F) {
+                    result.set(u, v);
+                    return true;
+                }
             }
-            w = Mth.sqrt(w);
-            final float v1 = (-k1 - w) / (2.0F * k2);
-            final float u1 = (h.getX() - f.getX() * v1) / (e.getX() + g.getX() * v1);
-            final float v2 = (-k1 + w) / (2.0F * k2);
-            final float u2 = (h.getX() - f.getX() * v2) / (e.getX() + g.getX() * v2);
-            float u = u1;
-            float v = v1;
-            if (v < 0.0F || v > 1.0F || u < 0.0F || u > 1.0F) {
-                u = u2;
-                v = v2;
-            }
-            if (v < 0.0F || v > 1.0F || u < 0.0F || u > 1.0F) {
-                u = -1.0F;
-                v = -1.0F;
-            }
-            return new Vector2(u, v);
+            return false;
         }
 
 
@@ -238,6 +259,8 @@ public final class Race {
 
         private CheckPointNode prev, next;
 
+        private CheckPointNode nextRequired;
+
         private CheckPointNode(final Checkpoint point) {
             this.point = point;
         }
@@ -252,6 +275,10 @@ public final class Race {
 
         private float test(final Vector2 i0, final Vector2 p, final Vector2 i1) {
             return Math.signum(i1.clone().sub(i0).cross(p.clone().sub(i0)));
+        }
+
+        private float getProgress() {
+            return Mth.mod(this.point.getPosition() - Race.this.finishline, 1.0F);
         }
     }
 
