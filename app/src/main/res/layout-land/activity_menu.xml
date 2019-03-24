@@ -8,6 +8,20 @@
     tools:context=".menu.MenuActivity">
 
     <Button
+        android:id="@+id/btnOptions"
+        android:layout_width="215dp"
+        android:layout_height="53dp"
+        android:text="Options"
+        android:textSize="18sp"
+        android:textStyle="normal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.851" />
+
+    <Button
         android:id="@+id/btnStartGame"
         android:layout_width="281dp"
         android:layout_height="53dp"
@@ -27,26 +41,26 @@
         android:id="@+id/btnStartHosting"
         android:layout_width="214dp"
         android:layout_height="53dp"
+        android:layout_marginTop="5dp"
+        android:text="Host Game"
         android:textSize="18sp"
         android:textStyle="normal"
-        android:text="Host Game"
-        android:layout_marginTop="5dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.499"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/btnJoinGame"
-        app:layout_constraintVertical_bias="0.463" />
+        app:layout_constraintVertical_bias="0.321" />
 
     <Button
         android:id="@+id/btnJoinGame"
         android:layout_width="215dp"
         android:layout_height="53dp"
+        android:text="Join Game"
         android:textSize="18sp"
         android:textStyle="normal"
-        android:text="Join Game"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.581" />
+        app:layout_constraintTop_toTopOf="parent" />
 </android.support.constraint.ConstraintLayout>

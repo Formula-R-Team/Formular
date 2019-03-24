@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <EditTextPreference
+        android:id="@+id/prefName"
+        android:defaultValue="John Smith"
+        android:key="prefName"
+        android:selectAllOnFocus="true"
+        android:singleLine="true"
+        android:summary="John Smith"
+        android:title="Name" />
+    <com.skydoves.colorpickerpreference.ColorPickerPreference
+        android:key="prefColor"
+        android:title="Kart Color"
+        android:summary="changes color of your Kart"
+        app:preference_dialog_title="Select your Kart color"
+        app:preference_dialog_positive="Confirm"
+        app:preference_dialog_negative="Cancel"
+        app:preference_palette="@drawable/palette"
+        app:preference_selector="@drawable/wheel"
+        app:default_color="@color/colorPrimary"/>
+
+</PreferenceScreen>

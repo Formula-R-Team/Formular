@@ -1,10 +1,12 @@
 package io.github.formular_team.formular;
 
 import android.annotation.SuppressLint;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.media.Image;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Gravity;
@@ -92,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
 
     private KartModel kart;
 
-    private final User user = User.create("John Smith", 0xFFF0F0F0);
+    private User user;
 //    private ServerController controller;
 
     private TextView lapView, countView;
@@ -118,6 +120,10 @@ public class MainActivity extends AppCompatActivity {
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.setContentView(R.layout.activity_main);
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        String namePref = prefs.getString("prefName", "John Smith");
+        int colorPref = prefs.getInt("prefColor", 0xFFF0F0F0);
+        this.user = User.create(namePref, colorPref);
         this.lapView = this.findViewById(R.id.lap);
         this.countView = this.findViewById(R.id.count);
         this.arFragment = (ArFragment) this.getSupportFragmentManager().findFragmentById(R.id.ar);
@@ -153,20 +159,20 @@ public class MainActivity extends AppCompatActivity {
         final View joystick = this.findViewById(R.id.joystick);
         joystick.setOnTouchListener((v, event) -> {
             switch (event.getAction()) {
-            case MotionEvent.ACTION_DOWN:
-            case MotionEvent.ACTION_MOVE:
-                // TODO: flip x/y if landscape orientation
-                final float x = Mth.clamp(event.getX() / v.getWidth() * 2.0F - 1.0F, -1.0F, 1.0F);
-                final float y = Mth.clamp(event.getY() / v.getHeight() * 2.0F - 1.0F, -1.0F, 1.0F);
-                if (this.kart != null) {
-                    this.kart.getControlState().setSteeringAngle(-Mth.PI / 4.0F * x);
-                    this.kart.getControlState().setThrottle(-y * 40.0F);
-                    this.kart.getControlState().setBrake(0.0F);
-                }
-                return true;
-            case MotionEvent.ACTION_UP:
-                this.kart.getControlState().setBrake(100.0F);
-                return true;
+                case MotionEvent.ACTION_DOWN:
+                case MotionEvent.ACTION_MOVE:
+                    // TODO: flip x/y if landscape orientation
+                    final float x = Mth.clamp(event.getX() / v.getWidth() * 2.0F - 1.0F, -1.0F, 1.0F);
+                    final float y = Mth.clamp(event.getY() / v.getHeight() * 2.0F - 1.0F, -1.0F, 1.0F);
+                    if (this.kart != null) {
+                        this.kart.getControlState().setSteeringAngle(-Mth.PI / 4.0F * x);
+                        this.kart.getControlState().setThrottle(-y * 40.0F);
+                        this.kart.getControlState().setBrake(0.0F);
+                    }
+                    return true;
+                case MotionEvent.ACTION_UP:
+                    this.kart.getControlState().setBrake(100.0F);
+                    return true;
             }
             return false;
         });
@@ -204,8 +210,8 @@ public class MainActivity extends AppCompatActivity {
         final float[] planeTranslation = planePose.getTranslation();
         final io.github.formular_team.formular.math.Plane plane = new io.github.formular_team.formular.math.Plane();
         plane.setFromNormalAndCoplanarPoint(
-            new io.github.formular_team.formular.math.Vector3(planeNormal[0], planeNormal[1], planeNormal[2]),
-            new io.github.formular_team.formular.math.Vector3(planeTranslation[0], planeTranslation[1], planeTranslation[2])
+                new io.github.formular_team.formular.math.Vector3(planeNormal[0], planeNormal[1], planeNormal[2]),
+                new io.github.formular_team.formular.math.Vector3(planeTranslation[0], planeTranslation[1], planeTranslation[2])
         );
         final Camera camera = arFrame.getCamera();
         final Matrix4 projMat = new Matrix4();
@@ -224,13 +230,13 @@ public class MainActivity extends AppCompatActivity {
         in2.set(1, event.getY());
         final Float32Array out2 = Float32Array.create(2);
         arFrame.transformCoordinates2d(
-            Coordinates2d.VIEW, in2.getTypedBuffer(),
-            Coordinates2d.OPENGL_NORMALIZED_DEVICE_COORDINATES, out2.getTypedBuffer()
+                Coordinates2d.VIEW, in2.getTypedBuffer(),
+                Coordinates2d.OPENGL_NORMALIZED_DEVICE_COORDINATES, out2.getTypedBuffer()
         );
         final Ray pickRay = Projection.unproject(
-            new Vector2().fromArray(out2),
-            projMat,
-            viewMat
+                new Vector2().fromArray(out2),
+                projMat,
+                viewMat
         );
         final float captureRange = 0.20F;
         final float courseRoadWidth = 6.0F;
@@ -245,13 +251,13 @@ public class MainActivity extends AppCompatActivity {
             }
             final Function<Vector3, Vector2> planeToImage = in -> {
                 final io.github.formular_team.formular.math.Vector3 ndc = in.apply(planeAtPickModelMatrix)
-                    .apply(viewMat)
-                    .applyProjection(projMat);
+                        .apply(viewMat)
+                        .applyProjection(projMat);
                 in2.set(0, ndc.getX());
                 in2.set(1, ndc.getY());
                 arFrame.transformCoordinates2d(
-                    Coordinates2d.OPENGL_NORMALIZED_DEVICE_COORDINATES, in2.getTypedBuffer(),
-                    Coordinates2d.IMAGE_PIXELS, out2.getTypedBuffer()
+                        Coordinates2d.OPENGL_NORMALIZED_DEVICE_COORDINATES, in2.getTypedBuffer(),
+                        Coordinates2d.IMAGE_PIXELS, out2.getTypedBuffer()
                 );
                 return new Vector2().fromArray(out2);
             };
@@ -277,9 +283,9 @@ public class MainActivity extends AppCompatActivity {
             for (int y = 0; y < capture.getHeight(); y++) {
                 for (int x = 0; x < capture.getWidth(); x++) {
                     outputPos.set(
-                        captureRange * (2.0F * x / captureSize - 1.0F),
-                        0.0F,
-                        -captureRange * (2.0F * y / captureSize - 1.0F)
+                            captureRange * (2.0F * x / captureSize - 1.0F),
+                            0.0F,
+                            -captureRange * (2.0F * y / captureSize - 1.0F)
                     );
                     final Vector2 p = planeToImage.apply(outputPos).sub(min);
                     if (p.getX() >= 0.0F && p.getY() >= 0.0F && p.getX() < image.getWidth() && p.getY() < image.getHeight()) {
@@ -299,9 +305,9 @@ public class MainActivity extends AppCompatActivity {
             final Path courseTrackPath = new Path();
             final float courseCaptureSize = captureRange / courseToSceneScale;
             captureTrackPath.visit(new TransformingPathVisitor(courseTrackPath, new Matrix3()
-                .scale(2.0F / captureSize)
-                .translate(-1.0F, -1.0F)
-                .scale(courseCaptureSize, -courseCaptureSize)
+                    .scale(2.0F / captureSize)
+                    .translate(-1.0F, -1.0F)
+                    .scale(courseCaptureSize, -courseCaptureSize)
             ));
 
             final float finishLinePosition = new FinishLineOptimizer().get(courseTrackPath);
@@ -319,16 +325,16 @@ public class MainActivity extends AppCompatActivity {
             final float courseRange = courseCaptureSize + coursePad;
             final float courseSize = 2.0F * courseRange;
             final Track track = Track.builder()
-                .setRoadPath(courseTrackPath)
-                .setRoadWidth(courseRoadWidth)
-                .setRoadShape(new Shape()) // TODO: road shape
-                .setCheckpoints(checkpoints)
-                .build();
+                    .setRoadPath(courseTrackPath)
+                    .setRoadWidth(courseRoadWidth)
+                    .setRoadShape(new Shape()) // TODO: road shape
+                    .setCheckpoints(checkpoints)
+                    .build();
             final Course course = Course.builder()
-                .setMetadata(CourseMetadata.create(this.user, TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()), "My Circuit"))
-                .setSize(courseSize)
-                .setTrack(track)
-                .build();
+                    .setMetadata(CourseMetadata.create(this.user, TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()), "My Circuit"))
+                    .setSize(courseSize)
+                    .setTrack(track)
+                    .build();
             this.game = new SimpleGameModel();
             for (int i = 0; i < checkpoints.size(); i++) {
                 this.game.getWalls().add(new LineCurve(checkpoints.get(i).getP1(), checkpoints.get((i + 1) % checkpoints.size()).getP1()));
@@ -401,14 +407,14 @@ public class MainActivity extends AppCompatActivity {
 
             // Add cpus
             final ColorPalette cpuColors = SimplePaletteFactory.builder()
-                .color(SimpleColorRange.builder()
-                    .saturation(Range.closedOpen(0.5F, 0.95F))
-                    .value(Range.closedOpen(0.5F, 1.0F))
+                    .color(SimpleColorRange.builder()
+                            .saturation(Range.closedOpen(0.5F, 0.95F))
+                            .value(Range.closedOpen(0.5F, 1.0F))
+                            .build()
+                    )
+                    .size(Range.singleton(3))
                     .build()
-                )
-                .size(Range.singleton(3))
-                .build()
-                .create(new Random());
+                    .create(new Random());
             for (int n = 0; n < cpuColors.size(); n++) {
                 final KartModel kart = new KartModel(this.game, 1 + n, this.createKartDefinition());
                 this.game.addKart(kart);
@@ -434,10 +440,10 @@ public class MainActivity extends AppCompatActivity {
                     body.getMaterial(0).setFloat4("baseColor", new Color(0xFF000000 | driver.getUser().getColor()));
                     final KartNode kart = KartNode.create(driver.getVehicle(), body, this.kartWheel);
                     LabelFactory.create(this, driver.getUser() == this.user ? "YOU" : driver.getUser().getName(), 1.5F)
-                        .thenAccept(label -> {
-                            label.setLocalPosition(com.google.ar.sceneform.math.Vector3.up().scaled(1.8F));
-                            kart.addChild(label);
-                        });
+                            .thenAccept(label -> {
+                                label.setLocalPosition(com.google.ar.sceneform.math.Vector3.up().scaled(1.8F));
+                                kart.addChild(label);
+                            });
                     courseNode.add(kart);
                 }
             });
@@ -466,11 +472,12 @@ public class MainActivity extends AppCompatActivity {
         mapper.setTranslation(startX, startY);
         final Path capturePath = new Path();
         new PathReader(
-            new SimpleStepFunction(7, (0.5F * Mth.PI)),
-            new OrientFunction(3)
+                new SimpleStepFunction(7, (0.5F * Mth.PI)),
+                new OrientFunction(3)
         ).read(mapper, new TransformingPathVisitor(capturePath, mapper.getMatrix()));
         return capturePath;
     }
+
 
 //    private void updateOverlayPath(final Bitmap capture, final Path pathInCapture) {
 //        if (this.overlayView != null) {

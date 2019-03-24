@@ -21,6 +21,7 @@ import java.util.List;
 
 import io.github.formular_team.formular.MainActivity;
 import io.github.formular_team.formular.R;
+import io.github.formular_team.formular.SettingsActivity;
 import io.github.formular_team.formular.lobby.LobbyActivity;
 import io.github.formular_team.formular.wifidirect.*;
 import io.github.formular_team.formular.wifidirect.listeners.*;
@@ -29,7 +30,7 @@ import io.github.formular_team.formular.wifidirect.BroadcastReceiver;
 public class MenuActivity extends AppCompatActivity implements GroupCreationDialog.GroupCreationAcceptButtonListener {
     private static final String TAG = MenuActivity.class.getSimpleName();
 
-    Button btnStartGame, btnJoinGame, btnStartHosting;
+    Button btnStartGame, btnJoinGame, btnStartHosting, btnOptions;
 
     WifiManager wifiManager;
     WroupClient client;
@@ -74,9 +75,11 @@ public class MenuActivity extends AppCompatActivity implements GroupCreationDial
         this.btnStartGame = findViewById(R.id.btnStartGame);
         this.btnJoinGame = findViewById(R.id.btnJoinGame);
         this.btnStartHosting = findViewById(R.id.btnStartHosting);
+        this.btnOptions = findViewById(R.id.btnOptions);
 
         this.btnStartHosting.setOnClickListener(this::onBtnHostGame);
         this.btnJoinGame.setOnClickListener(this::onBtnJoinGame);
+        this.btnOptions.setOnClickListener(this::onBtnOptions);
 
         this.btnStartGame.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -85,6 +88,13 @@ public class MenuActivity extends AppCompatActivity implements GroupCreationDial
                 startActivity(intent);
             }
         });
+
+
+    }
+
+    private void onBtnOptions(final View view) {
+        Intent intent = new Intent(this, SettingsActivity.class);
+        startActivity(intent);
     }
 
     private void onBtnHostGame(final View view) {
