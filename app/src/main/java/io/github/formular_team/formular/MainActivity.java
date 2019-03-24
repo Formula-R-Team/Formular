@@ -10,6 +10,8 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -93,7 +95,7 @@ public class MainActivity extends AppCompatActivity {
     private final User user = User.create("John Smith", 0xFFF0F0F0);
 //    private ServerController controller;
 
-    private TextView lapView;
+    private TextView lapView, countView;
 
     private ArFragment arFragment;
 
@@ -117,6 +119,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         this.setContentView(R.layout.activity_main);
         this.lapView = this.findViewById(R.id.lap);
+        this.countView = this.findViewById(R.id.count);
         this.arFragment = (ArFragment) this.getSupportFragmentManager().findFragmentById(R.id.ar);
         this.modelLoader = new ModelLoader(this);
         this.modelLoader.loadModel(KART_BODY, R.raw.kart);
@@ -129,6 +132,7 @@ public class MainActivity extends AppCompatActivity {
                 view.getScene().removeChild(this.courseAnchor);
                 view.getPlaneRenderer().setVisible(true);
             }
+            this.game = null;
         });
         this.arFragment.getArSceneView().getScene().addOnUpdateListener(frameTime -> {
             if (this.game == null) {
@@ -343,6 +347,16 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 @Override
+                public void onCount(final int count) {
+                    MainActivity.this.countView.setText(count == 0 ? "GO!" : Integer.toString(count));
+                    final Animation anim = new AlphaAnimation(1.0F, 0.0F);
+                    anim.setDuration(1000);
+                    anim.setFillAfter(true);
+                    anim.setFillEnabled(true);
+                    MainActivity.this.countView.startAnimation(anim);
+                }
+
+                @Override
                 public void onProgress(final Driver driver, final float progress) {
                     if (self.equals(driver)) {
                         this.progress = progress;
@@ -402,6 +416,7 @@ public class MainActivity extends AppCompatActivity {
                 this.game.addDriver(driver);
                 race.add(driver);
             }
+            race.begin();
 
             CourseNode.create(MainActivity.this, course).thenAccept(courseNode -> {
                 if (this.courseAnchor != null) {

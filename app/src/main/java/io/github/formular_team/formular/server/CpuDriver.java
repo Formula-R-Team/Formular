@@ -1,7 +1,6 @@
 package io.github.formular_team.formular.server;
 
 import io.github.formular_team.formular.User;
-import io.github.formular_team.formular.server.net.Packet;
 
 public final class CpuDriver implements Driver {
     private final User user;
@@ -25,11 +24,6 @@ public final class CpuDriver implements Driver {
 
     @Override
     public void step(final float delta) {
-
-    }
-
-    @Override
-    public void send(final Packet packet) {
 
     }
 

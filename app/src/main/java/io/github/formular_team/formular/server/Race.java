@@ -30,9 +30,9 @@ public final class Race {
 
     private final float finishline;
 
-    private final CheckPointNode[] checkpoints;
+    private final Node[] checkpoints;
 
-    private final State state = State.READY;
+    private float countdown = -1.0F;
 
     private Race(final GameModel game, final RaceConfiguration configuration, final User owner, final Course course) {
         this.game = game;
@@ -40,29 +40,29 @@ public final class Race {
         this.owner = owner;
         this.course = course;
         this.checkpoints = this.createCheckpointNodes(course.getTrack().getCheckpoints());
-        this.finishline = this.checkpoints[0].point.getPosition();
+        this.finishline = this.checkpoints[0].cp.getPosition();
     }
 
     public void addListener(final RaceListener listener) {
         this.listeners.add(listener);
     }
 
-    private CheckPointNode[] createCheckpointNodes(final ImmutableList<Checkpoint> checkpoints) {
-        final CheckPointNode[] nodes = new CheckPointNode[checkpoints.size()];
+    private Node[] createCheckpointNodes(final ImmutableList<Checkpoint> checkpoints) {
+        final Node[] nodes = new Node[checkpoints.size()];
         final UnmodifiableIterator<Checkpoint> it = checkpoints.iterator();
-        final CheckPointNode first = new CheckPointNode(it.next());
+        final Node first = new Node(it.next());
         int index = 0;
         nodes[index++] = first;
-        CheckPointNode last = first;
+        Node last = first;
         while (it.hasNext()) {
-            final CheckPointNode cur = new CheckPointNode(it.next());
+            final Node cur = new Node(it.next());
             last = nodes[index++] = (cur.prev = last).next = cur;
         }
         (first.prev = last).next = first;
-        CheckPointNode nextRequired = first;
-        for (CheckPointNode cur = last; cur != first; cur = cur.prev) {
+        Node nextRequired = first;
+        for (Node cur = last; cur != first; cur = cur.prev) {
             cur.nextRequired = nextRequired;
-            if (cur.point.isRequired()) {
+            if (cur.cp.isRequired()) {
                 nextRequired = cur;
             }
         }
@@ -77,11 +77,20 @@ public final class Race {
         final Racer racer = new Racer(driver);
         this.racers.add(racer);
         this.sortedRacers.add(racer);
-        this.onLapComplete(driver, racer.lap);
         this.sort();
     }
 
     public void step(final float delta) {
+        if (this.countdown > -1.0F) {
+            final int c = (int) Mth.ceil(this.countdown);
+            this.countdown -= delta;
+            if ((int) Mth.ceil(this.countdown) != c) {
+                this.onCount(c);
+            }
+            if (this.countdown < -1.0F) {
+                this.countdown = -1.0F;
+            }
+        }
         for (final Racer racer : this.racers) {
             racer.step(delta);
         }
@@ -100,10 +109,17 @@ public final class Race {
         }
     }
 
+    private void onCount(final int count) {
+        for (final RaceListener listener : this.listeners) {
+            listener.onCount(count);
+        }
+    }
+
     private void onBegin() {
         for (final RaceListener listener : this.listeners) {
             listener.onBegin();
         }
+        this.countdown = 3.0F;
     }
 
     private void onEnd() {
@@ -146,14 +162,18 @@ public final class Race {
         return new Race(game, configuration, owner, course);
     }
 
+    public void begin() {
+        this.onBegin();
+    }
+
     private class Racer {
         private final Driver driver;
 
-        private CheckPointNode lastNode;
+        private Node lastNode;
 
         private float traveled = 0.0F, traveledRecord = 1.0F;
 
-        private CheckPointNode checkpoint;
+        private Node node;
 
         private int position;
 
@@ -163,19 +183,19 @@ public final class Race {
 
         private Racer(final Driver driver) {
             this.driver = driver;
-            this.checkpoint = Race.this.checkpoints[0];
+            this.node = Race.this.checkpoints[0];
         }
 
         private void step(final float delta) {
             final Vector2 pos = this.driver.getVehicle().getPosition();
-            final CheckPointNode cp = this.test(pos);
+            final Node cp = this.test(pos);
             if (cp != null) {
                 if (cp != this.lastNode) {
                     final float progress = cp.getProgress();
-                    final float d = Mth.deltaMod(progress, this.checkpoint.getProgress(), 1.0F);
-                    if (cp.point.isRequired() && d > 0.0F && d < 0.5F) {
-                        this.checkpoint = cp;
-                        if (cp.point.getIndex() == 0) {
+                    final float d = Mth.deltaMod(progress, this.node.getProgress(), 1.0F);
+                    if (cp.cp.isRequired() && d > 0.0F && d < 0.5F) {
+                        this.node = cp;
+                        if (cp.cp.getIndex() == 0) {
                             this.lap++;
                             Race.this.onLapComplete(this.driver, this.lap);
                             if (this.lap >= Race.this.configuration.getLapCount()) {
@@ -189,15 +209,15 @@ public final class Race {
             this.lastNode = cp;
         }
 
-        private float progress(final CheckPointNode cp, final Vector2 pos) {
+        private float progress(final Node cp, final Vector2 pos) {
             final Vector2 uv = new Vector2();
-            if (this.ibilinear(pos, cp.point.getP1(), cp.point.getP2(), cp.next.point.getP2(), cp.next.point.getP1(), uv)) {
+            if (this.ibilinear(pos, cp.cp.getP1(), cp.cp.getP2(), cp.next.cp.getP2(), cp.next.cp.getP1(), uv)) {
                 final float p0 = cp.getProgress();
                 final float p1 = cp.next.getProgress();
                 final float p = Mth.mod(p0 + Mth.deltaMod(p1, p0, 1.0F) * uv.getX(), 1.0F);
-                final CheckPointNode next = this.checkpoint.nextRequired;
+                final Node next = this.node.nextRequired;
                 final float progress = this.progress;
-                if (next.point.getIndex() != 0 && p > next.getProgress()) {
+                if (next.cp.getIndex() != 0 && p > next.getProgress()) {
                     this.progress = p - 1.0F;
                 } else {
                     this.progress = p;
@@ -260,10 +280,9 @@ public final class Race {
             return false;
         }
 
-
-            // TODO: more efficient testing with trees
-        private CheckPointNode test(final Vector2 p) {
-            for (final CheckPointNode cp : Race.this.checkpoints) {
+        // TODO: more efficient testing with trees
+        private Node test(final Vector2 p) {
+            for (final Node cp : Race.this.checkpoints) {
                 if (cp.contains(p)) {
                     return cp;
                 }
@@ -272,22 +291,22 @@ public final class Race {
         }
     }
 
-    private final class CheckPointNode {
-        private final Checkpoint point;
+    private final class Node {
+        private final Checkpoint cp;
 
-        private CheckPointNode prev, next;
+        private Node prev, next;
 
-        private CheckPointNode nextRequired;
+        private Node nextRequired;
 
-        private CheckPointNode(final Checkpoint point) {
-            this.point = point;
+        private Node(final Checkpoint cp) {
+            this.cp = cp;
         }
 
         public boolean contains(final Vector2 point) {
-            final float a = this.test(     this.point.getP1(), point,      this.point.getP2());
-            final float b = this.test(     this.point.getP2(), point, this.next.point.getP2());
-            final float c = this.test(this.next.point.getP2(), point, this.next.point.getP1());
-            final float d = this.test(this.next.point.getP1(), point,      this.point.getP1());
+            final float a = this.test(     this.cp.getP1(), point,      this.cp.getP2());
+            final float b = this.test(     this.cp.getP2(), point, this.next.cp.getP2());
+            final float c = this.test(this.next.cp.getP2(), point, this.next.cp.getP1());
+            final float d = this.test(this.next.cp.getP1(), point,      this.cp.getP1());
             return a == c && (b == 0.0F || a == b) && (d == 0.0F || a == d);
         }
 
@@ -296,13 +315,7 @@ public final class Race {
         }
 
         private float getProgress() {
-            return Mth.mod(this.point.getPosition() - Race.this.finishline, 1.0F);
+            return Mth.mod(this.cp.getPosition() - Race.this.finishline, 1.0F);
         }
-    }
-
-    private enum State {
-        READY,
-        RACING,
-        FINISHED
     }
 }

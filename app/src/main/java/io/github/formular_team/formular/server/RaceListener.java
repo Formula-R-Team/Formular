@@ -5,6 +5,8 @@ public interface RaceListener {
 
     default void onEnd() {}
 
+    default void onCount(final int count) {}
+
     default void onProgress(final Driver driver, final float progress) {}
 
     default void onPosition(final Driver driver, final int position) {}
