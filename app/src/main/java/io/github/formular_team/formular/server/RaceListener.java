@@ -7,7 +7,9 @@ public interface RaceListener {
 
     default void onProgress(final Driver driver, final float progress) {}
 
-    default void onLapComplete(final Driver driver, final int lap) {}
+    default void onPosition(final Driver driver, final int position) {}
+
+    default void onLap(final Driver driver, final int lap) {}
 
     default void onForward(final Driver driver) {}
 

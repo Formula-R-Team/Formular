@@ -4,7 +4,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.UnmodifiableIterator;
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.ListIterator;
 
 import io.github.formular_team.formular.GameModel;
 import io.github.formular_team.formular.User;
@@ -24,7 +26,10 @@ public final class Race {
 
     private final List<Racer> racers = Lists.newArrayList();
 
+    private final List<Racer> sortedRacers = Lists.newArrayList();
+
     private final float finishline;
+
     private final CheckPointNode[] checkpoints;
 
     private final State state = State.READY;
@@ -71,12 +76,27 @@ public final class Race {
         driver.getVehicle().setRotation(-pose.rotation);
         final Racer racer = new Racer(driver);
         this.racers.add(racer);
+        this.sortedRacers.add(racer);
         this.onLapComplete(driver, racer.lap);
+        this.sort();
     }
 
     public void step(final float delta) {
         for (final Racer racer : this.racers) {
             racer.step(delta);
+        }
+        this.sort();
+    }
+
+    private void sort() {
+        this.sortedRacers.sort(Comparator.<Racer, Float>comparing(r -> r.lap + r.progress).reversed());
+        for (final ListIterator<Racer> it = this.sortedRacers.listIterator(); it.hasNext(); ) {
+            final int p = it.nextIndex();
+            final Racer r = it.next();
+            if (r.position != p) {
+                r.position = p;
+                this.onPosition(r.driver, r.position);
+            }
         }
     }
 
@@ -98,9 +118,15 @@ public final class Race {
         }
     }
 
+    private void onPosition(final Driver driver, final int position) {
+        for (final RaceListener listener : this.listeners) {
+            listener.onPosition(driver, position);
+        }
+    }
+
     private void onLapComplete(final Driver driver, final int lap) {
         for (final RaceListener listener : this.listeners) {
-            listener.onLapComplete(driver, lap);
+            listener.onLap(driver, lap);
         }
     }
 

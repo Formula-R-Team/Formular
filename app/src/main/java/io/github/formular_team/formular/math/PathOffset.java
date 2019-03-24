@@ -45,18 +45,22 @@ public final class PathOffset {
         for (int i = 0; i < curvatureCount; i++) {
             curvature[i] = Math.abs(path.getCurvature(i / (float) curvatureCount + start) * (width * 0.5F));
         }
+        final float ta = 1.0F / steps;
         for (int i = 0; i < curvatureCount; i++) {
             if (curvature[i] > curvature[Math.floorMod(i - 1, curvatureCount)] && curvature[i] > curvature[Math.floorMod(i + 1, curvatureCount)]) {
                 final float t = i / (float) curvatureCount + start;
-                final Frame cur = frame(path, t, width);
-                cur.fixed = true;
-                tail = (cur.prev = tail).next = cur;
+                if (Mth.deltaMod(t, tail.t, 1.0F) > ta) {
+                    final Frame cur = frame(path, t, width);
+                    cur.fixed = true;
+                    tail = ((cur.prev = tail).next = cur);
+                } else {
+                    tail.fixed = true;
+                }
             }
         }
         final List<Frame> frames = Lists.newArrayList();
         if (tail != null) {
             (head.prev = tail).next = head;
-            final float ta = 1.0F / steps;
             for (Frame f = head; f != head.prev; f = f.next) {
                 subdivide(path, width, ta, f, f.next);
             }
@@ -75,9 +79,9 @@ public final class PathOffset {
     }
 
     private static void subdivide(final Curve path, final float width, final float target, final Frame f0, final Frame f1) {
-        final float delta = Mth.deltaMod(f0.t, f1.t, 1.0F);
+        final float delta = Mth.deltaMod(f1.t, f0.t, 1.0F);
         if (Math.abs(delta) > target) {
-            final float t = Mth.mod(f0.t - delta * 0.5F, 1.0F);
+            final float t = Mth.mod(f0.t + delta * 0.5F, 1.0F);
             final Frame cut = frame(path, t, width);
             (f0.next = cut).prev = f0;
             (f1.prev = cut).next = f1;
@@ -95,6 +99,9 @@ public final class PathOffset {
     }
 
     private static void resolve(final Frame f0, final Frame f1) {
+        if (f0.p1.equals(f1.p1) || f0.p2.equals(f1.p2)) {
+            return;
+        }
         final float o1 = test(f0.p1, f0.p2, f1.p1);
         final float o2 = test(f0.p1, f0.p2, f1.p2);
         final float o3 = test(f1.p1, f1.p2, f0.p1);
@@ -105,7 +112,7 @@ public final class PathOffset {
                     f0.p1.copy(f1.p1);
                 } else {
                     final Vector2 r = new Vector2();
-                    if (Intersections.lineLine(f0.p1, f0.prev.p1, f1.p1, f1.next.p1, r)) {
+                    if (!f0.fixed && Intersections.lineLine(f0.p1, f0.prev.p1, f1.p1, f1.next.p1, r)) {
                         f0.p1.copy(r);
                     }
                     f1.p1.copy(f0.p1);
@@ -115,7 +122,7 @@ public final class PathOffset {
                     f0.p2.copy(f1.p2);
                 } else {
                     final Vector2 r = new Vector2();
-                    if (Intersections.lineLine(f0.p2, f0.prev.p2, f1.p2, f1.next.p2, r)) {
+                    if (!f0.fixed && Intersections.lineLine(f0.p2, f0.prev.p2, f1.p2, f1.next.p2, r)) {
                         f0.p2.copy(r);
                     }
                     f1.p2.copy(f0.p2);

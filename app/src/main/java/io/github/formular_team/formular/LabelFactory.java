@@ -44,8 +44,4 @@ public final class LabelFactory {
                 return plate;
             });
     }
-
-    public static Vector3 projectPoint(final Vector3 normal, final Vector3 point) {
-        return Vector3.add(point, normal.scaled(-Vector3.dot(normal, point)));
-    }
 }

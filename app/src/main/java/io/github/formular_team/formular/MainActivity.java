@@ -308,8 +308,7 @@ public class MainActivity extends AppCompatActivity {
             final int requiredInterval = frames.size() / requiredCheckPointCount;
             for (int i = 0; i < frames.size(); i++) {
                 final PathOffset.Frame fm = frames.get(i);
-                final Checkpoint cp = new Checkpoint(fm.getP1(), fm.getP2(), i, fm.getT(), frames.size() - i > requiredInterval / 2 && i % requiredInterval == 0);
-                bob.add(cp);
+                bob.add(new Checkpoint(fm.getP1(), fm.getP2(), i, fm.getT(), frames.size() - i > requiredInterval && i % requiredInterval == 0));
             }
             final ImmutableList<Checkpoint> checkpoints = bob.build();
             final float coursePad = 2.0F;
@@ -335,25 +334,33 @@ public class MainActivity extends AppCompatActivity {
             final Driver self = SimpleDriver.create(this.user, this.kart);
             final Race race = Race.create(this.game, RaceConfiguration.create(3, 1), this.user, course);
             race.addListener(new RaceListener() {
-                int lap;
+                int lap, position;
                 float progress;
 
                 private void update() {
-                    MainActivity.this.lapView.setText(String.format(Locale.ROOT, "Lap %d, %.0f%%", (1 + this.lap), this.progress * 100.0F));
-                }
-
-                @Override
-                public void onLapComplete(final Driver driver, final int lap) {
-                    if (self.equals(driver)) {
-                        this.lap = lap;
-                        this.update();
-                    }
+                    MainActivity.this.lapView.setText(String.format(Locale.ROOT, "Lap %d%n%d%n%.0f%%", 1 + this.lap, 1 + this.position, this.progress * 100.0F));
                 }
 
                 @Override
                 public void onProgress(final Driver driver, final float progress) {
                     if (self.equals(driver)) {
                         this.progress = progress;
+                        this.update();
+                    }
+                }
+
+                @Override
+                public void onPosition(final Driver driver, final int position) {
+                    if (self.equals(driver)) {
+                        this.position = position;
+                        this.update();
+                    }
+                }
+
+                @Override
+                public void onLap(final Driver driver, final int lap) {
+                    if (self.equals(driver)) {
+                        this.lap = lap;
                         this.update();
                     }
                 }
@@ -410,9 +417,9 @@ public class MainActivity extends AppCompatActivity {
                     final ModelRenderable body = this.kartBody.makeCopy();
                     body.getMaterial(0).setFloat4("baseColor", new Color(0xFF000000 | driver.getUser().getColor()));
                     final KartNode kart = KartNode.create(driver.getVehicle(), body, this.kartWheel);
-                    LabelFactory.create(this, driver.getUser() == this.user ? "YOU" : driver.getUser().getName(), 2.0F)
+                    LabelFactory.create(this, driver.getUser() == this.user ? "YOU" : driver.getUser().getName(), 1.5F)
                         .thenAccept(label -> {
-                            label.setLocalPosition(com.google.ar.sceneform.math.Vector3.up().scaled(2.0F));
+                            label.setLocalPosition(com.google.ar.sceneform.math.Vector3.up().scaled(1.8F));
                             kart.addChild(label);
                         });
                     courseNode.add(kart);
