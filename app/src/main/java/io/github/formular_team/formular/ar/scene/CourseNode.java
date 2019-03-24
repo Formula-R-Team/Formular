@@ -15,7 +15,6 @@ import android.graphics.Shader;
 import android.util.Log;
 
 import com.google.ar.sceneform.Node;
-import com.google.ar.sceneform.rendering.Material;
 import com.google.ar.sceneform.rendering.MaterialFactory;
 import com.google.ar.sceneform.rendering.ModelRenderable;
 import com.google.ar.sceneform.rendering.Texture;
@@ -114,38 +113,38 @@ public class CourseNode extends Node {
                 node.addChild(trackNode);
                 return node;
             })
-            .thenCombine(MaterialFactory.makeOpaqueWithColor(context, new com.google.ar.sceneform.rendering.Color()), (node, material) -> {
-                final ImmutableList<Checkpoint> cc = track.getCheckpoints();
-                final ImmutableList.Builder<Vector3> points = ImmutableList.builder();
-                final ImmutableList.Builder<Vector3> pointsr = ImmutableList.builder();
-                material.setFloat("roughness", 1.0F);
-                material.setFloat("reflectance", 0.0F);
-                final Material checkpointMat = material.makeCopy();
-                checkpointMat.setFloat3("color", new com.google.ar.sceneform.rendering.Color(1.0F, 1.0F, 1.0F));
-                final Material checkpointrMat = material.makeCopy();
-                checkpointrMat.setFloat3("color", new com.google.ar.sceneform.rendering.Color(1.0F, 0.0F, 0.0F));
-                for (int n = 0; n < cc.size(); n++) {
-                    final Checkpoint f0 = cc.get(n);
-                    final Checkpoint f1 = cc.get(Math.floorMod(n + 1, cc.size()));
-                    final float height = track.getRoadWidth();
-                    (f0.isRequired() || cc.get(Math.floorMod(n - 1, cc.size())).isRequired() ? pointsr : points).add(
-                        Vector3.xz(f0.getP1(), 0.0F), Vector3.xz(f0.getP2(), 0.0F),
-                        Vector3.xz(f0.getP1(), height), Vector3.xz(f0.getP2(), height),
-                        Vector3.xz(f0.getP1(), 0.0F), Vector3.xz(f0.getP1(), height),
-                        Vector3.xz(f0.getP2(), 0.0F), Vector3.xz(f0.getP2(), height)
-                    );
-                    (f0.isRequired() ? pointsr : points).add(
-                        Vector3.xz(f0.getP1(), 0.0F), Vector3.xz(f1.getP1(), 0.0F),
-                        Vector3.xz(f0.getP2(), 0.0F), Vector3.xz(f1.getP2(), 0.0F),
-                        Vector3.xz(f0.getP1(), height), Vector3.xz(f1.getP1(), height),
-                        Vector3.xz(f0.getP2(), height), Vector3.xz(f1.getP2(), height)
-                    );
-                }
-                final Node frameNode = new Node();
-                frameNode.setRenderable(Geometries.lines(ImmutableList.of(points.build(), pointsr.build()), 0.05F, ImmutableList.of(checkpointMat, checkpointrMat)));
-                node.addChild(frameNode);
-                return node;
-            })
+//            .thenCombine(MaterialFactory.makeOpaqueWithColor(context, new com.google.ar.sceneform.rendering.Color()), (node, material) -> {
+//                final ImmutableList<Checkpoint> cc = track.getCheckpoints();
+//                final ImmutableList.Builder<Vector3> points = ImmutableList.builder();
+//                final ImmutableList.Builder<Vector3> pointsr = ImmutableList.builder();
+//                material.setFloat("roughness", 1.0F);
+//                material.setFloat("reflectance", 0.0F);
+//                final Material checkpointMat = material.makeCopy();
+//                checkpointMat.setFloat3("color", new com.google.ar.sceneform.rendering.Color(1.0F, 1.0F, 1.0F));
+//                final Material checkpointrMat = material.makeCopy();
+//                checkpointrMat.setFloat3("color", new com.google.ar.sceneform.rendering.Color(1.0F, 0.0F, 0.0F));
+//                for (int n = 0; n < cc.size(); n++) {
+//                    final Checkpoint f0 = cc.get(n);
+//                    final Checkpoint f1 = cc.get(Math.floorMod(n + 1, cc.size()));
+//                    final float height = track.getRoadWidth();
+//                    (f0.isRequired() || cc.get(Math.floorMod(n - 1, cc.size())).isRequired() ? pointsr : points).add(
+//                        Vector3.xz(f0.getP1(), 0.0F), Vector3.xz(f0.getP2(), 0.0F),
+//                        Vector3.xz(f0.getP1(), height), Vector3.xz(f0.getP2(), height),
+//                        Vector3.xz(f0.getP1(), 0.0F), Vector3.xz(f0.getP1(), height),
+//                        Vector3.xz(f0.getP2(), 0.0F), Vector3.xz(f0.getP2(), height)
+//                    );
+//                    (f0.isRequired() ? pointsr : points).add(
+//                        Vector3.xz(f0.getP1(), 0.0F), Vector3.xz(f1.getP1(), 0.0F),
+//                        Vector3.xz(f0.getP2(), 0.0F), Vector3.xz(f1.getP2(), 0.0F),
+//                        Vector3.xz(f0.getP1(), height), Vector3.xz(f1.getP1(), height),
+//                        Vector3.xz(f0.getP2(), height), Vector3.xz(f1.getP2(), height)
+//                    );
+//                }
+//                final Node frameNode = new Node();
+//                frameNode.setRenderable(Geometries.lines(ImmutableList.of(points.build(), pointsr.build()), 0.05F, ImmutableList.of(checkpointMat, checkpointrMat)));
+//                node.addChild(frameNode);
+//                return node;
+//            })
             ;
     }
 

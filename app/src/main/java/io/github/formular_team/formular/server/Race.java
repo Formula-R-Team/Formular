@@ -149,83 +149,75 @@ public final class Race {
     private class Racer {
         private final Driver driver;
 
-        private final int[] history = { -4, -3, -2, -1 };
+        private CheckPointNode lastNode;
 
-        private int historyEnd;
+        private float traveled = 0.0F, traveledRecord = 1.0F;
 
-        private CheckPointNode node;
+        private CheckPointNode checkpoint;
 
         private int position;
 
         private int lap = 0;
 
-        private float progress;
-
-        private int travel = 1;
+        private float progress = -0.5F;
 
         private Racer(final Driver driver) {
             this.driver = driver;
-            this.node = Race.this.checkpoints[0];
+            this.checkpoint = Race.this.checkpoints[0];
         }
 
         private void step(final float delta) {
             final Vector2 pos = this.driver.getVehicle().getPosition();
             final CheckPointNode cp = this.test(pos);
             if (cp != null) {
-                final int i = cp.point.getIndex();
-                if (i != this.history[Math.floorMod(this.historyEnd - 1, this.history.length)]) {
+                if (cp != this.lastNode) {
                     final float progress = cp.getProgress();
-                    final float d = Mth.deltaMod(progress, this.node.getProgress(), 1.0F);
+                    final float d = Mth.deltaMod(progress, this.checkpoint.getProgress(), 1.0F);
                     if (cp.point.isRequired() && d > 0.0F && d < 0.5F) {
-                        this.node = cp;
+                        this.checkpoint = cp;
                         if (cp.point.getIndex() == 0) {
                             this.lap++;
                             Race.this.onLapComplete(this.driver, this.lap);
-                            if (this.lap == Race.this.configuration.getLapCount()) {
+                            if (this.lap >= Race.this.configuration.getLapCount()) {
                                 Race.this.onEnd();
                             }
                         }
                     }
-                    this.history[this.historyEnd] = i;
-                    this.travel();
-                    this.historyEnd = Math.floorMod(this.historyEnd + 1, this.history.length);
                 }
-                this.progress(cp, pos);
+                this.travel(this.progress(cp, pos));
             }
+            this.lastNode = cp;
         }
 
-        private void travel() {
-            for (int i = 0; i < 1; i++) {
-                final int d = Integer.signum(Mth.deltaMod(
-                    this.history[Math.floorMod(this.historyEnd + i, this.history.length)],
-                    this.history[Math.floorMod(this.historyEnd - 1 + i, this.history.length)],
-                    Race.this.checkpoints.length
-                ));
-                if (this.travel == d) {
-                    return;
-                }
-            }
-            this.travel = -this.travel;
-            if (this.travel > 0) {
-                Race.this.onForward(this.driver);
-            } else {
-                Race.this.onReverse(this.driver);
-            }
-        }
-
-        private void progress(final CheckPointNode cp, final Vector2 pos) {
+        private float progress(final CheckPointNode cp, final Vector2 pos) {
             final Vector2 uv = new Vector2();
             if (this.ibilinear(pos, cp.point.getP1(), cp.point.getP2(), cp.next.point.getP2(), cp.next.point.getP1(), uv)) {
                 final float p0 = cp.getProgress();
                 final float p1 = cp.next.getProgress();
                 final float p = Mth.mod(p0 + Mth.deltaMod(p1, p0, 1.0F) * uv.getX(), 1.0F);
-                final CheckPointNode next = this.node.nextRequired;
-                if (next.point.getIndex() != 0 && p > Mth.mod(next.getProgress(), 1.0F)) {
+                final CheckPointNode next = this.checkpoint.nextRequired;
+                final float progress = this.progress;
+                if (next.point.getIndex() != 0 && p > next.getProgress()) {
                     this.progress = p - 1.0F;
                 } else {
                     this.progress = p;
                 }
                 Race.this.onProgress(this.driver, this.progress);
+                return Mth.deltaMod(this.progress, progress, 1.0F);
+            }
+            return 0.0F;
+        }
+
+        private void travel(final float progression) {
+            final float change = progression * Race.this.course.getTrack().getRoadPath().getLength();
+            this.traveled = Mth.clamp(this.traveled + change, -4.0F, 4.0F);
+            if (Math.abs(this.traveled) >= 4.0F && this.traveled * this.traveledRecord < 0.0F) {
+                this.traveledRecord = this.traveled;
+                if (this.traveled > 0.0F) {
+                    Race.this.onForward(this.driver);
+                } else {
+                    Race.this.onReverse(this.driver);
+                }
             }
         }
 

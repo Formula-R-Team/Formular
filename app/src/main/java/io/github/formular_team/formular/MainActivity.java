@@ -124,9 +124,9 @@ public class MainActivity extends AppCompatActivity {
         this.arFragment.setOnTapArPlaneListener(this::onPlaneTap);
         this.createJoystick();
         this.findViewById(R.id.reset).setOnClickListener(v -> {
-            if (MainActivity.this.courseAnchor != null) {
-                final ArSceneView view = MainActivity.this.arFragment.getArSceneView();
-                view.getScene().removeChild(MainActivity.this.courseAnchor);
+            if (this.courseAnchor != null) {
+                final ArSceneView view = this.arFragment.getArSceneView();
+                view.getScene().removeChild(this.courseAnchor);
                 view.getPlaneRenderer().setVisible(true);
             }
         });
@@ -139,7 +139,7 @@ public class MainActivity extends AppCompatActivity {
             final int steps = Math.max((int) (delta / targetDt), 1);
             final float dt = delta / steps;
             for (int n = 0; n < steps; n++) {
-                MainActivity.this.game.step(dt);
+                this.game.step(dt);
             }
         });
     }
@@ -321,7 +321,7 @@ public class MainActivity extends AppCompatActivity {
                 .setCheckpoints(checkpoints)
                 .build();
             final Course course = Course.builder()
-                .setMetadata(CourseMetadata.create(this.user, TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()), "Generic Circuit"))
+                .setMetadata(CourseMetadata.create(this.user, TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()), "My Circuit"))
                 .setSize(courseSize)
                 .setTrack(track)
                 .build();
@@ -336,9 +336,10 @@ public class MainActivity extends AppCompatActivity {
             race.addListener(new RaceListener() {
                 int lap, position;
                 float progress;
+                boolean wrongWay;
 
                 private void update() {
-                    MainActivity.this.lapView.setText(String.format(Locale.ROOT, "Lap %d%n%d%n%.0f%%", 1 + this.lap, 1 + this.position, this.progress * 100.0F));
+                    MainActivity.this.lapView.setText(String.format(Locale.ROOT, "Lap %d%n%d%n%.0f%%%n%s", 1 + this.lap, 1 + this.position, this.progress * 100.0F, this.wrongWay ? "Wrong way!" : ""));
                 }
 
                 @Override
@@ -368,14 +369,14 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onForward(final Driver driver) {
                     if (self.equals(driver)) {
-                        Log.i("waldo", "forward");
+                        this.wrongWay = false;
                     }
                 }
 
                 @Override
                 public void onReverse(final Driver driver) {
                     if (self.equals(driver)) {
-                        Log.i("waldo", "reverse");
+                        this.wrongWay = true;
                     }
                 }
             });
