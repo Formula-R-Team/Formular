@@ -34,6 +34,8 @@ public final class Race {
 
     private float countdown = -1.0F;
 
+    private boolean completed;
+
     private Race(final GameModel game, final RaceConfiguration configuration, final User owner, final Course course) {
         this.game = game;
         this.configuration = configuration;
@@ -95,6 +97,10 @@ public final class Race {
             racer.step(delta);
         }
         this.sort();
+        if (!this.completed && !this.sortedRacers.isEmpty() && this.sortedRacers.get(0).lap >= Race.this.configuration.getLapCount()) {
+            Race.this.onEnd();
+            this.completed = true;
+        }
     }
 
     private void sort() {
@@ -166,6 +172,10 @@ public final class Race {
         this.onBegin();
     }
 
+    private float getProgress(final float position) {
+        return Mth.mod(position - this.finishline, 1.0F);
+    }
+
     private class Racer {
         private final Driver driver;
 
@@ -198,9 +208,6 @@ public final class Race {
                         if (cp.cp.getIndex() == 0) {
                             this.lap++;
                             Race.this.onLapComplete(this.driver, this.lap);
-                            if (this.lap >= Race.this.configuration.getLapCount()) {
-                                Race.this.onEnd();
-                            }
                         }
                     }
                 }
@@ -212,18 +219,19 @@ public final class Race {
         private float progress(final Node cp, final Vector2 pos) {
             final Vector2 uv = new Vector2();
             if (this.ibilinear(pos, cp.cp.getP1(), cp.cp.getP2(), cp.next.cp.getP2(), cp.next.cp.getP1(), uv)) {
-                final float p0 = cp.getProgress();
-                final float p1 = cp.next.getProgress();
-                final float p = Mth.mod(p0 + Mth.deltaMod(p1, p0, 1.0F) * uv.getX(), 1.0F);
+                final float p0 = cp.getPosition();
+                final float p1 = cp.next.getPosition();
+                final float posi = Mth.mod(p0 + Mth.deltaMod(p1, p0, 1.0F) * uv.getY(), 1.0F);
+                final float prog = Race.this.getProgress(posi);
                 final Node next = this.node.nextRequired;
-                final float progress = this.progress;
-                if (next.cp.getIndex() != 0 && p > next.getProgress()) {
-                    this.progress = p - 1.0F;
+                final float lastProgress = this.progress;
+                if (next.cp.getIndex() != 0 && prog > next.getProgress()) {
+                    this.progress = prog - 1.0F;
                 } else {
-                    this.progress = p;
+                    this.progress = prog;
                 }
                 Race.this.onProgress(this.driver, this.progress);
-                return Mth.deltaMod(this.progress, progress, 1.0F);
+                return Mth.deltaMod(this.progress, lastProgress, 1.0F);
             }
             return 0.0F;
         }
@@ -256,25 +264,28 @@ public final class Race {
             final float k2 = g.cross(f);
             final float k1 = e.cross(f) + h.cross(g);
             final float k0 = h.cross(e);
+            if (Math.abs(k2) < 1e-3F) {
+                final float v = -k0 / k1;
+                if (v >= 0.0F && v <= 1.0F) {
+                    final float u  = (h.getX() * k1 + f.getX() * k0) / (e.getX() * k1 - g.getX() * k0);
+                    if (u >= 0.0F && u < 1.0F) {
+                        result.set(u, v);
+                        return true;
+                    }
+                }
+                return false;
+            }
             float w = k1 * k1 - 4.0F * k0 * k2;
             if (w >= 0.0F) {
                 w = Mth.sqrt(w);
                 final float v1 = (-k1 - w) / (2.0F * k2);
-                final float u1 = (h.getX() - f.getX() * v1) / (e.getX() + g.getX() * v1);
-                final float v2 = (-k1 + w) / (2.0F * k2);
-                final float u2 = (h.getX() - f.getX() * v2) / (e.getX() + g.getX() * v2);
-                final float u;
-                final float v;
-                if (v1 >= 0.0F && v1 <= 1.0F && u1 >= 0.0F && u1 <= 1.0F) {
-                    u = u1;
-                    v = v1;
-                } else {
-                    u = u2;
-                    v = v2;
-                }
-                if (v >= 0.0F && v <= 1.0F && u >= 0.0F && u <= 1.0F) {
-                    result.set(u, v);
-                    return true;
+                final float v = v1 >= 0.0F && v1 <= 1.0F ? v1 : (-k1 + w) / (2.0F * k2);
+                if (v >= 0.0F && v <= 1.0F) {
+                    final float u = (h.getX() - f.getX() * v) / (e.getX() + g.getX() * v);
+                    if (u >= 0.0F && u <= 1.0F) {
+                        result.set(u, v);
+                        return true;
+                    }
                 }
             }
             return false;
@@ -314,8 +325,12 @@ public final class Race {
             return Math.signum(i1.clone().sub(i0).cross(p.clone().sub(i0)));
         }
 
+        public float getPosition() {
+            return this.cp.getPosition();
+        }
+
         private float getProgress() {
-            return Mth.mod(this.cp.getPosition() - Race.this.finishline, 1.0F);
+            return Race.this.getProgress(this.getPosition());
         }
     }
 }

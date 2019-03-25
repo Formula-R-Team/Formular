@@ -174,6 +174,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 return true;
             case MotionEvent.ACTION_UP:
+                this.kart.getControlState().setThrottle(0.0F);
                 this.kart.getControlState().setBrake(100.0F);
                 return true;
             }
@@ -356,12 +357,31 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 @Override
+                public void onBegin() {
+
+                }
+
+                @Override
+                public void onEnd() {
+                    if (this.position == 0) {
+                        MainActivity.this.countView.setText("WINNER!");
+                        final Animation anim = new AlphaAnimation(1.0F, 0.0F);
+                        anim.setStartOffset(1500);
+                        anim.setDuration(1000);
+                        anim.setFillEnabled(true);
+                        anim.setFillBefore(true);
+                        anim.setFillAfter(true);
+                        MainActivity.this.countView.startAnimation(anim);
+                    }
+                }
+
+                @Override
                 public void onCount(final int count) {
                     MainActivity.this.countView.setText(count == 0 ? "GO!" : Integer.toString(count));
                     final Animation anim = new AlphaAnimation(1.0F, 0.0F);
                     anim.setDuration(1000);
-                    anim.setFillAfter(true);
                     anim.setFillEnabled(true);
+                    anim.setFillAfter(true);
                     MainActivity.this.countView.startAnimation(anim);
                 }
 

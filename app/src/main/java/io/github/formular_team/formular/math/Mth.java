@@ -20,6 +20,7 @@ public final class Mth {
     public static float deltaMod(final float a, final float b, final float n) {
         return mod(a - b + 0.5F * n, n) - 0.5F * n;
     }
+
     public static int deltaMod(final int a, final int b, final int n) {
         return Math.floorMod(a - b + n / 2, n) - n / 2;
     }
