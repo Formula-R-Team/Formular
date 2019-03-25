@@ -15,7 +15,7 @@
         tools:layout_editor_absoluteX="0dp"
         tools:layout_editor_absoluteY="16dp" />
 
-    <Button
+    <RelativeLayout
         android:id="@+id/joystick"
         android:layout_width="160dp"
         android:layout_height="160dp"
@@ -23,7 +23,14 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.9" />
+        app:layout_constraintVertical_bias="0.9">
+        <ImageView
+            android:id="@+id/wheel"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/steering_wheel"
+            android:scaleType="fitXY"/>
+    </RelativeLayout>
 
     <Button
         android:id="@+id/reset"

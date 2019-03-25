@@ -157,22 +157,25 @@ public class MainActivity extends AppCompatActivity {
     @SuppressLint("ClickableViewAccessibility")
     private void createJoystick() {
         final View joystick = this.findViewById(R.id.joystick);
+        final View wheel = this.findViewById(R.id.wheel);
         joystick.setOnTouchListener((v, event) -> {
             switch (event.getAction()) {
-                case MotionEvent.ACTION_DOWN:
-                case MotionEvent.ACTION_MOVE:
-                    // TODO: flip x/y if landscape orientation
-                    final float x = Mth.clamp(event.getX() / v.getWidth() * 2.0F - 1.0F, -1.0F, 1.0F);
-                    final float y = Mth.clamp(event.getY() / v.getHeight() * 2.0F - 1.0F, -1.0F, 1.0F);
-                    if (this.kart != null) {
-                        this.kart.getControlState().setSteeringAngle(-Mth.PI / 4.0F * x);
-                        this.kart.getControlState().setThrottle(-y * 40.0F);
-                        this.kart.getControlState().setBrake(0.0F);
-                    }
-                    return true;
-                case MotionEvent.ACTION_UP:
-                    this.kart.getControlState().setBrake(100.0F);
-                    return true;
+            case MotionEvent.ACTION_DOWN:
+            case MotionEvent.ACTION_MOVE:
+                // TODO: flip x/y if landscape orientation
+                final float x = Mth.clamp(event.getX() / v.getWidth() * 2.0F - 1.0F, -1.0F, 1.0F);
+                final float y = Mth.clamp(event.getY() / v.getHeight() * 2.0F - 1.0F, -1.0F, 1.0F);
+                if (this.kart != null) {
+                    final float angle = -Mth.PI / 4.0F * x;
+                    this.kart.getControlState().setSteeringAngle(angle);
+                    this.kart.getControlState().setThrottle(-y * 40.0F);
+                    this.kart.getControlState().setBrake(0.0F);
+                    wheel.setRotation(-Mth.toDegrees(angle));
+                }
+                return true;
+            case MotionEvent.ACTION_UP:
+                this.kart.getControlState().setBrake(100.0F);
+                return true;
             }
             return false;
         });
