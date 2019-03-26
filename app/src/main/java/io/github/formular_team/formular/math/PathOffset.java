@@ -2,7 +2,9 @@ package io.github.formular_team.formular.math;
 
 import com.google.common.collect.Lists;
 
+import java.util.Iterator;
 import java.util.List;
+import java.util.function.Function;
 
 import io.github.formular_team.formular.collision.Intersections;
 
@@ -10,13 +12,11 @@ public final class PathOffset {
     public static final class Frame {
         private final float t;
 
-        private Vector2 p1;
+        private final Vector2 p1;
 
-        private Vector2 p2;
+        private final Vector2 p2;
 
         private Frame next, prev;
-
-        private boolean fixed;
 
         private Frame(final float t, final Vector2 p1, final Vector2 p2) {
             this.t = t;
@@ -38,56 +38,22 @@ public final class PathOffset {
     }
 
     public static List<Frame> createFrames(final Curve path, final float start, final int steps, final float width) {
+        final List<Frame> frames = Lists.newArrayListWithExpectedSize(steps);
         final Frame head = frame(path, start, width);
+        frames.add(head);
         Frame tail = head;
-        final int curvatureCount = (int) (path.getLength() * 10.0F);
-        final float[] curvature = new float[curvatureCount];
-        for (int i = 0; i < curvatureCount; i++) {
-            curvature[i] = Math.abs(path.getCurvature(i / (float) curvatureCount + start) * (width * 0.5F));
+        for (int n = 1; n < steps; n++) {
+            final Frame cur = frame(path, start + n / (float) steps, width);
+            cur.prev = tail;
+            tail.next = cur;
+            frames.add(cur);
+            tail = cur;
         }
-        final float ta = 1.0F / steps;
-        for (int i = 0; i < curvatureCount; i++) {
-            if (curvature[i] > curvature[Math.floorMod(i - 1, curvatureCount)] && curvature[i] > curvature[Math.floorMod(i + 1, curvatureCount)]) {
-                final float t = i / (float) curvatureCount + start;
-                if (Mth.deltaMod(t, tail.t, 1.0F) > ta) {
-                    final Frame cur = frame(path, t, width);
-                    cur.fixed = true;
-                    tail = ((cur.prev = tail).next = cur);
-                } else {
-                    tail.fixed = true;
-                }
-            }
-        }
-        final List<Frame> frames = Lists.newArrayList();
-        if (tail != null) {
-            (head.prev = tail).next = head;
-            for (Frame f = head; f != head.prev; f = f.next) {
-                subdivide(path, width, ta, f, f.next);
-            }
-            subdivide(path, width, ta, head.prev, head);
-            for (Frame f = head; f != head.prev; f = f.next) {
-                resolve(f, f.next);
-            }
-            resolve(head.prev, head);
-            resolve(head, head.next);
-            for (Frame f = head; f != head.prev; f = f.next) {
-                frames.add(f);
-            }
-            frames.add(head.prev);
-        }
+        (head.prev = tail).next = head;
+        clip(frames, steps, f -> f.p1);
+        clip(frames, steps, f -> f.p2);
+        cull(frames);
         return frames;
-    }
-
-    private static void subdivide(final Curve path, final float width, final float target, final Frame f0, final Frame f1) {
-        final float delta = Mth.deltaMod(f1.t, f0.t, 1.0F);
-        if (Math.abs(delta) > target) {
-            final float t = Mth.mod(f0.t + delta * 0.5F, 1.0F);
-            final Frame cut = frame(path, t, width);
-            (f0.next = cut).prev = f0;
-            (f1.prev = cut).next = f1;
-            subdivide(path, width, target, f0, cut);
-            subdivide(path, width, target, cut, f1);
-        }
     }
 
     private static Frame frame(final Curve path, final float t, final float width) {
@@ -98,39 +64,35 @@ public final class PathOffset {
         return new Frame(t, v0, v1);
     }
 
-    private static void resolve(final Frame f0, final Frame f1) {
-        if (f0.p1.equals(f1.p1) || f0.p2.equals(f1.p2)) {
-            return;
-        }
-        final float o1 = test(f0.p1, f0.p2, f1.p1);
-        final float o2 = test(f0.p1, f0.p2, f1.p2);
-        final float o3 = test(f1.p1, f1.p2, f0.p1);
-        final float o4 = test(f1.p1, f1.p2, f0.p2);
-        if (o1 != o2 && o1 != 0.0F && o2 != 0.0F || o3 != o4 && o3 != 0.0F && o4 != 0.0F) {
-            if (o1 < 0.0F || o3 > 0.0F) {
-                if (f1.fixed && !f0.fixed) {
-                    f0.p1.copy(f1.p1);
-                } else {
-                    final Vector2 r = new Vector2();
-                    if (!f0.fixed && Intersections.lineLine(f0.p1, f0.prev.p1, f1.p1, f1.next.p1, r)) {
-                        f0.p1.copy(r);
+    private static void clip(final List<Frame> frames, final int steps, final Function<Frame, Vector2> p) {
+        outer:
+        for (int n = 0; n <= steps; ) {
+            final Frame f0 = frames.get(n % frames.size());
+            // TODO: adaptive lead
+            for (int lead = 2; lead <= 12; lead++) {
+                final int ln = n + lead;
+                final Frame f1 = frames.get(ln % frames.size());
+                final Vector2 r = new Vector2();
+                if (Intersections.lineLine(p.apply(f0), p.apply(f0.next), p.apply(f1), p.apply(f1.next), r)) {
+                    while (++n <= ln) {
+                        p.apply(frames.get(n % frames.size())).copy(r);
                     }
-                    f1.p1.copy(f0.p1);
-                }
-            } else {
-                if (f1.fixed && !f0.fixed) {
-                    f0.p2.copy(f1.p2);
-                } else {
-                    final Vector2 r = new Vector2();
-                    if (!f0.fixed && Intersections.lineLine(f0.p2, f0.prev.p2, f1.p2, f1.next.p2, r)) {
-                        f0.p2.copy(r);
-                    }
-                    f1.p2.copy(f0.p2);
+                    n--;
+                    continue outer;
                 }
             }
+            n++;
         }
     }
-    private static float test(final Vector2 i0, final Vector2 p, final Vector2 i1) {
-        return Math.signum(i1.clone().sub(i0).cross(p.clone().sub(i0)));
+
+    private static void cull(final List<Frame> frames) {
+        for (final Iterator<Frame> it = frames.iterator(); it.hasNext(); ) {
+            final Frame f = it.next();
+            if (f.p1.distanceTo(f.next.p1) < 1.0e-3F && f.p2.distanceTo(f.next.p2) < 1.0e-3F) {
+                f.prev.next = f.next;
+                f.next.prev = f.prev;
+                it.remove();
+            }
+        }
     }
 }
