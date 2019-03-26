@@ -1,4 +1,6 @@
-package io.github.formular_team.formular.server;
+package io.github.formular_team.formular.server.race;
+
+import io.github.formular_team.formular.server.Driver;
 
 public interface RaceListener {
     default void onBegin() {}

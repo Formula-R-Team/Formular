@@ -5,7 +5,7 @@ import java.util.List;
 import io.github.formular_team.formular.math.LineCurve;
 import io.github.formular_team.formular.server.Driver;
 import io.github.formular_team.formular.server.KartModel;
-import io.github.formular_team.formular.server.Race;
+import io.github.formular_team.formular.server.race.Race;
 
 public interface GameModel extends Game {
     // TODO quad tree

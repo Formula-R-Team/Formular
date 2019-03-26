@@ -7,6 +7,7 @@ import java.util.List;
 
 import io.github.formular_team.formular.GameModel;
 import io.github.formular_team.formular.math.LineCurve;
+import io.github.formular_team.formular.server.race.Race;
 
 public final class SimpleGameModel implements GameModel {
     private final List<Driver> drivers = Lists.newArrayList();

@@ -85,7 +85,7 @@ public class CourseNode extends Node {
                         .multiply(new Matrix4().makeScale(1.0F / course.getSize(), 1.0F / course.getSize(), 1.0F / course.getSize()))
                     );
                 }});
-                final float wallHeight = 0.3F, wallWidth = 0.25F;
+                final float wallHeight = 0.42F, wallWidth = 0.34F;
                 final CurvePath wallLeftPath = toCurve3(new Path().fromPoints(track.getCheckpoints().stream().map(Checkpoint::getP1).collect(Collectors.toList()), true));
                 final CurvePath wallRightPath = toCurve3(new Path().fromPoints(track.getCheckpoints().stream().map(Checkpoint::getP2).collect(Collectors.toList()), true));
                 final Shape wallShape = new Shape();

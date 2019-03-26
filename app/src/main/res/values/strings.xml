@@ -1,12 +1,11 @@
 <resources>
     <string name="app_name">Formula R</string>
 
-
     <!-- Main Menu -->
     <string name="btn_create_group">Create a group</string>
     <string name="btn_join_group">Join to group</string>
-    <string name="prgrss_searching_groups">Searching available groups...</string>
-    <string name="prgrss_connecting_to_group">Connecting to the group...</string>
+    <string name="prgrss_searching_groups">Searching available groups…</string>
+    <string name="prgrss_connecting_to_group">Connecting to the group…</string>
     <string name="toast_not_found_groups">Sorry, there aren\'t any group nearby</string>
 
     <!-- Group Creation Dialog -->
@@ -19,4 +18,14 @@
     <string name="device_connected">%s device connected to the group</string>
     <string name="device_disconnected">%s device disconnected from the group</string>
 
+    <string name="race_count_3">3</string>
+    <string name="race_count_2">2</string>
+    <string name="race_count_1">1</string>
+    <string name="race_count_0">GO!</string>
+    <string name="race_finish">FINISH!</string>
+    <string name="race_lap">Lap %d / %d</string>
+    <string name="race_position_0">1st</string>
+    <string name="race_position_1">2nd</string>
+    <string name="race_position_2">3rd</string>
+    <string name="race_position_default">%dth</string>
 </resources>

@@ -7,6 +7,7 @@ import android.graphics.Rect;
 import android.media.Image;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.StringRes;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Gravity;
@@ -32,19 +33,13 @@ import com.google.ar.sceneform.rendering.Color;
 import com.google.ar.sceneform.rendering.ModelRenderable;
 import com.google.ar.sceneform.ux.ArFragment;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Range;
 
 import java.util.List;
-import java.util.Locale;
-import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 import io.github.formular_team.formular.ar.scene.CourseNode;
 import io.github.formular_team.formular.ar.scene.KartNode;
-import io.github.formular_team.formular.color.ColorPalette;
-import io.github.formular_team.formular.color.SimpleColorRange;
-import io.github.formular_team.formular.color.SimplePaletteFactory;
 import io.github.formular_team.formular.math.Bezier;
 import io.github.formular_team.formular.math.Float32Array;
 import io.github.formular_team.formular.math.LineCurve;
@@ -61,17 +56,16 @@ import io.github.formular_team.formular.math.Vector3;
 import io.github.formular_team.formular.server.Checkpoint;
 import io.github.formular_team.formular.server.Course;
 import io.github.formular_team.formular.server.CourseMetadata;
-import io.github.formular_team.formular.server.CpuDriver;
 import io.github.formular_team.formular.server.Driver;
 import io.github.formular_team.formular.server.FinishLineOptimizer;
 import io.github.formular_team.formular.server.KartDefinition;
 import io.github.formular_team.formular.server.KartModel;
-import io.github.formular_team.formular.server.Race;
-import io.github.formular_team.formular.server.RaceConfiguration;
-import io.github.formular_team.formular.server.RaceListener;
 import io.github.formular_team.formular.server.SimpleDriver;
 import io.github.formular_team.formular.server.SimpleGameModel;
 import io.github.formular_team.formular.server.Track;
+import io.github.formular_team.formular.server.race.Race;
+import io.github.formular_team.formular.server.race.RaceConfiguration;
+import io.github.formular_team.formular.server.race.RaceListener;
 import io.github.formular_team.formular.trace.BilinearMapper;
 import io.github.formular_team.formular.trace.ImageLineMap;
 import io.github.formular_team.formular.trace.OrientFunction;
@@ -97,7 +91,7 @@ public class MainActivity extends AppCompatActivity {
     private User user;
 //    private ServerController controller;
 
-    private TextView lapView, countView;
+    private TextView lapView, positionView, countView;
 
     private ArFragment arFragment;
 
@@ -125,6 +119,7 @@ public class MainActivity extends AppCompatActivity {
         int colorPref = prefs.getInt("prefColor", 0xFFF0F0F0);
         this.user = User.create(namePref, colorPref);
         this.lapView = this.findViewById(R.id.lap);
+        this.positionView = this.findViewById(R.id.position);
         this.countView = this.findViewById(R.id.count);
         this.arFragment = (ArFragment) this.getSupportFragmentManager().findFragmentById(R.id.ar);
         this.modelLoader = new ModelLoader(this);
@@ -315,7 +310,7 @@ public class MainActivity extends AppCompatActivity {
             ));
 
             final float finishLinePosition = new FinishLineOptimizer().get(courseTrackPath);
-            final List<PathOffset.Frame> frames = PathOffset.createFrames(courseTrackPath, finishLinePosition, (int) (courseTrackPath.getLength() * 0.4F), courseRoadWidth + 1.0F);
+            final List<PathOffset.Frame> frames = PathOffset.createFrames(courseTrackPath, finishLinePosition, (int) (courseTrackPath.getLength() * 0.75F), courseRoadWidth + 0.75F);
 
             final int requiredCheckPointCount = 8;
             final ImmutableList.Builder<Checkpoint> bob = ImmutableList.builder();
@@ -346,25 +341,19 @@ public class MainActivity extends AppCompatActivity {
             }
             this.kart = new KartModel(this.game, 0, this.createKartDefinition());
             final Driver self = SimpleDriver.create(this.user, this.kart);
-            final Race race = Race.create(this.game, RaceConfiguration.create(3, 1), this.user, course);
+            final Race race = Race.create(this.game, RaceConfiguration.create(3), this.user, course);
             race.addListener(new RaceListener() {
                 int lap, position;
                 float progress;
                 boolean wrongWay;
 
-                private void update() {
-                    MainActivity.this.lapView.setText(String.format(Locale.ROOT, "Lap %d%n%d%n%.0f%%%n%s", 1 + this.lap, 1 + this.position, this.progress * 100.0F, this.wrongWay ? "Wrong way!" : ""));
-                }
-
                 @Override
-                public void onBegin() {
-
-                }
+                public void onBegin() {}
 
                 @Override
                 public void onEnd() {
                     if (this.position == 0) {
-                        MainActivity.this.countView.setText("WINNER!");
+                        MainActivity.this.countView.setText(R.string.race_finish);
                         final Animation anim = new AlphaAnimation(1.0F, 0.0F);
                         anim.setStartOffset(1500);
                         anim.setDuration(1000);
@@ -377,7 +366,7 @@ public class MainActivity extends AppCompatActivity {
 
                 @Override
                 public void onCount(final int count) {
-                    MainActivity.this.countView.setText(count == 0 ? "GO!" : Integer.toString(count));
+                    MainActivity.this.countView.setText(this.getCountResource(count));
                     final Animation anim = new AlphaAnimation(1.0F, 0.0F);
                     anim.setDuration(1000);
                     anim.setFillEnabled(true);
@@ -385,11 +374,26 @@ public class MainActivity extends AppCompatActivity {
                     MainActivity.this.countView.startAnimation(anim);
                 }
 
+                @StringRes
+                private int getCountResource(final int count) {
+                    switch (count) {
+                    case 0:
+                        return R.string.race_count_0;
+                    case 1:
+                        return R.string.race_count_1;
+                    case 2:
+                        return R.string.race_count_2;
+                    case 3:
+                        return R.string.race_count_3;
+                    default:
+                        return 0;
+                    }
+                }
+
                 @Override
                 public void onProgress(final Driver driver, final float progress) {
                     if (self.equals(driver)) {
                         this.progress = progress;
-                        this.update();
                     }
                 }
 
@@ -397,7 +401,21 @@ public class MainActivity extends AppCompatActivity {
                 public void onPosition(final Driver driver, final int position) {
                     if (self.equals(driver)) {
                         this.position = position;
-                        this.update();
+                        MainActivity.this.positionView.setText(MainActivity.this.getString(this.getPositionResource(position), position));
+                    }
+                }
+
+                @StringRes
+                private int getPositionResource(final int position) {
+                    switch (position) {
+                    case 0:
+                        return R.string.race_position_0;
+                    case 1:
+                        return R.string.race_position_1;
+                    case 2:
+                        return R.string.race_position_2;
+                    default:
+                        return R.string.race_position_default;
                     }
                 }
 
@@ -405,7 +423,8 @@ public class MainActivity extends AppCompatActivity {
                 public void onLap(final Driver driver, final int lap) {
                     if (self.equals(driver)) {
                         this.lap = lap;
-                        this.update();
+                        final int lapCount = race.getConfiguration().getLapCount();
+                        MainActivity.this.lapView.setText(MainActivity.this.getString(R.string.race_lap, Math.min(1 + this.lap, lapCount), lapCount));
                     }
                 }
 
@@ -429,23 +448,23 @@ public class MainActivity extends AppCompatActivity {
             race.add(self);
 
             // Add cpus
-            final ColorPalette cpuColors = SimplePaletteFactory.builder()
-                    .color(SimpleColorRange.builder()
-                            .saturation(Range.closedOpen(0.5F, 0.95F))
-                            .value(Range.closedOpen(0.5F, 1.0F))
-                            .build()
-                    )
-                    .size(Range.singleton(3))
-                    .build()
-                    .create(new Random());
-            for (int n = 0; n < cpuColors.size(); n++) {
-                final KartModel kart = new KartModel(this.game, 1 + n, this.createKartDefinition());
-                this.game.addKart(kart);
-                final Driver driver = CpuDriver.create(User.create("CPU #" + (1 + n), cpuColors.get(n)), kart);
-                this.game.addDriver(driver);
-                race.add(driver);
-            }
-            race.begin();
+//            final ColorPalette cpuColors = SimplePaletteFactory.builder()
+//                    .color(SimpleColorRange.builder()
+//                            .saturation(Range.closedOpen(0.5F, 0.95F))
+//                            .value(Range.closedOpen(0.5F, 1.0F))
+//                            .build()
+//                    )
+//                    .size(Range.singleton(3))
+//                    .build()
+//                    .create(new Random());
+//            for (int n = 0; n < cpuColors.size(); n++) {
+//                final KartModel kart = new KartModel(this.game, 1 + n, this.createKartDefinition());
+//                this.game.addKart(kart);
+//                final Driver driver = CpuDriver.create(User.create("CPU #" + (1 + n), cpuColors.get(n)), kart);
+//                this.game.addDriver(driver);
+//                race.add(driver);
+//            }
+            race.start();
 
             CourseNode.create(MainActivity.this, course).thenAccept(courseNode -> {
                 if (this.courseAnchor != null) {
