@@ -71,10 +71,10 @@ public class CourseNode extends Node {
             .thenApply(material -> {
                 final float roadHeight = 0.225F;
                 final Shape roadShape = new Shape();
-                roadShape.moveTo(0.0F, -0.5F * roadWidth);
-                roadShape.lineTo(-roadHeight, -0.5F * roadWidth);
-                roadShape.lineTo(-roadHeight, 0.5F * roadWidth);
-                roadShape.lineTo(0.0F, 0.5F * roadWidth);
+                roadShape.moveTo(0.0F, -0.5F * (roadWidth + 0.75F));
+                roadShape.lineTo(-roadHeight, -0.5F * (roadWidth + 0.75F));
+                roadShape.lineTo(-roadHeight, 0.5F * (roadWidth + 0.75F));
+                roadShape.lineTo(0.0F, 0.5F * (roadWidth + 0.75F));
                 roadShape.closePath();
                 final CurvePath trackPath3 = toCurve3(path);
                 final Geometry roadGeom = new ExtrudeGeometry(ImmutableList.of(roadShape), new ExtrudeGeometry.ExtrudeGeometryParameters() {{
@@ -90,8 +90,8 @@ public class CourseNode extends Node {
                 final CurvePath wallRightPath = toCurve3(new Path().fromPoints(track.getCheckpoints().stream().map(Checkpoint::getP2).collect(Collectors.toList()), true));
                 final Shape wallShape = new Shape();
                 wallShape.moveTo(-roadHeight, -wallWidth * 0.5F);
-                wallShape.lineTo(-roadHeight - wallHeight, -wallWidth * 0.5F);
-                wallShape.lineTo(-roadHeight - wallHeight, wallWidth * 0.5F);
+                wallShape.lineTo(-roadHeight - wallHeight, 0.0F);
+//                wallShape.lineTo(-roadHeight - wallHeight, wallWidth * 0.5F);
                 wallShape.lineTo(-roadHeight, wallWidth * 0.5F);
                 wallShape.closePath();
                 final Geometry wallLeft = new ExtrudeGeometry(ImmutableList.of(wallShape), new ExtrudeGeometry.ExtrudeGeometryParameters() {{
@@ -166,7 +166,7 @@ public class CourseNode extends Node {
         canvas.drawRect(-courseRange, -courseRange, courseRange, courseRange, paint);
         paint.setShader(null);
         // begin wall tile
-        paint.setColor(0xFF2C2A30);
+        paint.setColor(0xFF212023);
         canvas.drawRect(-courseRange, courseRange, -courseRange + wallTileSize, courseRange - wallTileSize, paint);
         // end wall tile
         final android.graphics.Path graphicsTrackPath = new android.graphics.Path();
