@@ -127,7 +127,7 @@ public final class Geometries {
                     vertices.add(Vertex.builder()
                         .setPosition(v(geometry.getVertices().get(v[i])))
                         .setUvCoordinate(new Vertex.UvCoordinate(uv.get(i).getX(), uv.get(i).getY()))
-                        .setNormal(v(face.getNormal()))
+                        .setNormal(v(face.getVertexNormals().isEmpty() ? face.getNormal() : face.getVertexNormals().get(i)))
                         .build()
                     );
                     indices.add(vertexIndex++);
