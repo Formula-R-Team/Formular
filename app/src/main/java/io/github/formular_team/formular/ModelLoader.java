@@ -40,16 +40,16 @@ public class ModelLoader {
 
     private final SparseArray<CompletableFuture<ModelRenderable>> futureSet = new SparseArray<>();
 
-    private final WeakReference<MainActivity> owner;
+    private final WeakReference<RaceActivity> owner;
 
-    ModelLoader(final MainActivity owner) {
+    ModelLoader(final RaceActivity owner) {
         this.owner = new WeakReference<>(owner);
     }
 
     /**
      * Starts loading the model specified. The result of the loading is returned asynchronously via
-     * {@link MainActivity#setRenderable(int, ModelRenderable)} or {@link
-     * MainActivity#onException(int, Throwable)}.
+     * {@link RaceActivity#setRenderable(int, ModelRenderable)} or {@link
+     * RaceActivity#onException(int, Throwable)}.
      *
      * <p>Multiple models can be loaded at a time by specifying separate ids to differentiate the
      * result on callback.
@@ -59,7 +59,7 @@ public class ModelLoader {
      * @return true if loading was initiated.
      */
     boolean loadModel(final int id, final int resourceId) {
-        final MainActivity activity = this.owner.get();
+        final RaceActivity activity = this.owner.get();
         if (activity == null) {
             Log.d(TAG, "Activity is null, cannot load model");
             return false;
@@ -77,7 +77,7 @@ public class ModelLoader {
     }
 
     ModelRenderable onException(final int id, final Throwable throwable) {
-        final MainActivity activity = this.owner.get();
+        final RaceActivity activity = this.owner.get();
         if (activity != null) {
             activity.onException(id, throwable);
         }
@@ -86,7 +86,7 @@ public class ModelLoader {
     }
 
     ModelRenderable setRenderable(final int id, final ModelRenderable modelRenderable) {
-        final MainActivity activity = this.owner.get();
+        final RaceActivity activity = this.owner.get();
         if (activity != null) {
             activity.setRenderable(id, modelRenderable);
         }

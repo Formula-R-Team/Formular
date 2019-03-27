@@ -13,7 +13,7 @@
         tools:layout_editor_absoluteX="141dp"
         tools:layout_editor_absoluteY="325dp" />
     <Button
-        android:id="@+id/joystick"
+        android:id="@+id/pad"
         android:layout_width="160dp"
         android:layout_height="160dp"
         app:layout_constraintBottom_toBottomOf="parent"

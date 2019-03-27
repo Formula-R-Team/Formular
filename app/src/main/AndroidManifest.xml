@@ -23,8 +23,8 @@
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
         <activity android:name=".lobby.LobbyActivity"></activity>
-        <activity android:name=".SettingsActivity"></activity>
-        <activity android:name=".MainActivity"
+        <activity android:name=".CustomizeActivity"></activity>
+        <activity android:name=".RaceActivity"
             android:configChanges="orientation|screenSize"
             android:exported="true"/>
 

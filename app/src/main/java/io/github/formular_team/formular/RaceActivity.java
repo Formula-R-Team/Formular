@@ -1,6 +1,5 @@
 package io.github.formular_team.formular;
 
-import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Rect;
@@ -13,6 +12,7 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.Window;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.widget.TextView;
@@ -73,8 +73,8 @@ import io.github.formular_team.formular.trace.PathReader;
 import io.github.formular_team.formular.trace.SimpleStepFunction;
 import io.github.formular_team.formular.trace.TransformMapper;
 
-public class MainActivity extends AppCompatActivity {
-    private static final String TAG = "MainActivity";
+public class RaceActivity extends AppCompatActivity {
+    private static final String TAG = RaceActivity.class.getSimpleName();
 
     private ModelLoader modelLoader;
 
@@ -89,9 +89,10 @@ public class MainActivity extends AppCompatActivity {
     private KartModel kart;
 
     private User user;
-//    private ServerController controller;
 
     private TextView lapView, positionView, countView;
+
+    private View pad, wheel;
 
     private ArFragment arFragment;
 
@@ -113,20 +114,22 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        this.supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
         this.setContentView(R.layout.activity_main);
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        String namePref = prefs.getString("prefName", "John Smith");
-        int colorPref = prefs.getInt("prefColor", 0xFFF0F0F0);
+        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        final String namePref = prefs.getString("prefName", "Player 1");
+        final int colorPref = prefs.getInt("prefColor", 0xFFFF007F);
         this.user = User.create(namePref, colorPref);
         this.lapView = this.findViewById(R.id.lap);
         this.positionView = this.findViewById(R.id.position);
         this.countView = this.findViewById(R.id.count);
+        this.pad = this.findViewById(R.id.pad);
+        this.wheel = this.findViewById(R.id.wheel);
         this.arFragment = (ArFragment) this.getSupportFragmentManager().findFragmentById(R.id.ar);
         this.modelLoader = new ModelLoader(this);
         this.modelLoader.loadModel(KART_BODY, R.raw.kart);
         this.modelLoader.loadModel(KART_WHEEL, R.raw.wheel);
         this.arFragment.setOnTapArPlaneListener(this::onPlaneTap);
-        this.createJoystick();
         this.findViewById(R.id.reset).setOnClickListener(v -> {
             if (this.courseAnchor != null) {
                 final ArSceneView view = this.arFragment.getArSceneView();
@@ -149,32 +152,18 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    @SuppressLint("ClickableViewAccessibility")
-    private void createJoystick() {
-        final View joystick = this.findViewById(R.id.joystick);
-        final View wheel = this.findViewById(R.id.wheel);
-        joystick.setOnTouchListener((v, event) -> {
-            switch (event.getAction()) {
-            case MotionEvent.ACTION_DOWN:
-            case MotionEvent.ACTION_MOVE:
-                // TODO: flip x/y if landscape orientation
-                final float x = Mth.clamp(event.getX() / v.getWidth() * 2.0F - 1.0F, -1.0F, 1.0F);
-                final float y = Mth.clamp(event.getY() / v.getHeight() * 2.0F - 1.0F, -1.0F, 1.0F);
-                if (this.kart != null) {
-                    final float angle = -Mth.PI / 4.0F * x;
-                    this.kart.getControlState().setSteeringAngle(angle);
-                    this.kart.getControlState().setThrottle(-y * 40.0F);
-                    this.kart.getControlState().setBrake(0.0F);
-                    wheel.setRotation(-Mth.toDegrees(angle));
-                }
-                return true;
-            case MotionEvent.ACTION_UP:
-                this.kart.getControlState().setThrottle(0.0F);
-                this.kart.getControlState().setBrake(100.0F);
-                return true;
-            }
-            return false;
-        });
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Activities.hideSystemUi(this);
+    }
+
+    @Override
+    public void onWindowFocusChanged(final boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (hasFocus) {
+            Activities.hideSystemUi(this);
+        }
     }
 
     private KartDefinition createKartDefinition() {
@@ -297,6 +286,14 @@ public class MainActivity extends AppCompatActivity {
             final Path captureSegments = this.findPath(capture);
             if (!captureSegments.isClosed()) {
                 Log.v(TAG, "Curve not continuous");
+                this.countView.setText("!");
+                final Animation anim = new AlphaAnimation(1.0F, 0.0F);
+                anim.setStartOffset(1500);
+                anim.setDuration(1000);
+                anim.setFillEnabled(true);
+                anim.setFillBefore(true);
+                anim.setFillAfter(true);
+                this.countView.startAnimation(anim);
                 return;
             }
             final Path captureTrackPath = Bezier.fitBezierCurve(captureSegments, 8.0F);
@@ -340,6 +337,7 @@ public class MainActivity extends AppCompatActivity {
                 this.game.getWalls().add(new LineCurve(checkpoints.get(i).getP2(), checkpoints.get((i + 1) % checkpoints.size()).getP2()));
             }
             this.kart = new KartModel(this.game, 0, this.createKartDefinition());
+            this.pad.setOnTouchListener(new KartController(this.kart, this.pad, this.wheel));
             final Driver self = SimpleDriver.create(this.user, this.kart);
             final Race race = Race.create(this.game, RaceConfiguration.create(3), this.user, course);
             race.addListener(new RaceListener() {
@@ -353,25 +351,25 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onEnd() {
                     if (this.position == 0) {
-                        MainActivity.this.countView.setText(R.string.race_finish);
+                        RaceActivity.this.countView.setText(R.string.race_finish);
                         final Animation anim = new AlphaAnimation(1.0F, 0.0F);
-                        anim.setStartOffset(1500);
+                        anim.setStartOffset(1200);
                         anim.setDuration(1000);
                         anim.setFillEnabled(true);
                         anim.setFillBefore(true);
                         anim.setFillAfter(true);
-                        MainActivity.this.countView.startAnimation(anim);
+                        RaceActivity.this.countView.startAnimation(anim);
                     }
                 }
 
                 @Override
                 public void onCount(final int count) {
-                    MainActivity.this.countView.setText(this.getCountResource(count));
+                    RaceActivity.this.countView.setText(this.getCountResource(count));
                     final Animation anim = new AlphaAnimation(1.0F, 0.0F);
                     anim.setDuration(1000);
                     anim.setFillEnabled(true);
                     anim.setFillAfter(true);
-                    MainActivity.this.countView.startAnimation(anim);
+                    RaceActivity.this.countView.startAnimation(anim);
                 }
 
                 @StringRes
@@ -401,7 +399,7 @@ public class MainActivity extends AppCompatActivity {
                 public void onPosition(final Driver driver, final int position) {
                     if (self.equals(driver)) {
                         this.position = position;
-                        MainActivity.this.positionView.setText(MainActivity.this.getString(this.getPositionResource(position), position));
+                        RaceActivity.this.positionView.setText(RaceActivity.this.getString(this.getPositionResource(position), position));
                     }
                 }
 
@@ -424,7 +422,7 @@ public class MainActivity extends AppCompatActivity {
                     if (self.equals(driver)) {
                         this.lap = lap;
                         final int lapCount = race.getConfiguration().getLapCount();
-                        MainActivity.this.lapView.setText(MainActivity.this.getString(R.string.race_lap, Math.min(1 + this.lap, lapCount), lapCount));
+                        RaceActivity.this.lapView.setText(RaceActivity.this.getString(R.string.race_lap, Math.min(1 + this.lap, lapCount), lapCount));
                     }
                 }
 
@@ -466,10 +464,11 @@ public class MainActivity extends AppCompatActivity {
 //            }
             race.start();
 
-            CourseNode.create(MainActivity.this, course).thenAccept(courseNode -> {
+            CourseNode.create(RaceActivity.this, course).thenAccept(courseNode -> {
                 if (this.courseAnchor != null) {
                     view.getScene().removeChild(this.courseAnchor);
                 }
+                view.getPlaneRenderer().setVisible(false);
                 final Anchor anchor = scenePlane.createAnchor(planeAtPick);
                 this.courseAnchor = new AnchorNode(anchor);
                 this.courseAnchor.setLocalScale(com.google.ar.sceneform.math.Vector3.one().scaled(courseToSceneScale));
@@ -554,14 +553,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-//        final Game game = new Game();
-//        this.controller = ServerController.create(SimpleServer.create(game, 20));
-//        this.controller.start();
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-//        this.controller.stop();
     }
 }

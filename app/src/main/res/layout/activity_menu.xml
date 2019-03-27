@@ -4,65 +4,41 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/ic_menu_s8_portrait"
     tools:context=".menu.MenuActivity">
-
-    <Button
-        android:id="@+id/btnOptions"
-        android:layout_width="215dp"
-        android:layout_height="53dp"
-        android:text="Options"
-        android:textSize="18sp"
-        android:textStyle="normal"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.489"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.653" />
-
-    <Button
-        android:id="@+id/btnStartGame"
-        android:layout_width="281dp"
-        android:layout_height="53dp"
-        android:textSize="18sp"
-        android:textStyle="normal"
-        android:text="Start Single Player Game"
-        android:backgroundTint="?attr/colorControlNormal"
-        android:textColor="@android:color/background_light"
-        android:fontFamily="sans-serif-condensed"
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/app_name"
+        android:textSize="50sp"
+        android:textStyle="bold"
+        android:textAllCaps="true"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.269" />
-
-    <Button
-        android:id="@+id/btnStartHosting"
-        android:layout_width="214dp"
-        android:layout_height="53dp"
-        android:text="Host Game"
-        android:textSize="18sp"
-        android:textStyle="normal"
+        app:layout_constraintVertical_bias="0.2"/>
+    <LinearLayout
+        android:layout_width="260dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.487"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btnJoinGame"
-        app:layout_constraintVertical_bias="0.043" />
-
-    <Button
-        android:id="@+id/btnJoinGame"
-        android:layout_width="215dp"
-        android:layout_height="53dp"
-        android:text="Join Game"
-        android:textSize="18sp"
-        android:textStyle="normal"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.494"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.449" />
-
+        app:layout_constraintTop_toTopOf="parent">
+        <Button
+            android:id="@+id/btnRace"
+            android:layout_width="match_parent"
+            android:layout_height="70dp"
+            android:textSize="30sp"
+            android:textStyle="normal"
+            android:text="@string/race"
+            android:layout_marginBottom="8dp"/>
+        <Button
+            android:id="@+id/btnCustomize"
+            android:layout_width="match_parent"
+            android:layout_height="70dp"
+            android:text="@string/customize"
+            android:textSize="30sp"
+            android:textStyle="normal" />
+    </LinearLayout>
 </android.support.constraint.ConstraintLayout>

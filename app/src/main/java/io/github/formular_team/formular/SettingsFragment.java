@@ -3,9 +3,7 @@ package io.github.formular_team.formular;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
-import android.preference.CheckBoxPreference;
 import android.preference.EditTextPreference;
-import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.support.v4.app.Fragment;
@@ -22,38 +20,33 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
 
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-
+    public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        addPreferencesFromResource(R.xml.preferences);
+        this.addPreferencesFromResource(R.xml.preferences);
 
-        SharedPreferences prefs = getPreferenceScreen().getSharedPreferences() ;
-        onSharedPreferenceChanged(prefs, "prefName") ;
+        final SharedPreferences prefs = this.getPreferenceScreen().getSharedPreferences() ;
+        this.onSharedPreferenceChanged(prefs, "prefName") ;
     }
 
     @Override
-    public void onResume()
-    {
+    public void onResume() {
         super.onResume();
-        getPreferenceScreen().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
+        this.getPreferenceScreen().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
     }
 
     @Override
-    public void onPause()
-    {
+    public void onPause() {
         super.onPause();
-        getPreferenceScreen().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
+        this.getPreferenceScreen().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
     }
 
     @Override
-    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key)
-    {
-        Preference pref = findPreference(key);
-        switch(key)
-        {
-            case "prefName":
-                EditTextPreference thisPref = (EditTextPreference) pref;
-                thisPref.setSummary(thisPref.getText());
+    public void onSharedPreferenceChanged(final SharedPreferences sharedPreferences, final String key) {
+        final Preference pref = this.findPreference(key);
+        switch(key) {
+        case "prefName":
+            final EditTextPreference thisPref = (EditTextPreference) pref;
+            thisPref.setSummary(thisPref.getText());
 
         }
     }
