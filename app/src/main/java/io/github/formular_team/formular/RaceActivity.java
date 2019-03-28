@@ -226,7 +226,7 @@ public class RaceActivity extends AppCompatActivity {
                 projMat,
                 viewMat
         );
-        final float captureRange = 0.20F;
+        final float captureRange = 0.25F;
         final float courseRoadWidth = 6.0F;
         final float courseToSceneScale = 0.05F / courseRoadWidth;
         final io.github.formular_team.formular.math.Vector3 v = new io.github.formular_team.formular.math.Vector3();
@@ -331,6 +331,18 @@ public class RaceActivity extends AppCompatActivity {
                     .setSize(courseSize)
                     .setTrack(track)
                     .build();
+            if (course.getTrack().getCheckpoints().size() < 5) {
+                Log.v(TAG, "Curve too short");
+                this.countView.setText("!!");
+                final Animation anim = new AlphaAnimation(1.0F, 0.0F);
+                anim.setStartOffset(1500);
+                anim.setDuration(1000);
+                anim.setFillEnabled(true);
+                anim.setFillBefore(true);
+                anim.setFillAfter(true);
+                this.countView.startAnimation(anim);
+                return;
+            }
             this.game = new SimpleGameModel();
             for (int i = 0; i < checkpoints.size(); i++) {
                 this.game.getWalls().add(new LineCurve(checkpoints.get(i).getP1(), checkpoints.get((i + 1) % checkpoints.size()).getP1()));
