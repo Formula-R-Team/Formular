@@ -73,8 +73,8 @@ import io.github.formular_team.formular.trace.PathReader;
 import io.github.formular_team.formular.trace.SimpleStepFunction;
 import io.github.formular_team.formular.trace.TransformMapper;
 
-public class RaceActivity extends AppCompatActivity {
-    private static final String TAG = RaceActivity.class.getSimpleName();
+public class MainActivity extends AppCompatActivity {
+    private static final String TAG = MainActivity.class.getSimpleName();
 
     private ModelLoader modelLoader;
 
@@ -155,14 +155,13 @@ public class RaceActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        Activities.hideSystemUi(this);
     }
 
     @Override
     public void onWindowFocusChanged(final boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
         if (hasFocus) {
-            Activities.hideSystemUi(this);
+            Activities.makeFullscreen(this);
         }
     }
 
@@ -363,25 +362,25 @@ public class RaceActivity extends AppCompatActivity {
                 @Override
                 public void onEnd() {
                     if (this.position == 0) {
-                        RaceActivity.this.countView.setText(R.string.race_finish);
+                        MainActivity.this.countView.setText(R.string.race_finish);
                         final Animation anim = new AlphaAnimation(1.0F, 0.0F);
                         anim.setStartOffset(1200);
                         anim.setDuration(1000);
                         anim.setFillEnabled(true);
                         anim.setFillBefore(true);
                         anim.setFillAfter(true);
-                        RaceActivity.this.countView.startAnimation(anim);
+                        MainActivity.this.countView.startAnimation(anim);
                     }
                 }
 
                 @Override
                 public void onCount(final int count) {
-                    RaceActivity.this.countView.setText(this.getCountResource(count));
+                    MainActivity.this.countView.setText(this.getCountResource(count));
                     final Animation anim = new AlphaAnimation(1.0F, 0.0F);
                     anim.setDuration(1000);
                     anim.setFillEnabled(true);
                     anim.setFillAfter(true);
-                    RaceActivity.this.countView.startAnimation(anim);
+                    MainActivity.this.countView.startAnimation(anim);
                 }
 
                 @StringRes
@@ -411,7 +410,7 @@ public class RaceActivity extends AppCompatActivity {
                 public void onPosition(final Driver driver, final int position) {
                     if (self.equals(driver)) {
                         this.position = position;
-                        RaceActivity.this.positionView.setText(RaceActivity.this.getString(this.getPositionResource(position), position));
+                        MainActivity.this.positionView.setText(MainActivity.this.getString(this.getPositionResource(position), position));
                     }
                 }
 
@@ -434,7 +433,7 @@ public class RaceActivity extends AppCompatActivity {
                     if (self.equals(driver)) {
                         this.lap = lap;
                         final int lapCount = race.getConfiguration().getLapCount();
-                        RaceActivity.this.lapView.setText(RaceActivity.this.getString(R.string.race_lap, Math.min(1 + this.lap, lapCount), lapCount));
+                        MainActivity.this.lapView.setText(MainActivity.this.getString(R.string.race_lap, Math.min(1 + this.lap, lapCount), lapCount));
                     }
                 }
 
@@ -476,7 +475,7 @@ public class RaceActivity extends AppCompatActivity {
 //            }
             race.start();
 
-            CourseNode.create(RaceActivity.this, course).thenAccept(courseNode -> {
+            CourseNode.create(MainActivity.this, course).thenAccept(courseNode -> {
                 if (this.courseAnchor != null) {
                     view.getScene().removeChild(this.courseAnchor);
                 }

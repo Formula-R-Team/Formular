@@ -24,8 +24,8 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
         super.onCreate(savedInstanceState);
         this.addPreferencesFromResource(R.xml.preferences);
 
-        final SharedPreferences prefs = this.getPreferenceScreen().getSharedPreferences() ;
-        this.onSharedPreferenceChanged(prefs, "prefName") ;
+        final SharedPreferences prefs = this.getPreferenceScreen().getSharedPreferences();
+        this.onSharedPreferenceChanged(prefs, "prefName");
     }
 
     @Override
@@ -47,7 +47,6 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
         case "prefName":
             final EditTextPreference thisPref = (EditTextPreference) pref;
             thisPref.setSummary(thisPref.getText());
-
         }
     }
 

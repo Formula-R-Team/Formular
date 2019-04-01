@@ -9,7 +9,7 @@ import android.widget.Button;
 
 import io.github.formular_team.formular.Activities;
 import io.github.formular_team.formular.CustomizeActivity;
-import io.github.formular_team.formular.RaceActivity;
+import io.github.formular_team.formular.MainActivity;
 import io.github.formular_team.formular.R;
 
 public class MenuActivity extends AppCompatActivity {
@@ -22,21 +22,21 @@ public class MenuActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         this.supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
         this.setContentView(R.layout.activity_menu);
-        Activities.hideSystemUi(this);
+        Activities.makeFullscreen(this);
         this.setupButtons();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        Activities.hideSystemUi(this);
+        Activities.makeFullscreen(this);
     }
 
     @Override
     public void onWindowFocusChanged(final boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
         if (hasFocus) {
-            Activities.hideSystemUi(this);
+            Activities.makeFullscreen(this);
         }
     }
 
@@ -44,7 +44,7 @@ public class MenuActivity extends AppCompatActivity {
         this.btnRace = this.findViewById(R.id.btnRace);
         this.btnCustomize = this.findViewById(R.id.btnCustomize);
         this.btnCustomize.setOnClickListener(this.activityChange(CustomizeActivity.class));
-        this.btnRace.setOnClickListener(this.activityChange(RaceActivity.class));
+        this.btnRace.setOnClickListener(this.activityChange(MainActivity.class));
     }
 
     private View.OnClickListener activityChange(final Class<?> cls) {

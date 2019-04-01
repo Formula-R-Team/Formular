@@ -8,6 +8,6 @@ public class CustomizeActivity extends AppCompatActivity {
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.setContentView(R.layout.activity_customize);
-        Activities.hideSystemUi(this);
+        Activities.makeFullscreen(this);
     }
 }

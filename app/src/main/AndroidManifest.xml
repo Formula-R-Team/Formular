@@ -24,7 +24,7 @@
         tools:ignore="GoogleAppIndexingWarning">
         <activity android:name=".lobby.LobbyActivity"></activity>
         <activity android:name=".CustomizeActivity"></activity>
-        <activity android:name=".RaceActivity"
+        <activity android:name=".MainActivity"
             android:configChanges="orientation|screenSize"
             android:exported="true"/>
 
