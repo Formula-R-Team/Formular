@@ -7,10 +7,10 @@ import android.widget.Button;
 
 import io.github.formular_team.formular.CustomizeActivity;
 import io.github.formular_team.formular.FormularActivity;
-import io.github.formular_team.formular.MainActivity;
+import io.github.formular_team.formular.RaceActivity;
 import io.github.formular_team.formular.R;
 
-public class MenuActivity extends FormularActivity {
+public class MainActivity extends FormularActivity {
     private Button btnRace;
 
     private Button btnCustomize;
@@ -18,7 +18,7 @@ public class MenuActivity extends FormularActivity {
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        this.setContentView(R.layout.activity_menu);
+        this.setContentView(R.layout.activity_main);
         this.setupButtons();
     }
 
@@ -26,7 +26,7 @@ public class MenuActivity extends FormularActivity {
         this.btnRace = this.findViewById(R.id.btnRace);
         this.btnCustomize = this.findViewById(R.id.btnCustomize);
         this.btnCustomize.setOnClickListener(this.activityChange(CustomizeActivity.class));
-        this.btnRace.setOnClickListener(this.activityChange(MainActivity.class));
+        this.btnRace.setOnClickListener(this.activityChange(RaceActivity.class));
     }
 
     private View.OnClickListener activityChange(final Class<?> cls) {

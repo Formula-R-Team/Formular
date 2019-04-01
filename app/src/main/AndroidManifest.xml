@@ -24,7 +24,7 @@
         tools:ignore="GoogleAppIndexingWarning">
         <activity android:name=".lobby.LobbyActivity" />
         <activity android:name=".CustomizeActivity" />
-        <activity android:name=".MainActivity"
+        <activity android:name=".RaceActivity"
             android:configChanges="orientation|screenSize"
             android:exported="true" />
 
@@ -33,7 +33,7 @@
             android:value="required" />
 
         <activity
-            android:name=".menu.MenuActivity">
+            android:name=".menu.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

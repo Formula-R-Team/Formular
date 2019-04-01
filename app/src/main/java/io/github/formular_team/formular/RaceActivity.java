@@ -71,8 +71,8 @@ import io.github.formular_team.formular.trace.PathReader;
 import io.github.formular_team.formular.trace.SimpleStepFunction;
 import io.github.formular_team.formular.trace.TransformMapper;
 
-public class MainActivity extends FormularActivity {
-    private static final String TAG = MainActivity.class.getSimpleName();
+public class RaceActivity extends FormularActivity {
+    private static final String TAG = RaceActivity.class.getSimpleName();
 
     private ModelLoader modelLoader;
 
@@ -112,7 +112,7 @@ public class MainActivity extends FormularActivity {
     @Override
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        this.setContentView(R.layout.activity_main);
+        this.setContentView(R.layout.activity_race);
         final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         final String namePref = prefs.getString("prefName", "Player 1");
         final int colorPref = prefs.getInt("prefColor", 0xFFFF007F);
@@ -346,25 +346,25 @@ public class MainActivity extends FormularActivity {
                 @Override
                 public void onEnd() {
                     if (this.position == 0) {
-                        MainActivity.this.countView.setText(R.string.race_finish);
+                        RaceActivity.this.countView.setText(R.string.race_finish);
                         final Animation anim = new AlphaAnimation(1.0F, 0.0F);
                         anim.setStartOffset(1200);
                         anim.setDuration(1000);
                         anim.setFillEnabled(true);
                         anim.setFillBefore(true);
                         anim.setFillAfter(true);
-                        MainActivity.this.countView.startAnimation(anim);
+                        RaceActivity.this.countView.startAnimation(anim);
                     }
                 }
 
                 @Override
                 public void onCount(final int count) {
-                    MainActivity.this.countView.setText(this.getCountResource(count));
+                    RaceActivity.this.countView.setText(this.getCountResource(count));
                     final Animation anim = new AlphaAnimation(1.0F, 0.0F);
                     anim.setDuration(1000);
                     anim.setFillEnabled(true);
                     anim.setFillAfter(true);
-                    MainActivity.this.countView.startAnimation(anim);
+                    RaceActivity.this.countView.startAnimation(anim);
                 }
 
                 @StringRes
@@ -394,7 +394,7 @@ public class MainActivity extends FormularActivity {
                 public void onPosition(final Driver driver, final int position) {
                     if (self.equals(driver)) {
                         this.position = position;
-                        MainActivity.this.positionView.setText(MainActivity.this.getString(this.getPositionResource(position), position));
+                        RaceActivity.this.positionView.setText(RaceActivity.this.getString(this.getPositionResource(position), position));
                     }
                 }
 
@@ -417,7 +417,7 @@ public class MainActivity extends FormularActivity {
                     if (self.equals(driver)) {
                         this.lap = lap;
                         final int lapCount = race.getConfiguration().getLapCount();
-                        MainActivity.this.lapView.setText(MainActivity.this.getString(R.string.race_lap, Math.min(1 + this.lap, lapCount), lapCount));
+                        RaceActivity.this.lapView.setText(RaceActivity.this.getString(R.string.race_lap, Math.min(1 + this.lap, lapCount), lapCount));
                     }
                 }
 
@@ -459,7 +459,7 @@ public class MainActivity extends FormularActivity {
 //            }
             race.start();
 
-            CourseNode.create(MainActivity.this, course).thenAccept(courseNode -> {
+            CourseNode.create(RaceActivity.this, course).thenAccept(courseNode -> {
                 if (this.courseAnchor != null) {
                     view.getScene().removeChild(this.courseAnchor);
                 }
