@@ -7,12 +7,10 @@ import android.media.Image;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.StringRes;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.Window;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.widget.TextView;
@@ -73,7 +71,7 @@ import io.github.formular_team.formular.trace.PathReader;
 import io.github.formular_team.formular.trace.SimpleStepFunction;
 import io.github.formular_team.formular.trace.TransformMapper;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends FormularActivity {
     private static final String TAG = MainActivity.class.getSimpleName();
 
     private ModelLoader modelLoader;
@@ -114,7 +112,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        this.supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
         this.setContentView(R.layout.activity_main);
         final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         final String namePref = prefs.getString("prefName", "Player 1");
@@ -150,19 +147,6 @@ public class MainActivity extends AppCompatActivity {
                 this.game.step(dt);
             }
         });
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-    }
-
-    @Override
-    public void onWindowFocusChanged(final boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
-        if (hasFocus) {
-            Activities.makeFullscreen(this);
-        }
     }
 
     private KartDefinition createKartDefinition() {

@@ -2,17 +2,15 @@ package io.github.formular_team.formular.menu;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.view.View;
-import android.view.Window;
 import android.widget.Button;
 
-import io.github.formular_team.formular.Activities;
 import io.github.formular_team.formular.CustomizeActivity;
+import io.github.formular_team.formular.FormularActivity;
 import io.github.formular_team.formular.MainActivity;
 import io.github.formular_team.formular.R;
 
-public class MenuActivity extends AppCompatActivity {
+public class MenuActivity extends FormularActivity {
     private Button btnRace;
 
     private Button btnCustomize;
@@ -20,24 +18,8 @@ public class MenuActivity extends AppCompatActivity {
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        this.supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
         this.setContentView(R.layout.activity_menu);
-        Activities.makeFullscreen(this);
         this.setupButtons();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        Activities.makeFullscreen(this);
-    }
-
-    @Override
-    public void onWindowFocusChanged(final boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
-        if (hasFocus) {
-            Activities.makeFullscreen(this);
-        }
     }
 
     private void setupButtons() {
