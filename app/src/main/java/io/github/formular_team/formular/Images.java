@@ -22,10 +22,10 @@ public final class Images {
     }
 
     public static Bitmap yuvToBitmap(final Image image, final Rect rect) {
+        Preconditions.checkArgument(image.getFormat() == ImageFormat.YUV_420_888);
         if (rect.isEmpty()) {
             return null;
         }
-        Preconditions.checkArgument(image.getFormat() == ImageFormat.YUV_420_888);
         final ByteArrayOutputStream bout = new ByteArrayOutputStream(1024);
         try (final WritableByteChannel channel = Channels.newChannel(bout)) {
             for (final int i : new int[] { 0, 2, 1 }) {

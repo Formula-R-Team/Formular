@@ -4,6 +4,7 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.media.Image;
+import android.opengl.Matrix;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.StringRes;
@@ -39,10 +40,8 @@ import java.util.function.Function;
 import io.github.formular_team.formular.ar.scene.CourseNode;
 import io.github.formular_team.formular.ar.scene.KartNode;
 import io.github.formular_team.formular.math.Bezier;
-import io.github.formular_team.formular.math.Float32Array;
 import io.github.formular_team.formular.math.LineCurve;
 import io.github.formular_team.formular.math.Matrix3;
-import io.github.formular_team.formular.math.Matrix4;
 import io.github.formular_team.formular.math.Mth;
 import io.github.formular_team.formular.math.Path;
 import io.github.formular_team.formular.math.PathOffset;
@@ -176,39 +175,33 @@ public class RaceActivity extends FormularActivity {
             throw new AssertionError();
         }
         final Camera camera = arFrame.getCamera();
-        final Matrix4 projMat = new Matrix4();
-        final float[] buf = new float[16];
-        camera.getProjectionMatrix(buf, 0, 0.1F, 6.0F);
-        for (int n = 0; n < 16; n++) {
-            projMat.getArray().set(n, buf[n]);
-        }
-        final Matrix4 viewMat = new Matrix4();
-        camera.getViewMatrix(buf, 0);
-        for (int n = 0; n < 16; n++) {
-            viewMat.getArray().set(n, buf[n]);
-        }
-        final Float32Array in2 = Float32Array.create(2);
-        final Float32Array out2 = Float32Array.create(2);
+        final float[] projMat = new float[16];
+        camera.getProjectionMatrix(projMat, 0, 0.1F, 10.0F);
+        final float[] viewMat = new float[16];
+        camera.getViewMatrix(viewMat, 0);
+        final float[] modelMat = new float[16];
+        final Pose po = hitResult.getHitPose();
+        po.toMatrix(modelMat, 0);
+        final float[] viewProjMat = new float[16];
+        final float[] mvp = new float[16];
+        Matrix.multiplyMM(viewProjMat, 0, projMat, 0, viewMat, 0);
+        Matrix.multiplyMM(mvp, 0, viewProjMat, 0, modelMat, 0);
         final float captureRange = 0.25F;
-        final float courseRoadWidth = 6.0F;
-        final float courseToSceneScale = 0.05F / courseRoadWidth;
-        final Pose planeAtHit = hitResult.getHitPose();
-        final Matrix4 planeAtPickModelMatrix = new Matrix4();
-        planeAtHit.toMatrix(buf, 0);
-        for (int n = 0; n < 16; n++) {
-            planeAtPickModelMatrix.getArray().set(n, buf[n]);
-        }
+        final float[] xyz0 = new float[4], xyz1 = new float[4];
         final Function<Vector3, Vector2> planeToImage = in -> {
-            final io.github.formular_team.formular.math.Vector3 ndc = in.apply(planeAtPickModelMatrix)
-                .apply(viewMat)
-                .applyProjection(projMat);
-            in2.set(0, ndc.getX());
-            in2.set(1, ndc.getY());
+            xyz0[0] = in.getX();
+            xyz0[1] = in.getY();
+            xyz0[2] = in.getZ();
+            xyz0[3] = 1.0F;
+            Matrix.multiplyMV(xyz1, 0, mvp, 0, xyz0, 0);
+            final float d = 1.0F / xyz1[3];
+            xyz1[0] *= d;
+            xyz1[1] *= d;
             arFrame.transformCoordinates2d(
-                Coordinates2d.OPENGL_NORMALIZED_DEVICE_COORDINATES, in2.getTypedBuffer(),
-                Coordinates2d.IMAGE_PIXELS, out2.getTypedBuffer()
+                Coordinates2d.OPENGL_NORMALIZED_DEVICE_COORDINATES, xyz1,
+                Coordinates2d.IMAGE_PIXELS, xyz0
             );
-            return new Vector2().fromArray(out2);
+            return new Vector2(xyz0[0], xyz0[1]);
         };
         final Vector2 b00 = planeToImage.apply(new Vector3(-captureRange, 0.0F, captureRange));
         final Vector2 b01 = planeToImage.apply(new Vector3(-captureRange, 0.0F, -captureRange));
@@ -245,7 +238,7 @@ public class RaceActivity extends FormularActivity {
         }
         // TODO: path failure feedback
         final Path captureSegments = this.findPath(capture);
-        if (!captureSegments.isClosed()) {
+        if (captureSegments.getLength() == 0.0F || !captureSegments.isClosed()) {
             Log.v(TAG, "Curve not continuous");
             this.countView.setText("!");
             final Animation anim = new AlphaAnimation(1.0F, 0.0F);
@@ -258,8 +251,10 @@ public class RaceActivity extends FormularActivity {
             return;
         }
         final Path captureTrackPath = Bezier.fitBezierCurve(captureSegments, 8.0F);
+        final float courseRoadWidth = 6.0F;
 //                this.updateOverlayPath(capture, captureTrackPath);
         final Path courseTrackPath = new Path();
+        final float courseToSceneScale = 0.05F / courseRoadWidth;
         final float courseCaptureSize = captureRange / courseToSceneScale;
         captureTrackPath.visit(new TransformingPathVisitor(courseTrackPath, new Matrix3()
             .scale(2.0F / captureSize)
@@ -442,7 +437,7 @@ public class RaceActivity extends FormularActivity {
                 view.getScene().removeChild(this.courseAnchor);
             }
             view.getPlaneRenderer().setVisible(false);
-            final Anchor anchor = scenePlane.createAnchor(planeAtHit);
+            final Anchor anchor = hitResult.createAnchor();//scenePlane.createAnchor(hitResult.getHitPose());
             this.courseAnchor = new AnchorNode(anchor);
             this.courseAnchor.setLocalScale(com.google.ar.sceneform.math.Vector3.one().scaled(courseToSceneScale));
             this.courseAnchor.setLocalPosition(new com.google.ar.sceneform.math.Vector3(0.0F, 0.01F, 0.0F));
