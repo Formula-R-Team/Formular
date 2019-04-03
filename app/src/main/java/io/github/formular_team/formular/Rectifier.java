@@ -41,11 +41,11 @@ public class Rectifier implements Closeable  {
         final float[] modelMat = new float[16];
         model.toMatrix(modelMat, 0);
         Matrix.multiplyMM(this.mvp, 0, this.viewProjMat, 0, modelMat, 0);
-        final int count = resolution * resolution;
-        final int buflen = Math.max(4, count);
-        final float[] in = new float[4 * buflen];
-        final float[] ndc = new float[2 * buflen];
-        final float[] out = new float[2 * buflen];
+        final int area = resolution * resolution;
+        final int bufLen = Math.max(4, area);
+        final float[] in = new float[4 * bufLen];
+        final float[] ndc = new float[2 * bufLen];
+        final float[] out = new float[2 * bufLen];
         setVec4(in, 0, -range, 0.0F, range, 1.0F);
         setVec4(in, 1, -range, 0.0F, -range, 1.0F);
         setVec4(in, 2, range, 0.0F, range, 1.0F);
@@ -55,19 +55,19 @@ public class Rectifier implements Closeable  {
             Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY,
             Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY
         );
-        for (int i = 1; i < 4; i++) {
-            captureBounds.union(getVec2X(out, i), getVec2Y(out, i));
+        for (int i = 0; i < 4; i++) {
+            add(captureBounds, getVec2X(out, i), getVec2Y(out, i));
         }
-        final Rect captureRegion = new Rect();
-        captureBounds.roundOut(captureRegion);
-        if (!captureRegion.intersect(this.wholeCapture)) {
+        final Rect subcaptureRegion = new Rect();
+        captureBounds.roundOut(subcaptureRegion);
+        if (!subcaptureRegion.intersect(this.wholeCapture)) {
             return null;
         }
-        final Bitmap subcapture = Images.yuvToBitmap(this.capture, captureRegion);
+        final Bitmap subcapture = Images.yuvToBitmap(this.capture, subcaptureRegion);
         if (subcapture == null) {
             return null;
         }
-        final Bitmap rectified = Bitmap.createBitmap(resolution, resolution, Bitmap.Config.ARGB_8888);
+        final Bitmap rectifiedCapture = Bitmap.createBitmap(resolution, resolution, Bitmap.Config.ARGB_8888);
         for (int y = 0; y < resolution; y++) {
             for (int x = 0; x < resolution; x++) {
                 setVec4(in,
@@ -79,18 +79,33 @@ public class Rectifier implements Closeable  {
                 );
             }
         }
-        this.transform(in, ndc, out, count);
+        this.transform(in, ndc, out, area);
         for (int y = 0; y < resolution; y++) {
             for (int x = 0; x < resolution; x++) {
                 final int i = x + y * resolution;
-                final int captureX = (int) (getVec2X(out, i) - captureRegion.left);
-                final int captureY = (int) (getVec2Y(out, i) - captureRegion.top);
-                if (captureRegion.contains(captureX, captureY)) {
-                    rectified.setPixel(x, y, subcapture.getPixel(captureX, captureY));
+                final int captureX = (int) getVec2X(out, i), captureY = (int) getVec2Y(out, i);
+                if (subcaptureRegion.contains(captureX, captureY)) {
+                    final int pixel = subcapture.getPixel(captureX - subcaptureRegion.left, captureY - subcaptureRegion.top);
+                    rectifiedCapture.setPixel(x, y, pixel);
                 }
             }
         }
-        return rectified;
+        return rectifiedCapture;
+    }
+
+    private static void add(final RectF r, float x, float y) {
+        if (x < r.left) {
+            r.left = x;
+        }
+        if (x > r.right) {
+            r.right = x;
+        }
+        if (y < r.top) {
+            r.top = y;
+        }
+        if (y > r.bottom) {
+            r.bottom = y;
+        }
     }
 
     private void transform(final float[] modelspace, final float[] ndc, final float[] pixelspace, final int count) {

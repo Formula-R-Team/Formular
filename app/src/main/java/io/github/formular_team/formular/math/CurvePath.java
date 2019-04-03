@@ -113,7 +113,7 @@ public class CurvePath extends Curve {
     @Override
     public float getLength() {
         final List<Float> lens = this.getCurveLengths();
-        return lens.get(lens.size() - 1);
+        return lens.isEmpty() ? 0.0F : lens.get(lens.size() - 1);
     }
 
     @Override

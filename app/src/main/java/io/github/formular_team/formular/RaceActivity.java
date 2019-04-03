@@ -2,9 +2,6 @@ package io.github.formular_team.formular;
 
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
-import android.graphics.Rect;
-import android.media.Image;
-import android.opengl.Matrix;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.StringRes;
@@ -14,12 +11,11 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.ar.core.Anchor;
-import com.google.ar.core.Camera;
-import com.google.ar.core.Coordinates2d;
 import com.google.ar.core.Frame;
 import com.google.ar.core.HitResult;
 import com.google.ar.core.Plane;
@@ -35,7 +31,6 @@ import com.google.common.collect.ImmutableList;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 
 import io.github.formular_team.formular.ar.scene.CourseNode;
 import io.github.formular_team.formular.ar.scene.KartNode;
@@ -47,8 +42,6 @@ import io.github.formular_team.formular.math.Path;
 import io.github.formular_team.formular.math.PathOffset;
 import io.github.formular_team.formular.math.Shape;
 import io.github.formular_team.formular.math.TransformingPathVisitor;
-import io.github.formular_team.formular.math.Vector2;
-import io.github.formular_team.formular.math.Vector3;
 import io.github.formular_team.formular.server.Checkpoint;
 import io.github.formular_team.formular.server.Course;
 import io.github.formular_team.formular.server.CourseMetadata;
@@ -174,70 +167,21 @@ public class RaceActivity extends FormularActivity {
         if (arFrame == null) {
             throw new AssertionError();
         }
-        final Camera camera = arFrame.getCamera();
-        final float[] projMat = new float[16];
-        camera.getProjectionMatrix(projMat, 0, 0.1F, 10.0F);
-        final float[] viewMat = new float[16];
-        camera.getViewMatrix(viewMat, 0);
-        final float[] modelMat = new float[16];
-        final Pose po = hitResult.getHitPose();
-        po.toMatrix(modelMat, 0);
-        final float[] viewProjMat = new float[16];
-        final float[] mvp = new float[16];
-        Matrix.multiplyMM(viewProjMat, 0, projMat, 0, viewMat, 0);
-        Matrix.multiplyMM(mvp, 0, viewProjMat, 0, modelMat, 0);
+        final Pose hitPose = hitResult.getHitPose();
         final float captureRange = 0.25F;
-        final float[] xyz0 = new float[4], xyz1 = new float[4];
-        final Function<Vector3, Vector2> planeToImage = in -> {
-            xyz0[0] = in.getX();
-            xyz0[1] = in.getY();
-            xyz0[2] = in.getZ();
-            xyz0[3] = 1.0F;
-            Matrix.multiplyMV(xyz1, 0, mvp, 0, xyz0, 0);
-            final float d = 1.0F / xyz1[3];
-            xyz1[0] *= d;
-            xyz1[1] *= d;
-            arFrame.transformCoordinates2d(
-                Coordinates2d.OPENGL_NORMALIZED_DEVICE_COORDINATES, xyz1,
-                Coordinates2d.IMAGE_PIXELS, xyz0
-            );
-            return new Vector2(xyz0[0], xyz0[1]);
-        };
-        final Vector2 b00 = planeToImage.apply(new Vector3(-captureRange, 0.0F, captureRange));
-        final Vector2 b01 = planeToImage.apply(new Vector3(-captureRange, 0.0F, -captureRange));
-        final Vector2 b10 = planeToImage.apply(new Vector3(captureRange, 0.0F, captureRange));
-        final Vector2 b11 = planeToImage.apply(new Vector3(captureRange, 0.0F, -captureRange));
-        final Vector2 min, max;
-        final Bitmap image;
-        final int captureSize = 200; //used to be 128
-        try (final Image cameraImage = arFrame.acquireCameraImage()) {
-            min = b00.clone().min(b01).min(b10).min(b11).floor().max(new Vector2(0, 0));
-            max = b00.clone().max(b01).max(b10).max(b11).ceil().min(new Vector2(cameraImage.getWidth() - 1, cameraImage.getHeight() - 1));
-            image = Images.yuvToBitmap(cameraImage, new Rect((int) min.getX(), (int) min.getY(), (int) max.getX(), (int) max.getY()));
+        final int captureSize = 200;
+
+        final Bitmap rectifiedCapture;
+        try (final Rectifier rectifier = new Rectifier(arFrame)) {
+            rectifiedCapture = rectifier.rectify(hitPose, captureSize, captureRange);
         } catch (final NotYetAvailableException e) {
-            throw new RuntimeException(e);
+            throw new AssertionError();
         }
-        if (image == null) {
-            return;
-        }
-        final Bitmap capture = Bitmap.createBitmap(captureSize, captureSize, Bitmap.Config.ARGB_8888);
-        final Vector3 outputPos = new Vector3();
-        for (int y = 0; y < capture.getHeight(); y++) {
-            for (int x = 0; x < capture.getWidth(); x++) {
-                outputPos.set(
-                    captureRange * (2.0F * x / captureSize - 1.0F),
-                    0.0F,
-                    -captureRange * (2.0F * y / captureSize - 1.0F)
-                );
-                final Vector2 p = planeToImage.apply(outputPos).sub(min);
-                if (p.getX() >= 0.0F && p.getY() >= 0.0F && p.getX() < image.getWidth() && p.getY() < image.getHeight()) {
-                    // TODO: bilinear interpolation?
-                    capture.setPixel(x, y, image.getPixel((int) p.getX(), (int) p.getY()));
-                }
-            }
-        }
+
+        final ImageView captureView = this.findViewById(R.id.capture);
+        captureView.setImageBitmap(rectifiedCapture);
         // TODO: path failure feedback
-        final Path captureSegments = this.findPath(capture);
+        final Path captureSegments = this.findPath(rectifiedCapture);
         if (captureSegments.getLength() == 0.0F || !captureSegments.isClosed()) {
             Log.v(TAG, "Curve not continuous");
             this.countView.setText("!");
@@ -252,7 +196,6 @@ public class RaceActivity extends FormularActivity {
         }
         final Path captureTrackPath = Bezier.fitBezierCurve(captureSegments, 8.0F);
         final float courseRoadWidth = 6.0F;
-//                this.updateOverlayPath(capture, captureTrackPath);
         final Path courseTrackPath = new Path();
         final float courseToSceneScale = 0.05F / courseRoadWidth;
         final float courseCaptureSize = captureRange / courseToSceneScale;
@@ -485,37 +428,6 @@ public class RaceActivity extends FormularActivity {
         ).read(mapper, new TransformingPathVisitor(capturePath, mapper.getMatrix()));
         return capturePath;
     }
-
-
-//    private void updateOverlayPath(final Bitmap capture, final Path pathInCapture) {
-//        if (this.overlayView != null) {
-//            final android.graphics.Path graphicPath = new android.graphics.Path();
-//            pathInCapture.visit(new GraphicsPathVisitor(graphicPath));
-//            graphicPath.close();
-//            final Canvas canvas = new Canvas(capture);
-//            final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-//            paint.setStyle(Paint.Style.STROKE);
-//            paint.setStrokeWidth(3.0F);
-//            paint.setColor(0x70FF1A52);
-//            canvas.drawPath(graphicPath, paint);
-//            paint.setColor(0xE0FF1A52);
-//            // TODO: CurveVisitor
-//            for (final Curve c : pathInCapture.getCurves()) {
-//                final CubicBezierCurve cc = (CubicBezierCurve) c;
-//                paint.setStyle(Paint.Style.FILL);
-//                paint.setColor(0xF0FF1A52);
-//                canvas.drawCircle(cc.v0.getX(), cc.v0.getY(), 2.0F, paint);
-//                paint.setColor(0x90FF1A52);
-//                canvas.drawCircle(cc.v1.getX(), cc.v1.getY(), 1.5F, paint);
-//                canvas.drawCircle(cc.v2.getX(), cc.v2.getY(), 1.5F, paint);
-//                paint.setStyle(Paint.Style.STROKE);
-//                paint.setStrokeWidth(1.0F);
-//                canvas.drawLine(cc.v0.getX(), cc.v0.getY(), cc.v1.getX(), cc.v1.getY(), paint);
-//                canvas.drawLine(cc.v3.getX(), cc.v3.getY(), cc.v2.getX(), cc.v2.getY(), paint);
-//            }
-//            this.overlayView.setImageBitmap(capture);
-//        }
-//    }
 
     @Override
     protected void onStart() {
