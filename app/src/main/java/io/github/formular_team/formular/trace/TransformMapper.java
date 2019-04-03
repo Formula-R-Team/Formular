@@ -28,6 +28,11 @@ public final class TransformMapper implements Mapper {
 		this.y = y;
 	}
 
+	public void offset(final float x, final float y) {
+	    this.x += x;
+	    this.y += y;
+    }
+
 	public void setRotation(final float rotation) {
 	    this.rotation = rotation;
 		this.cosRotation = Mth.cos(rotation);

@@ -11,7 +11,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -19,11 +18,11 @@ import com.google.ar.core.Anchor;
 import com.google.ar.core.Frame;
 import com.google.ar.core.HitResult;
 import com.google.ar.core.Plane;
-import com.google.ar.core.Pose;
 import com.google.ar.core.exceptions.NotYetAvailableException;
 import com.google.ar.sceneform.AnchorNode;
 import com.google.ar.sceneform.ArSceneView;
 import com.google.ar.sceneform.Node;
+import com.google.ar.sceneform.math.Matrix;
 import com.google.ar.sceneform.rendering.Color;
 import com.google.ar.sceneform.rendering.ModelRenderable;
 import com.google.ar.sceneform.ux.ArFragment;
@@ -55,12 +54,9 @@ import io.github.formular_team.formular.server.Track;
 import io.github.formular_team.formular.server.race.Race;
 import io.github.formular_team.formular.server.race.RaceConfiguration;
 import io.github.formular_team.formular.server.race.RaceListener;
-import io.github.formular_team.formular.trace.BilinearMapper;
-import io.github.formular_team.formular.trace.ImageLineMap;
 import io.github.formular_team.formular.trace.OrientFunction;
-import io.github.formular_team.formular.trace.PathReader;
+import io.github.formular_team.formular.trace.PathFollower;
 import io.github.formular_team.formular.trace.SimpleStepFunction;
-import io.github.formular_team.formular.trace.TransformMapper;
 
 public class RaceActivity extends FormularActivity {
     private static final String TAG = RaceActivity.class.getSimpleName();
@@ -167,21 +163,28 @@ public class RaceActivity extends FormularActivity {
         if (arFrame == null) {
             throw new AssertionError();
         }
-        final Pose hitPose = hitResult.getHitPose();
         final float captureRange = 0.25F;
         final int captureSize = 200;
 
         final Bitmap rectifiedCapture;
         try (final Rectifier rectifier = new Rectifier(arFrame)) {
-            rectifiedCapture = rectifier.rectify(hitPose, captureSize, captureRange);
+            final Matrix model = new Matrix();
+            hitResult.getHitPose().toMatrix(model.data, 0);
+            final Matrix rangeScale = new Matrix();
+            rangeScale.makeScale(captureRange);
+            Matrix.multiply(model, rangeScale, model);
+            rectifiedCapture = rectifier.rectify(model.data, captureSize);
         } catch (final NotYetAvailableException e) {
             throw new AssertionError();
         }
 
-        final ImageView captureView = this.findViewById(R.id.capture);
-        captureView.setImageBitmap(rectifiedCapture);
         // TODO: path failure feedback
-        final Path captureSegments = this.findPath(rectifiedCapture);
+        final Path captureSegments = new PathFinder(new CirclePathLocator(25),
+            new PathFollower(
+                new SimpleStepFunction(7, (0.5F * Mth.PI)),
+                new OrientFunction(3)
+            )
+        ).find(rectifiedCapture);
         if (captureSegments.getLength() == 0.0F || !captureSegments.isClosed()) {
             Log.v(TAG, "Curve not continuous");
             this.countView.setText("!");
@@ -399,34 +402,6 @@ public class RaceActivity extends FormularActivity {
                 courseNode.add(kart);
             }
         });
-    }
-
-    private Path findPath(final Bitmap capture) {
-        final TransformMapper mapper = new TransformMapper(new BilinearMapper(new ImageLineMap(new BitmapImageMap(capture))), 0.0F, 0.0F, 0.0F);
-        // TODO: use vector2
-        float startX = 0.0F, startY = 0.0F;
-        float startLine = Float.NEGATIVE_INFINITY;
-        final float radius = 0.125F * Math.min(capture.getWidth(), capture.getHeight());
-        final float originX = 0.5F * capture.getWidth(), originY = 0.5F * capture.getHeight();
-        final int circum = (int) (2.0F * Mth.PI * radius);
-        for (int n = 0; n < circum; n++) {
-            final float theta = 2.0F * Mth.PI * n / circum;
-            final float x = originX + radius * Mth.cos(theta);
-            final float y = originY + radius * Mth.sin(theta);
-            final float line = mapper.get(x, y);
-            if (line > startLine) {
-                startX = x;
-                startY = y;
-                startLine = line;
-            }
-        }
-        mapper.setTranslation(startX, startY);
-        final Path capturePath = new Path();
-        new PathReader(
-                new SimpleStepFunction(7, (0.5F * Mth.PI)),
-                new OrientFunction(3)
-        ).read(mapper, new TransformingPathVisitor(capturePath, mapper.getMatrix()));
-        return capturePath;
     }
 
     @Override

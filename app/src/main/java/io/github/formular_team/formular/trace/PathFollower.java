@@ -3,17 +3,17 @@ package io.github.formular_team.formular.trace;
 import io.github.formular_team.formular.math.PathVisitor;
 import io.github.formular_team.formular.math.Vector2;
 
-public class PathReader {
+public class PathFollower {
 	private final StepFunction stepFunc;
 
 	private final ToFloatMapFunction orientFunc;
 
-	public PathReader(final StepFunction stepFunc, final ToFloatMapFunction orientFunc) {
+	public PathFollower(final StepFunction stepFunc, final ToFloatMapFunction orientFunc) {
 		this.stepFunc = stepFunc;
 		this.orientFunc = orientFunc;
 	}
 
-	public boolean read(final Mapper map, final PathVisitor visitor) {
+	public boolean follow(final Mapper map, final PathVisitor visitor) {
 		final Vector2 pos = new Vector2(0.0F, 0.0F);
 		float rotation = 0.0F;
 		final TransformMapper view = new TransformMapper(map, pos.getX(), pos.getY(), rotation);

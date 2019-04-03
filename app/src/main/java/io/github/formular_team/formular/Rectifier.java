@@ -9,12 +9,13 @@ import android.opengl.Matrix;
 import com.google.ar.core.Camera;
 import com.google.ar.core.Coordinates2d;
 import com.google.ar.core.Frame;
-import com.google.ar.core.Pose;
 import com.google.ar.core.exceptions.NotYetAvailableException;
 
 import java.io.Closeable;
 
 public class Rectifier implements Closeable  {
+    private final static float[] SQUARE = createSquare();
+
     private final Frame frame;
 
     private final Image capture;
@@ -37,20 +38,14 @@ public class Rectifier implements Closeable  {
         Matrix.multiplyMM(this.viewProjMat, 0, projMat, 0, viewMat, 0);
     }
 
-    public Bitmap rectify(final Pose model, final int resolution, final float range) {
-        final float[] modelMat = new float[16];
-        model.toMatrix(modelMat, 0);
-        Matrix.multiplyMM(this.mvp, 0, this.viewProjMat, 0, modelMat, 0);
+    public Bitmap rectify(final float[] model, final int resolution) {
+        Matrix.multiplyMM(this.mvp, 0, this.viewProjMat, 0, model, 0);
         final int area = resolution * resolution;
         final int bufLen = Math.max(4, area);
         final float[] in = new float[4 * bufLen];
         final float[] ndc = new float[2 * bufLen];
         final float[] out = new float[2 * bufLen];
-        setVec4(in, 0, -range, 0.0F, range, 1.0F);
-        setVec4(in, 1, -range, 0.0F, -range, 1.0F);
-        setVec4(in, 2, range, 0.0F, range, 1.0F);
-        setVec4(in, 3, range, 0.0F, -range, 1.0F);
-        this.transform(in, ndc, out, 4);
+        this.transform(SQUARE, ndc, out, 4);
         final RectF captureBounds = new RectF(
             Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY,
             Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY
@@ -72,9 +67,9 @@ public class Rectifier implements Closeable  {
             for (int x = 0; x < resolution; x++) {
                 setVec4(in,
                     x + y * resolution,
-                    range * (2.0F * x / resolution - 1.0F),
+                    (2.0F * x / resolution - 1.0F),
                     0.0F,
-                    -range * (2.0F * y / resolution - 1.0F),
+                    -(2.0F * y / resolution - 1.0F),
                     1.0F
                 );
             }
@@ -91,21 +86,6 @@ public class Rectifier implements Closeable  {
             }
         }
         return rectifiedCapture;
-    }
-
-    private static void add(final RectF r, float x, float y) {
-        if (x < r.left) {
-            r.left = x;
-        }
-        if (x > r.right) {
-            r.right = x;
-        }
-        if (y < r.top) {
-            r.top = y;
-        }
-        if (y > r.bottom) {
-            r.bottom = y;
-        }
     }
 
     private void transform(final float[] modelspace, final float[] ndc, final float[] pixelspace, final int count) {
@@ -126,6 +106,21 @@ public class Rectifier implements Closeable  {
         this.capture.close();
     }
 
+    private static void add(final RectF r, final float x, final float y) {
+        if (x < r.left) {
+            r.left = x;
+        }
+        if (x > r.right) {
+            r.right = x;
+        }
+        if (y < r.top) {
+            r.top = y;
+        }
+        if (y > r.bottom) {
+            r.bottom = y;
+        }
+    }
+
     private static void setVec4(final float[] buf, final int index, final float x, final float y, final float z, final float w) {
         buf[0 + 4 * index] = x;
         buf[1 + 4 * index] = y;
@@ -144,5 +139,14 @@ public class Rectifier implements Closeable  {
 
     private static float getVec2Y(final float[] buf, final int index) {
         return buf[1 + 2 * index];
+    }
+
+    private static float[] createSquare() {
+        return new float[] {
+            -1.0F, 0.0F,  1.0F, 1.0F,
+            -1.0F, 0.0F, -1.0F, 1.0F,
+             1.0F, 0.0F,  1.0F, 1.0F,
+             1.0F, 0.0F, -1.0F, 1.0F
+        };
     }
 }

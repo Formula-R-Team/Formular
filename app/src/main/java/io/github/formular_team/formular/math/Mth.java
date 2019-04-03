@@ -5,6 +5,8 @@ public final class Mth {
 
     public static final float PI = (float) Math.PI;
 
+    public static final float TAU = 2.0F * Mth.PI;
+
     public static float toRadians(final float degrees) {
         return degrees / 180.0F * PI;
     }
