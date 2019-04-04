@@ -113,6 +113,12 @@ public class CourseNode extends Node {
                 node.addChild(trackNode);
                 return node;
             })
+//            .thenCombine(MaterialFactory.makeOpaqueWithColor(context, new com.google.ar.sceneform.rendering.Color(Color.RED)), (node, material) -> {
+//                final Node center = new Node();
+//                center.setRenderable(ShapeFactory.makeSphere(1.0F, new com.google.ar.sceneform.math.Vector3(), material));
+//                node.addChild(center);
+//                return node;
+//            })
 //            .thenCombine(MaterialFactory.makeOpaqueWithColor(context, new com.google.ar.sceneform.rendering.Color()), (node, material) -> {
 //                final ImmutableList<Checkpoint> cc = track.getCheckpoints();
 //                final ImmutableList.Builder<Vector3> points = ImmutableList.builder();

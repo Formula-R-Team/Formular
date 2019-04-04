@@ -21,16 +21,16 @@ public class PathFinder {
     }
 
     public Path find(final Bitmap capture) {
-        final TransformMapper mapper = new TransformMapper(
+        final TransformMapper map = new TransformMapper(
             new BilinearMapper(new ImageLineMap(new BitmapImageMap(capture))),
             0.5F * capture.getWidth(),
             0.5F * capture.getHeight(),
             0.0F
         );
-        final Vector2 start = this.locator.locate(mapper);
-        mapper.offset(start.getX(), start.getY());
+        final Vector2 start = this.locator.locate(map);
+        map.offset(start.getX(), start.getY());
         final Path path = new Path();
-        this.follower.follow(mapper, new TransformingPathVisitor(path, mapper.getMatrix()));
+        this.follower.follow(map, new TransformingPathVisitor(path, map.getMatrix()));
         return path;
     }
 }

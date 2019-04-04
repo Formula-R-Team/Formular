@@ -26,7 +26,6 @@ import com.google.ar.sceneform.math.Matrix;
 import com.google.ar.sceneform.rendering.Color;
 import com.google.ar.sceneform.rendering.ModelRenderable;
 import com.google.ar.sceneform.ux.ArFragment;
-import com.google.common.collect.ImmutableList;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -38,14 +37,11 @@ import io.github.formular_team.formular.math.LineCurve;
 import io.github.formular_team.formular.math.Matrix3;
 import io.github.formular_team.formular.math.Mth;
 import io.github.formular_team.formular.math.Path;
-import io.github.formular_team.formular.math.PathOffset;
-import io.github.formular_team.formular.math.Shape;
 import io.github.formular_team.formular.math.TransformingPathVisitor;
 import io.github.formular_team.formular.server.Checkpoint;
 import io.github.formular_team.formular.server.Course;
 import io.github.formular_team.formular.server.CourseMetadata;
 import io.github.formular_team.formular.server.Driver;
-import io.github.formular_team.formular.server.FinishLineOptimizer;
 import io.github.formular_team.formular.server.KartDefinition;
 import io.github.formular_team.formular.server.KartModel;
 import io.github.formular_team.formular.server.SimpleDriver;
@@ -179,7 +175,8 @@ public class RaceActivity extends FormularActivity {
         }
 
         // TODO: path failure feedback
-        final Path captureSegments = new PathFinder(new CirclePathLocator(25),
+        final Path captureSegments = new PathFinder(
+            new CirclePathLocator(25),
             new PathFollower(
                 new SimpleStepFunction(7, (0.5F * Mth.PI)),
                 new OrientFunction(3)
@@ -207,32 +204,15 @@ public class RaceActivity extends FormularActivity {
             .translate(-1.0F, -1.0F)
             .scale(courseCaptureSize, -courseCaptureSize)
         ));
-
-        final float finishLinePosition = new FinishLineOptimizer().get(courseTrackPath);
-        final List<PathOffset.Frame> frames = PathOffset.createFrames(courseTrackPath, finishLinePosition, (int) (courseTrackPath.getLength() * 0.75F), courseRoadWidth + 0.75F);
-
-        final int requiredCheckPointCount = 8;
-        final ImmutableList.Builder<Checkpoint> bob = ImmutableList.builder();
-        final int requiredInterval = frames.size() / requiredCheckPointCount;
-        for (int i = 0; i < frames.size(); i++) {
-            final PathOffset.Frame fm = frames.get(i);
-            bob.add(new Checkpoint(fm.getP1(), fm.getP2(), i, fm.getT(), frames.size() - i > requiredInterval && i % requiredInterval == 0));
-        }
-        final ImmutableList<Checkpoint> checkpoints = bob.build();
+        final Track track = new SimpleTrackFactory(courseRoadWidth).create(courseTrackPath);
         final float coursePad = 2.0F;
         final float courseRange = courseCaptureSize + coursePad;
         final float courseSize = 2.0F * courseRange;
-        final Track track = Track.builder()
-                .setRoadPath(courseTrackPath)
-                .setRoadWidth(courseRoadWidth)
-                .setRoadShape(new Shape()) // TODO: road shape
-                .setCheckpoints(checkpoints)
-                .build();
         final Course course = Course.builder()
-                .setMetadata(CourseMetadata.create(this.user, TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()), "My Circuit"))
-                .setSize(courseSize)
-                .setTrack(track)
-                .build();
+            .setMetadata(CourseMetadata.create(this.user, TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()), "My Circuit"))
+            .setSize(courseSize)
+            .setTrack(track)
+            .build();
         if (course.getTrack().getCheckpoints().size() < 5) {
             Log.v(TAG, "Curve too short");
             this.countView.setText("!!");
@@ -246,6 +226,7 @@ public class RaceActivity extends FormularActivity {
             return;
         }
         this.game = new SimpleGameModel();
+        final List<Checkpoint> checkpoints = track.getCheckpoints();
         for (int i = 0; i < checkpoints.size(); i++) {
             this.game.getWalls().add(new LineCurve(checkpoints.get(i).getP1(), checkpoints.get((i + 1) % checkpoints.size()).getP1()));
             this.game.getWalls().add(new LineCurve(checkpoints.get(i).getP2(), checkpoints.get((i + 1) % checkpoints.size()).getP2()));
@@ -402,15 +383,5 @@ public class RaceActivity extends FormularActivity {
                 courseNode.add(kart);
             }
         });
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
     }
 }
