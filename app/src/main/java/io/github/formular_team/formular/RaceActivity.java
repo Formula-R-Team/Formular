@@ -173,16 +173,25 @@ public class RaceActivity extends FormularActivity {
         } catch (final NotYetAvailableException e) {
             throw new AssertionError();
         }
-
-        // TODO: path failure feedback
-        final Path captureSegments = new PathFinder(
-            new CirclePathLocator(25),
-            new PathFollower(
-                new SimpleStepFunction(7, (0.5F * Mth.PI)),
-                new OrientFunction(3)
+        final float courseRoadWidth = 6.0F;
+        final float courseToSceneScale = 0.05F / courseRoadWidth;
+        final float courseCaptureSize = captureRange / courseToSceneScale;
+        final Path linePath = new Path();
+        new PathFinder(
+                new CirclePathLocator(25),
+                new PathFollower(
+                    new SimpleStepFunction(7, (0.5F * Mth.PI)),
+                    new OrientFunction(3)
+                )
             )
-        ).find(rectifiedCapture);
-        if (captureSegments.getLength() == 0.0F || !captureSegments.isClosed()) {
+            .find(rectifiedCapture)
+            .visit(new TransformingPathVisitor(linePath, new Matrix3()
+                .scale(2.0F / captureSize)
+                .translate(-1.0F, -1.0F)
+                .scale(courseCaptureSize, -courseCaptureSize)
+            ));
+        final Path path = Bezier.fitBezierCurve(linePath, 0.175F);
+        if (path.getLength() == 0.0F || !path.isClosed()) {
             Log.v(TAG, "Curve not continuous");
             this.countView.setText("!");
             final Animation anim = new AlphaAnimation(1.0F, 0.0F);
@@ -194,17 +203,7 @@ public class RaceActivity extends FormularActivity {
             this.countView.startAnimation(anim);
             return;
         }
-        final Path captureTrackPath = Bezier.fitBezierCurve(captureSegments, 8.0F);
-        final float courseRoadWidth = 6.0F;
-        final Path courseTrackPath = new Path();
-        final float courseToSceneScale = 0.05F / courseRoadWidth;
-        final float courseCaptureSize = captureRange / courseToSceneScale;
-        captureTrackPath.visit(new TransformingPathVisitor(courseTrackPath, new Matrix3()
-            .scale(2.0F / captureSize)
-            .translate(-1.0F, -1.0F)
-            .scale(courseCaptureSize, -courseCaptureSize)
-        ));
-        final Track track = new SimpleTrackFactory(courseRoadWidth).create(courseTrackPath);
+        final Track track = new SimpleTrackFactory(courseRoadWidth).create(path);
         final float coursePad = 2.0F;
         final float courseRange = courseCaptureSize + coursePad;
         final float courseSize = 2.0F * courseRange;
