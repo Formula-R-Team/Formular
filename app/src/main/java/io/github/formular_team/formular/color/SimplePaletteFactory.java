@@ -75,6 +75,7 @@ public final class SimplePaletteFactory implements PaletteFactory {
             return this;
         }
 
+        @Override
         public PaletteFactory build(){
             return new SimplePaletteFactory(this);
         }

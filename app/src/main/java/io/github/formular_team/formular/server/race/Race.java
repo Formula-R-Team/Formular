@@ -8,8 +8,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.ListIterator;
 
-import io.github.formular_team.formular.GameModel;
-import io.github.formular_team.formular.User;
+import io.github.formular_team.formular.server.GameModel;
+import io.github.formular_team.formular.server.User;
 import io.github.formular_team.formular.math.Mth;
 import io.github.formular_team.formular.math.Vector2;
 import io.github.formular_team.formular.server.Checkpoint;

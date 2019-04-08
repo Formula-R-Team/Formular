@@ -244,47 +244,32 @@ public class Geometry extends AbstractGeometry {
 //	}
 
     public Vector3 center() {
-
         this.computeBoundingBox();
-
         final Vector3 offset = new Vector3();
-
         offset.add(this.boundingBox.getMin(), this.boundingBox.getMax());
         offset.multiply(-0.5F);
-
         this.applyMatrix(new Matrix4().makeTranslation(offset.getX(), offset.getY(), offset.getZ()));
         this.computeBoundingBox();
-
         return offset;
-
     }
 
     /**
      * Computes face normals.
      */
     public void computeFaceNormals() {
-
         final Vector3 cb = new Vector3();
         final Vector3 ab = new Vector3();
-
         for (int f = 0, fl = this.faces.size(); f < fl; f++) {
-
             final Face3 face = this.faces.get(f);
-
             final Vector3 vA = this.vertices.get(face.getA());
             final Vector3 vB = this.vertices.get(face.getB());
             final Vector3 vC = this.vertices.get(face.getC());
-
             cb.sub(vC, vB);
             ab.sub(vA, vB);
             cb.cross(ab);
-
             cb.normalize();
-
             face.normal.copy(cb);
-
         }
-
     }
 
     @Override

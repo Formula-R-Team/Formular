@@ -1,5 +1,6 @@
 package io.github.formular_team.formular;
 
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.os.Bundle;
@@ -30,8 +31,11 @@ import com.google.ar.sceneform.ux.ArFragment;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import io.github.formular_team.formular.ar.scene.CourseNode;
-import io.github.formular_team.formular.ar.scene.KartNode;
+import io.github.formular_team.formular.ar.CourseNode;
+import io.github.formular_team.formular.ar.KartNode;
+import io.github.formular_team.formular.ar.LabelFactory;
+import io.github.formular_team.formular.ar.ModelLoader;
+import io.github.formular_team.formular.ar.Rectifier;
 import io.github.formular_team.formular.math.Bezier;
 import io.github.formular_team.formular.math.LineCurve;
 import io.github.formular_team.formular.math.Matrix3;
@@ -39,22 +43,27 @@ import io.github.formular_team.formular.math.Mth;
 import io.github.formular_team.formular.math.Path;
 import io.github.formular_team.formular.math.TransformingPathVisitor;
 import io.github.formular_team.formular.server.Checkpoint;
+import io.github.formular_team.formular.trace.CirclePathLocator;
 import io.github.formular_team.formular.server.Course;
 import io.github.formular_team.formular.server.CourseMetadata;
 import io.github.formular_team.formular.server.Driver;
+import io.github.formular_team.formular.server.GameModel;
 import io.github.formular_team.formular.server.KartDefinition;
 import io.github.formular_team.formular.server.KartModel;
 import io.github.formular_team.formular.server.SimpleDriver;
 import io.github.formular_team.formular.server.SimpleGameModel;
+import io.github.formular_team.formular.server.SimpleTrackFactory;
 import io.github.formular_team.formular.server.Track;
+import io.github.formular_team.formular.server.User;
 import io.github.formular_team.formular.server.race.Race;
 import io.github.formular_team.formular.server.race.RaceConfiguration;
 import io.github.formular_team.formular.server.race.RaceListener;
 import io.github.formular_team.formular.trace.OrientFunction;
-import io.github.formular_team.formular.trace.PathFollower;
+import io.github.formular_team.formular.trace.PathFinder;
+import io.github.formular_team.formular.trace.SimplePathTracer;
 import io.github.formular_team.formular.trace.SimpleStepFunction;
 
-public class RaceActivity extends FormularActivity {
+public class RaceActivity extends FormularActivity implements ModelLoader.Listener {
     private static final String TAG = RaceActivity.class.getSimpleName();
 
     private ModelLoader modelLoader;
@@ -77,6 +86,12 @@ public class RaceActivity extends FormularActivity {
 
     private ArFragment arFragment;
 
+    @Override
+    public Context getContext() {
+        return this;
+    }
+
+    @Override
     public void setRenderable(final int id, final ModelRenderable modelRenderable) {
         if (id == KART_BODY) {
             this.kartBody = modelRenderable;
@@ -85,6 +100,7 @@ public class RaceActivity extends FormularActivity {
         }
     }
 
+    @Override
     public void onException(final int id, final Throwable throwable) {
         final Toast toast = Toast.makeText(this, "Unable to load renderable: " + id, Toast.LENGTH_LONG);
         toast.setGravity(Gravity.CENTER, 0, 0);
@@ -161,7 +177,6 @@ public class RaceActivity extends FormularActivity {
         }
         final float captureRange = 0.25F;
         final int captureSize = 200;
-
         final Bitmap rectifiedCapture;
         try (final Rectifier rectifier = new Rectifier(arFrame)) {
             final Matrix model = new Matrix();
@@ -179,18 +194,18 @@ public class RaceActivity extends FormularActivity {
         final Path linePath = new Path();
         new PathFinder(
                 new CirclePathLocator(25),
-                new PathFollower(
+                new SimplePathTracer(
                     new SimpleStepFunction(7, (0.5F * Mth.PI)),
                     new OrientFunction(3)
                 )
             )
-            .find(rectifiedCapture)
+            .find(new BitmapImageMap(rectifiedCapture))
             .visit(new TransformingPathVisitor(linePath, new Matrix3()
                 .scale(2.0F / captureSize)
                 .translate(-1.0F, -1.0F)
                 .scale(courseCaptureSize, -courseCaptureSize)
             ));
-        final Path path = Bezier.fitBezierCurve(linePath, 0.175F);
+        final Path path = Bezier.fitCurve(linePath, 0.175F);
         if (path.getLength() == 0.0F || !path.isClosed()) {
             Log.v(TAG, "Curve not continuous");
             this.countView.setText("!");

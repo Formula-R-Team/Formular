@@ -22,19 +22,16 @@ import io.github.formular_team.formular.math.Box3;
 import io.github.formular_team.formular.math.Sphere;
 
 public abstract class AbstractGeometry {
-    private static int Counter = 0;
+    private static int nextId = 0;
 
-    private int id = 0;
+    private int id;
 
     private String name;
 
-    // Bounding box.
     protected Box3 boundingBox = null;
 
-    // Bounding sphere.
     protected Sphere boundingSphere = null;
 
-    // update flags
     protected boolean verticesNeedUpdate = false;
 
     protected boolean elementsNeedUpdate = false;
@@ -54,109 +51,87 @@ public abstract class AbstractGeometry {
     protected boolean groupsNeedUpdate = false;
 
     public AbstractGeometry() {
-        this.id = Counter++;
+        this.id = nextId++;
         this.name = "";
     }
 
-    /**
-     * Name for this geometry. Default is an empty string.
-     *
-     * @return Name
-     */
     public String getName() {
         return this.name;
     }
 
-    /**
-     * Set name for this geometry.
-     *
-     * @param name
-     */
-    public void setName(String name) {
+    public void setName(final String name) {
         this.name = name;
     }
 
-
-    public void setId(int id) {
+    public void setId(final int id) {
         this.id = id;
     }
 
-    /**
-     * Gets the Unique number of this geometry instance
-     */
     public int getId() {
-        return id;
+        return this.id;
     }
 
     public boolean isVerticesNeedUpdate() {
-        return verticesNeedUpdate;
+        return this.verticesNeedUpdate;
     }
 
-    public void setVerticesNeedUpdate(boolean verticesNeedUpdate) {
+    public void setVerticesNeedUpdate(final boolean verticesNeedUpdate) {
         this.verticesNeedUpdate = verticesNeedUpdate;
     }
 
     public boolean isElementsNeedUpdate() {
-        return elementsNeedUpdate;
+        return this.elementsNeedUpdate;
     }
 
-    public void setElementsNeedUpdate(boolean elementsNeedUpdate) {
+    public void setElementsNeedUpdate(final boolean elementsNeedUpdate) {
         this.elementsNeedUpdate = elementsNeedUpdate;
     }
 
     public boolean isNormalsNeedUpdate() {
-        return normalsNeedUpdate;
+        return this.normalsNeedUpdate;
     }
 
-    public void setNormalsNeedUpdate(boolean normalsNeedUpdate) {
+    public void setNormalsNeedUpdate(final boolean normalsNeedUpdate) {
         this.normalsNeedUpdate = normalsNeedUpdate;
     }
 
     public boolean isColorsNeedUpdate() {
-        return colorsNeedUpdate;
+        return this.colorsNeedUpdate;
     }
 
-    public void setColorsNeedUpdate(boolean colorsNeedUpdate) {
+    public void setColorsNeedUpdate(final boolean colorsNeedUpdate) {
         this.colorsNeedUpdate = colorsNeedUpdate;
     }
 
     public boolean isUvsNeedUpdate() {
-        return uvsNeedUpdate;
+        return this.uvsNeedUpdate;
     }
 
-    public void setUvsNeedUpdate(boolean uvsNeedUpdate) {
+    public void setUvsNeedUpdate(final boolean uvsNeedUpdate) {
         this.uvsNeedUpdate = uvsNeedUpdate;
     }
 
     public boolean isTangentsNeedUpdate() {
-        return tangentsNeedUpdate;
+        return this.tangentsNeedUpdate;
     }
 
-    public void setTangentsNeedUpdate(boolean tangentsNeedUpdate) {
+    public void setTangentsNeedUpdate(final boolean tangentsNeedUpdate) {
         this.tangentsNeedUpdate = tangentsNeedUpdate;
     }
 
-    public boolean isMorphTargetsNeedUpdate() {
-        return morphTargetsNeedUpdate;
-    }
-
-    public void setMorphTargetsNeedUpdate(boolean morphTargetsNeedUpdate) {
-        this.morphTargetsNeedUpdate = morphTargetsNeedUpdate;
-    }
-
     public boolean isLineDistancesNeedUpdate() {
-        return lineDistancesNeedUpdate;
+        return this.lineDistancesNeedUpdate;
     }
 
-    public void setLineDistancesNeedUpdate(boolean lineDistancesNeedUpdate) {
+    public void setLineDistancesNeedUpdate(final boolean lineDistancesNeedUpdate) {
         this.lineDistancesNeedUpdate = lineDistancesNeedUpdate;
     }
 
     public boolean isGroupsNeedUpdate() {
-        return groupsNeedUpdate;
+        return this.groupsNeedUpdate;
     }
 
-    public void setGroupsNeedUpdate(boolean groupsNeedUpdate) {
+    public void setGroupsNeedUpdate(final boolean groupsNeedUpdate) {
         this.groupsNeedUpdate = groupsNeedUpdate;
     }
 
@@ -164,7 +139,7 @@ public abstract class AbstractGeometry {
         return this.boundingBox;
     }
 
-    public void setBoundingBox(Box3 boundingBox) {
+    public void setBoundingBox(final Box3 boundingBox) {
         this.boundingBox = boundingBox;
     }
 
@@ -172,7 +147,7 @@ public abstract class AbstractGeometry {
         return this.boundingSphere;
     }
 
-    public void setBoundingSphere(Sphere boundingSphere) {
+    public void setBoundingSphere(final Sphere boundingSphere) {
         this.boundingSphere = boundingSphere;
     }
 
@@ -183,8 +158,4 @@ public abstract class AbstractGeometry {
     public abstract void computeVertexNormals();
 
     public abstract void computeTangents();
-
-    public String toString() {
-        return getClass().getSimpleName();
-    }
 }

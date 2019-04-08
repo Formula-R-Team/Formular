@@ -1,4 +1,4 @@
-package io.github.formular_team.formular;
+package io.github.formular_team.formular.server;
 
 import com.google.common.collect.ImmutableList;
 
@@ -7,9 +7,6 @@ import java.util.List;
 import io.github.formular_team.formular.math.Path;
 import io.github.formular_team.formular.math.PathOffset;
 import io.github.formular_team.formular.math.Shape;
-import io.github.formular_team.formular.server.Checkpoint;
-import io.github.formular_team.formular.server.FinishLineOptimizer;
-import io.github.formular_team.formular.server.Track;
 
 public class SimpleTrackFactory implements TrackFactory {
     private final float width;

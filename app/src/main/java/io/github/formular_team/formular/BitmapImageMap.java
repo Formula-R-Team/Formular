@@ -2,15 +2,15 @@ package io.github.formular_team.formular;
 
 import android.graphics.Bitmap;
 
-import com.google.common.base.Preconditions;
-
 import io.github.formular_team.formular.trace.ImageMap;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 public final class BitmapImageMap implements ImageMap {
     private final Bitmap bitmap;
 
     public BitmapImageMap(final Bitmap bitmap) {
-        this.bitmap = Preconditions.checkNotNull(bitmap);
+        this.bitmap = checkNotNull(bitmap);
     }
 
     @Override

@@ -1,4 +1,4 @@
-package io.github.formular_team.formular;
+package io.github.formular_team.formular.server;
 
 public final class User {
     private final String name;

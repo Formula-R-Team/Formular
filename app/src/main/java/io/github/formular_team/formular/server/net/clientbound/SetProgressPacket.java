@@ -3,7 +3,7 @@ package io.github.formular_team.formular.server.net.clientbound;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import io.github.formular_team.formular.GameClient;
+import io.github.formular_team.formular.server.GameClient;
 import io.github.formular_team.formular.server.net.Packet;
 import io.github.formular_team.formular.server.net.PacketHandler;
 

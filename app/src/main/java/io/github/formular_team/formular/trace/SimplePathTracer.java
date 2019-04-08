@@ -3,17 +3,18 @@ package io.github.formular_team.formular.trace;
 import io.github.formular_team.formular.math.PathVisitor;
 import io.github.formular_team.formular.math.Vector2;
 
-public class PathFollower {
+public class SimplePathTracer implements PathTracer {
 	private final StepFunction stepFunc;
 
 	private final ToFloatMapFunction orientFunc;
 
-	public PathFollower(final StepFunction stepFunc, final ToFloatMapFunction orientFunc) {
+	public SimplePathTracer(final StepFunction stepFunc, final ToFloatMapFunction orientFunc) {
 		this.stepFunc = stepFunc;
 		this.orientFunc = orientFunc;
 	}
 
-	public boolean follow(final Mapper map, final PathVisitor visitor) {
+	@Override
+	public boolean trace(final Mapper map, final PathVisitor visitor) {
 		final Vector2 pos = new Vector2(0.0F, 0.0F);
 		float rotation = 0.0F;
 		final TransformMapper view = new TransformMapper(map, pos.getX(), pos.getY(), rotation);
@@ -35,6 +36,9 @@ public class PathFollower {
 			pos.add(step);
 			view.setTranslation(pos.getX(), pos.getY());
 			if (stepNo > 1 && pos.length() <= this.stepFunc.getSize() * 2) {
+				if (pos.length() > this.stepFunc.getSize()) {
+					visitor.lineTo(pos.getX(), pos.getY());
+				}
 				visitor.closePath();
 				break;
 			}

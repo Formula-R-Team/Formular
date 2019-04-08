@@ -1,6 +1,4 @@
-package io.github.formular_team.formular;
-
-import io.github.formular_team.formular.server.Kart;
+package io.github.formular_team.formular.server;
 
 public interface GameClient extends Game {
     RacerStatus getStatus();

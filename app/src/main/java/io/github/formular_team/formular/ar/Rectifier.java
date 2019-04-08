@@ -1,4 +1,4 @@
-package io.github.formular_team.formular;
+package io.github.formular_team.formular.ar;
 
 import android.graphics.Bitmap;
 import android.graphics.Rect;
@@ -12,6 +12,8 @@ import com.google.ar.core.Frame;
 import com.google.ar.core.exceptions.NotYetAvailableException;
 
 import java.io.Closeable;
+
+import io.github.formular_team.formular.Images;
 
 public class Rectifier implements Closeable  {
     private final static float[] SQUARE = createSquare();

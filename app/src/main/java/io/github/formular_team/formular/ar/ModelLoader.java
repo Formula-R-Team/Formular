@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.github.formular_team.formular;
+package io.github.formular_team.formular.ar;
 
+import android.content.Context;
 import android.util.Log;
 import android.util.SparseArray;
 
@@ -22,6 +23,8 @@ import com.google.ar.sceneform.rendering.ModelRenderable;
 
 import java.lang.ref.WeakReference;
 import java.util.concurrent.CompletableFuture;
+
+import io.github.formular_team.formular.RaceActivity;
 
 /**
  * Model loader class to avoid memory leaks from the activity. Activity and Fragment controller
@@ -40,9 +43,9 @@ public class ModelLoader {
 
     private final SparseArray<CompletableFuture<ModelRenderable>> futureSet = new SparseArray<>();
 
-    private final WeakReference<RaceActivity> owner;
+    private final WeakReference<Listener> owner;
 
-    ModelLoader(final RaceActivity owner) {
+    public ModelLoader(final Listener owner) {
         this.owner = new WeakReference<>(owner);
     }
 
@@ -58,15 +61,15 @@ public class ModelLoader {
      * @param resourceId the resource id of the .sfb to load.
      * @return true if loading was initiated.
      */
-    boolean loadModel(final int id, final int resourceId) {
-        final RaceActivity activity = this.owner.get();
+    public boolean loadModel(final int id, final int resourceId) {
+        final Listener activity = this.owner.get();
         if (activity == null) {
             Log.d(TAG, "Activity is null, cannot load model");
             return false;
         }
         final CompletableFuture<ModelRenderable> future =
             ModelRenderable.builder()
-                .setSource(this.owner.get(), resourceId)
+                .setSource(activity.getContext(), resourceId)
                 .build()
                 .thenApply(renderable -> this.setRenderable(id, renderable))
                 .exceptionally(throwable -> this.onException(id, throwable));
@@ -77,7 +80,7 @@ public class ModelLoader {
     }
 
     ModelRenderable onException(final int id, final Throwable throwable) {
-        final RaceActivity activity = this.owner.get();
+        final Listener activity = this.owner.get();
         if (activity != null) {
             activity.onException(id, throwable);
         }
@@ -86,11 +89,19 @@ public class ModelLoader {
     }
 
     ModelRenderable setRenderable(final int id, final ModelRenderable modelRenderable) {
-        final RaceActivity activity = this.owner.get();
+        final Listener activity = this.owner.get();
         if (activity != null) {
             activity.setRenderable(id, modelRenderable);
         }
         this.futureSet.remove(id);
         return modelRenderable;
+    }
+
+    public interface Listener {
+        Context getContext();
+
+        void setRenderable(final int id, final ModelRenderable renderable);
+
+        void onException(final int id, final Throwable throwable);
     }
 }

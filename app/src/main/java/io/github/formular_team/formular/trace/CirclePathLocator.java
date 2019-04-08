@@ -1,8 +1,7 @@
-package io.github.formular_team.formular;
+package io.github.formular_team.formular.trace;
 
 import io.github.formular_team.formular.math.Mth;
 import io.github.formular_team.formular.math.Vector2;
-import io.github.formular_team.formular.trace.Mapper;
 
 public class CirclePathLocator implements PathLocator {
     private final float radius;

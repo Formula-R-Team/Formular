@@ -15,6 +15,7 @@
  * 3.0 Unported License along with Parallax.
  * If not, see http://creativecommons.org/licenses/by/3.0/.
  */
+
 package io.github.formular_team.formular.math;
 
 public class Vector2 {
@@ -154,7 +155,6 @@ public class Vector2 {
     public Vector2 add(final float s) {
         this.addX(s);
         this.addY(s);
-
         return this;
     }
 
@@ -233,55 +233,44 @@ public class Vector2 {
         } else if (this.x > max.x) {
             this.x = max.x;
         }
-
         if (this.y < min.y) {
             this.y = min.y;
         } else if (this.y > max.y) {
             this.y = max.y;
         }
-
         return this;
     }
 
     public Vector2 clamp(final float minVal, final float maxVal) {
         _min.set(minVal, minVal);
         _max.set(maxVal, maxVal);
-
         return this.clamp(_min, _max);
     }
 
     public Vector2 floor() {
-
         this.x = Mth.floor(this.x);
         this.y = Mth.floor(this.y);
-
         return this;
 
     }
 
     public Vector2 ceil() {
-
         this.x = Mth.ceil(this.x);
         this.y = Mth.ceil(this.y);
-
         return this;
 
     }
 
     public Vector2 round() {
-
         this.x = Math.round(this.x);
         this.y = Math.round(this.y);
-
         return this;
 
     }
 
     public Vector2 roundToZero() {
-
-        this.x = (this.x < 0) ? Mth.ceil(this.x) : Mth.floor(this.x);
-        this.y = (this.y < 0) ? Mth.ceil(this.y) : Mth.floor(this.y);
-
+        this.x = (this.x < 0.0F) ? Mth.ceil(this.x) : Mth.floor(this.x);
+        this.y = (this.y < 0.0F) ? Mth.ceil(this.y) : Mth.floor(this.y);
         return this;
 
     }
@@ -292,7 +281,6 @@ public class Vector2 {
     public Vector2 negate() {
         this.x = -this.x;
         this.y = -this.y;
-
         return this;
     }
 
@@ -327,8 +315,7 @@ public class Vector2 {
      * Normalizes this vector in place.
      */
     public Vector2 normalize() {
-        this.divide(this.length());
-        return this;
+        return this.multiply(1.0F / this.length());
     }
 
     public float distanceToSquared(final Vector2 v) {

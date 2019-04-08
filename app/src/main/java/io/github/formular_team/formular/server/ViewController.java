@@ -1,6 +1,4 @@
-package io.github.formular_team.formular;
-
-import io.github.formular_team.formular.server.NamespacedString;
+package io.github.formular_team.formular.server;
 
 public interface ViewController {
     void addKart(final int uniqueId, final NamespacedString definition);

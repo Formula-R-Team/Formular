@@ -1,4 +1,4 @@
-package io.github.formular_team.formular;
+package io.github.formular_team.formular.ar;
 
 import android.content.Context;
 import android.widget.TextView;
@@ -12,6 +12,8 @@ import com.google.ar.sceneform.rendering.FixedHeightViewSizer;
 import com.google.ar.sceneform.rendering.ViewRenderable;
 
 import java.util.concurrent.CompletableFuture;
+
+import io.github.formular_team.formular.R;
 
 public final class LabelFactory {
     public static CompletableFuture<Node> create(final Context context, final String text, final float height) {

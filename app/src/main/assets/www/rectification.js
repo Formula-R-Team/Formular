@@ -5,19 +5,29 @@
     const camera = new THREE.PerspectiveCamera(50, aspect(), 0.01, 100);
     camera.position.set(10, 5, 0);
     const scene = new THREE.Scene();
-    scene.add(new THREE.GridHelper(10, 14, '#000000', '#636363'));
+//    scene.add(new THREE.GridHelper(10, 14, '#000000', '#636363'));
+
+//    const phoneImageWidth = 480.0;
+//    const phoneImageHeight = 640.0;
+//    const phone = new THREE.PerspectiveCamera(50.850555, phoneImageWidth / phoneImageHeight, 1, 10);
+//    phone.position.set(10, 5, 0);
+//    phone.up.set(0, 1, 0);
+//    phone.lookAt(0, 0, 0);
+//    scene.add(phone);
+//    scene.add(new THREE.CameraHelper(phone));
 
     const planeObj = (() => {
-        const map = new THREE.TextureLoader().load('images/box_circle.png');
+        const map = new THREE.TextureLoader().load('images/track-01.png');
         map.anisotropy = 16;
         const mesh = new THREE.Mesh(
-            new THREE.PlaneBufferGeometry(5, 5),
+            new THREE.PlaneBufferGeometry(8, 8),
             new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, map: map })
         );
         mesh.lookAt(new THREE.Vector3(0.0, 1.0, 0.0));
         return mesh;
     })();
     scene.add(planeObj);
+    planeObj.add(new THREE.AxesHelper());
 
     const displayCanvas = document.getElementById('display');
     const displayGl = displayCanvas.getContext('webgl');
@@ -26,7 +36,6 @@
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setClearColor(0x000000, 0.0);
     document.body.appendChild(renderer.domElement);
-    console.log(renderer.domElement);
 
     const output = (() => {
         const canvas = document.getElementById('output');
@@ -63,13 +72,6 @@
                 1.0 - 2.0 * event.clientY / window.innerHeight
             );
         });
-    {
-        const viewProjMtx = new THREE.Matrix4();
-        viewProjMtx.makePerspective(-1.0, 1.0, -1.0, 1.0, 0.2, 10.0);
-        const test = new THREE.Vector3(0.25, 0.0, 0.75).applyMatrix4(viewProjMtx);
-        const invertedProjectionMatrix = new THREE.Matrix4().getInverse(viewProjMtx, true);
-        console.log(test.applyMatrix4(invertedProjectionMatrix));
-    }
     (function animate() {
         requestAnimationFrame(animate);
         renderer.render(scene, camera);
@@ -83,28 +85,51 @@
         const rayDirection = new THREE.Vector3().set(coords.x, coords.y, 0.5).unproject(camera).sub(rayOrigin).normalize();
         const ray = new THREE.Ray(rayOrigin, rayDirection);
 
-        const hit = ray.intersectPlane(plane, new THREE.Vector3());
-        const scale = 3;
+        const hit = new THREE.Vector3();//ray.intersectPlane(plane, new THREE.Vector3());
+        const scale = 4;
         if (hit) {
+            const transform = (p) => {
+                const ndc = planeObj.localToWorld(p).add(hit).project(camera);
+                return new THREE.Vector2(
+                    ((1.0 + ndc.x) * window.innerWidth * window.devicePixelRatio / 2.0) | 0,
+                    ((1.0 - ndc.y) * window.innerHeight * window.devicePixelRatio / 2.0) | 0
+                );
+            };
             const display = (() => {
                 const canvas = renderer.domElement;
-                // TODO: capture only needed region
-                const buf = new Uint8Array(4 * canvas.width * canvas.height);
-                displayGl.readPixels(0, 0, canvas.width, canvas.height, displayGl.RGBA, displayGl.UNSIGNED_BYTE, buf);
-                return (x, y) => {
-                    if (x >= 0 && y > 0 && x < canvas.width && y <= canvas.height) {
-                        const idx = 4 * (x + (canvas.height - y - 1) * canvas.width);
+                const box = new THREE.Box2().setFromPoints([
+                       transform(new THREE.Vector3(-scale, -scale, 0)),
+                       transform(new THREE.Vector3(-scale,  scale, 0)),
+                       transform(new THREE.Vector3( scale,  scale, 0)),
+                       transform(new THREE.Vector3( scale, -scale, 0))
+                   ]);
+                const size = box.getSize(new THREE.Vector2());
+                const buf = new Uint8Array(4 * size.width * size.height);
+                displayGl.readPixels(box.min.x, canvas.height - size.height - box.min.y, size.width, size.height, displayGl.RGBA, displayGl.UNSIGNED_BYTE, buf);
+                for (let y = 0; y < (size.height / 2) | 0; y++) {
+                    for (let x = 0; x < size.width; x++) {
+                        for (let n = 0; n < 4; n++) {
+                            const i0 = 4 * (x + y * size.width) + n;
+                            const i1 = 4 * (x + (size.height - 1 - y) * size.width) + n;
+                            const tmp = buf[i0];
+                            buf[i0] = buf[i1];
+                            buf[i1] = tmp;
+                        }
+                    }
+                }
+                const transparent = [ 0, 0, 0, 0 ];
+                return (pos) => {
+                    if (box.containsPoint(pos)) {
+                        pos.sub(box.min);
+                        const idx = 4 * (pos.x + pos.y * size.width);
                         return [ buf[idx + 0], buf[idx + 1], buf[idx + 2], buf[idx + 3] ];
                     }
-                    return [ 0, 0, 0, 0 ];
+                    return transparent;
                 };
             })();
+
             output((x, y) => {
-                const point = planeObj.localToWorld(new THREE.Vector3(x * scale, y * scale, 0.0)).add(hit)
-                const ndc = point.project(camera);
-                const pixelX = ((1.0 + ndc.x) * window.innerWidth * window.devicePixelRatio / 2.0) | 0;
-                const pixelY = ((1.0 - ndc.y) * window.innerHeight * window.devicePixelRatio / 2.0) | 0;
-                return display(pixelX, pixelY);
+                return display(transform(new THREE.Vector3(x * scale, y * scale, 0.0)));
             });
         }
     })();

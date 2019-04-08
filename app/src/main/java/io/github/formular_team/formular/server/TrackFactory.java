@@ -1,4 +1,4 @@
-package io.github.formular_team.formular;
+package io.github.formular_team.formular.server;
 
 import io.github.formular_team.formular.math.Path;
 import io.github.formular_team.formular.server.Track;

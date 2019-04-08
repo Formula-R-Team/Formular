@@ -1,6 +1,5 @@
 package io.github.formular_team.formular.server;
 
-import io.github.formular_team.formular.GameModel;
 import io.github.formular_team.formular.collision.Intersections;
 import io.github.formular_team.formular.math.LineCurve;
 import io.github.formular_team.formular.math.Mth;

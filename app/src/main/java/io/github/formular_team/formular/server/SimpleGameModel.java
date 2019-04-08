@@ -5,7 +5,6 @@ import com.google.common.collect.Lists;
 import java.util.Iterator;
 import java.util.List;
 
-import io.github.formular_team.formular.GameModel;
 import io.github.formular_team.formular.math.LineCurve;
 import io.github.formular_team.formular.server.race.Race;
 

@@ -15,6 +15,7 @@
  * 3.0 Unported License along with Parallax.
  * If not, see http://creativecommons.org/licenses/by/3.0/.
  */
+
 package io.github.formular_team.formular.math;
 
 public class Vector3 extends Vector2 {

@@ -1,7 +1,5 @@
 package io.github.formular_team.formular.server;
 
-import io.github.formular_team.formular.User;
-
 public final class CourseMetadata {
     private final User creator;
 

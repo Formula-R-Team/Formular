@@ -1,4 +1,4 @@
-package io.github.formular_team.formular.ar.scene;
+package io.github.formular_team.formular.ar;
 
 import android.content.Context;
 import android.content.res.AssetManager;
@@ -19,15 +19,12 @@ import com.google.ar.sceneform.rendering.MaterialFactory;
 import com.google.ar.sceneform.rendering.ModelRenderable;
 import com.google.ar.sceneform.rendering.Texture;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-import io.github.formular_team.formular.Geometries;
 import io.github.formular_team.formular.GraphicsPathVisitor;
 import io.github.formular_team.formular.geometry.ExtrudeGeometry;
 import io.github.formular_team.formular.geometry.Geometry;
@@ -49,8 +46,6 @@ public class CourseNode extends Node {
     private static final String TAG = "CourseNode";
 
     private final Node road;
-
-    private final List<Node> checkpoints = Lists.newArrayList();
 
     private CourseNode(final Node road) {
         this.road = road;
