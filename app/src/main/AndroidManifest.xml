@@ -31,6 +31,7 @@
             android:name=".ArActivity"
             android:configChanges="orientation|screenSize"
             android:exported="true" />
+        <activity android:name=".NewRaceActivity"/>
 
         <meta-data
             android:name="com.google.ar.core"

@@ -1,6 +1,6 @@
 package io.github.formular_team.formular.core.race;
 
-public final class RaceConfiguration {
+public final class RaceConfiguration{
     private final int lapCount;
 
     private RaceConfiguration(final int lapCount) {
