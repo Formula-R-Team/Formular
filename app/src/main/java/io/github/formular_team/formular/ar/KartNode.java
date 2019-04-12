@@ -6,9 +6,9 @@ import com.google.ar.sceneform.math.Quaternion;
 import com.google.ar.sceneform.math.Vector3;
 import com.google.ar.sceneform.rendering.ModelRenderable;
 
-import io.github.formular_team.formular.math.Mth;
-import io.github.formular_team.formular.server.Kart;
-import io.github.formular_team.formular.server.KartModel;
+import io.github.formular_team.formular.core.Kart;
+import io.github.formular_team.formular.core.KartModel;
+import io.github.formular_team.formular.core.math.Mth;
 
 public class KartNode extends Node {
     private final Kart kart;

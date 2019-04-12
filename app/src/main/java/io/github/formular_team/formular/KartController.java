@@ -4,8 +4,8 @@ import android.annotation.SuppressLint;
 import android.view.MotionEvent;
 import android.view.View;
 
-import io.github.formular_team.formular.math.Mth;
-import io.github.formular_team.formular.server.Kart;
+import io.github.formular_team.formular.core.math.Mth;
+import io.github.formular_team.formular.core.Kart;
 
 public final class KartController implements View.OnTouchListener {
     private final Kart kart;

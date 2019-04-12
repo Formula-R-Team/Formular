@@ -1,8 +1,8 @@
 package io.github.formular_team.formular.ar;
 
-import io.github.formular_team.formular.server.GameClient;
-import io.github.formular_team.formular.server.Kart;
-import io.github.formular_team.formular.server.RacerStatus;
+import io.github.formular_team.formular.core.GameClient;
+import io.github.formular_team.formular.core.Kart;
+import io.github.formular_team.formular.core.RacerStatus;
 
 public class ArGameClient implements GameClient {
     @Override

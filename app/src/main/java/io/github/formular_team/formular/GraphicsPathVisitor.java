@@ -2,7 +2,7 @@ package io.github.formular_team.formular;
 
 import android.graphics.Path;
 
-import io.github.formular_team.formular.math.PathVisitor;
+import io.github.formular_team.formular.core.math.PathVisitor;
 
 public final class GraphicsPathVisitor implements PathVisitor {
     private final Path path;

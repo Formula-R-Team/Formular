@@ -2,7 +2,7 @@ package io.github.formular_team.formular;
 
 import android.graphics.Bitmap;
 
-import io.github.formular_team.formular.trace.ImageMap;
+import io.github.formular_team.formular.core.tracing.ImageMap;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 

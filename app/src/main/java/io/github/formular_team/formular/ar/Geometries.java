@@ -11,18 +11,18 @@ import com.google.common.util.concurrent.Futures;
 import java.util.Iterator;
 import java.util.List;
 
-import io.github.formular_team.formular.geometry.Face3;
-import io.github.formular_team.formular.geometry.Geometry;
-import io.github.formular_team.formular.math.Vector2;
+import io.github.formular_team.formular.core.geom.Face3;
+import io.github.formular_team.formular.core.geom.Geometry;
+import io.github.formular_team.formular.core.math.Vector2;
 
 // TODO: mesh construction api
 public final class Geometries {
     private Geometries() {}
 
-    public static ModelRenderable lines(final List<List<io.github.formular_team.formular.math.Vector3>> pointsLists, final float width, final List<Material> materials) {
+    public static ModelRenderable lines(final List<List<io.github.formular_team.formular.core.math.Vector3>> pointsLists, final float width, final List<Material> materials) {
         final ImmutableList.Builder<Vertex> vertices = ImmutableList.builder();
         final ImmutableList.Builder<RenderableDefinition.Submesh> submeshes = ImmutableList.builder();
-        final Iterator<List<io.github.formular_team.formular.math.Vector3>> pointsIter = pointsLists.iterator();
+        final Iterator<List<io.github.formular_team.formular.core.math.Vector3>> pointsIter = pointsLists.iterator();
         final Iterator<Material> materialIter = materials.iterator();
         int box = 0;
         while (pointsIter.hasNext() && materialIter.hasNext()) {
@@ -35,7 +35,7 @@ public final class Geometries {
         return Futures.getUnchecked(ModelRenderable.builder().setSource(def).build());
     }
 
-    private static int lines(final List<io.github.formular_team.formular.math.Vector3> points, final Material material, final float width, final ImmutableList.Builder<Vertex> vertices, final ImmutableList.Builder<RenderableDefinition.Submesh> submeshs, int box) {
+    private static int lines(final List<io.github.formular_team.formular.core.math.Vector3> points, final Material material, final float width, final ImmutableList.Builder<Vertex> vertices, final ImmutableList.Builder<RenderableDefinition.Submesh> submeshs, int box) {
         final ImmutableList.Builder<Integer> indices = ImmutableList.builder();
         final Vector3 worldUp = Vector3.up();
         final Vector3 worldRight = Vector3.right();
@@ -145,7 +145,7 @@ public final class Geometries {
         return Futures.getUnchecked(ModelRenderable.builder().setSource(def).build());
     }
 
-    private static Vector3 v(final io.github.formular_team.formular.math.Vector3 vector) {
+    private static Vector3 v(final io.github.formular_team.formular.core.math.Vector3 vector) {
         return new Vector3(vector.getX(), vector.getY(), vector.getZ());
     }
 }

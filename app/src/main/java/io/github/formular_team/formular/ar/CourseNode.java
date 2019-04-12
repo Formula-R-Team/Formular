@@ -26,21 +26,21 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import io.github.formular_team.formular.GraphicsPathVisitor;
-import io.github.formular_team.formular.geometry.ExtrudeGeometry;
-import io.github.formular_team.formular.geometry.Geometry;
-import io.github.formular_team.formular.math.CubicBezierCurve3;
-import io.github.formular_team.formular.math.CurvePath;
-import io.github.formular_team.formular.math.LineCurve3;
-import io.github.formular_team.formular.math.Matrix4;
-import io.github.formular_team.formular.math.Mth;
-import io.github.formular_team.formular.math.Path;
-import io.github.formular_team.formular.math.PathVisitor;
-import io.github.formular_team.formular.math.Shape;
-import io.github.formular_team.formular.math.Vector2;
-import io.github.formular_team.formular.math.Vector3;
-import io.github.formular_team.formular.server.Checkpoint;
-import io.github.formular_team.formular.server.Course;
-import io.github.formular_team.formular.server.Track;
+import io.github.formular_team.formular.core.geom.ExtrudeGeometry;
+import io.github.formular_team.formular.core.geom.Geometry;
+import io.github.formular_team.formular.core.math.CubicBezierCurve3;
+import io.github.formular_team.formular.core.math.CurvePath;
+import io.github.formular_team.formular.core.math.LineCurve3;
+import io.github.formular_team.formular.core.math.Matrix4;
+import io.github.formular_team.formular.core.math.Mth;
+import io.github.formular_team.formular.core.math.Path;
+import io.github.formular_team.formular.core.math.PathVisitor;
+import io.github.formular_team.formular.core.math.Shape;
+import io.github.formular_team.formular.core.math.Vector2;
+import io.github.formular_team.formular.core.math.Vector3;
+import io.github.formular_team.formular.core.Checkpoint;
+import io.github.formular_team.formular.core.Course;
+import io.github.formular_team.formular.core.Track;
 
 public class CourseNode extends Node {
     private static final String TAG = "CourseNode";
