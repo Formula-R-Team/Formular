@@ -148,7 +148,7 @@ public class RaceActivity extends FormularActivity implements ModelLoader.Listen
         });
     }
 
-    private KartDefinition createKartDefinition() {
+    public static KartDefinition createKartDefinition() {
         final KartDefinition definition = new KartDefinition();
         definition.wheelbase = 1.982F;
         final float t = 0.477F;
