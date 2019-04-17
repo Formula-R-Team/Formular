@@ -36,4 +36,7 @@
     <string name="race_settings">Race Settings</string>
     <string name="_continue">Continue</string>
     <string name="spectators">Allow Spectators</string>
+    <string name="cpus">Allow CPUs</string>
+    <string name="race_cap_text">Racer Cap:</string>
+    <string name="race_type_text">Race Type:</string>
 </resources>

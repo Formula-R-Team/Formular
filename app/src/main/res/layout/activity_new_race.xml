@@ -1,14 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout>
-    <data>
-        <variable
-            name="viewmodel"
-            type="io.github.formular_team.formular.MyViewModel"/>
-    </data>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
     <android.support.constraint.ConstraintLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         tools:context=".MainActivity">
@@ -26,6 +21,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_bias="0.069" />
+
         <LinearLayout
             android:layout_width="260dp"
             android:layout_height="wrap_content"
@@ -35,12 +31,40 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
-            <CheckBox
-                android:id="@+id/spectators"
-                android:checked="@={viewmodel.spectators}"
+            <TextView
+                android:id="@+id/raceTypeText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:text="@string/race_type_text" />
+
+            <Spinner
+                android:id="@+id/game_type_spinner"
+                android:layout_width="match_parent"
+                android:layout_height="50dp" />
+
+            <TextView
+                android:id="@+id/racerCapText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/race_cap_text" />
+
+            <Spinner
+                android:id="@+id/racer_cap"
+                android:layout_width="match_parent"
+                android:layout_height="50dp" />
+
+            <CheckBox
+                android:id="@+id/cpus"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:text="@string/cpus" />
+
+            <CheckBox
+                android:id="@+id/spectators"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
                 android:text="@string/spectators" />
+
             <Button
                 android:id="@+id/btnContinue"
                 android:layout_width="match_parent"
