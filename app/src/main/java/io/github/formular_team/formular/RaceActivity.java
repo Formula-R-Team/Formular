@@ -248,7 +248,8 @@ public class RaceActivity extends FormularActivity implements ModelLoader.Listen
         this.kart = new KartModel(this.game, 0, this.createKartDefinition());
         this.pad.setOnTouchListener(new KartController(this.kart, this.pad, this.wheel));
         final Driver self = SimpleDriver.create(this.user, this.kart);
-        final Race race = Race.create(this.game, RaceConfiguration.create(3), this.user, course);
+        RaceConfiguration.Builder raceConfigBuilder = new RaceConfiguration.Builder().lapCount(3);
+        final Race race = Race.create(this.game, raceConfigBuilder.build(), this.user, course);
         race.addListener(new RaceListener() {
             int lap, position;
             float progress;
