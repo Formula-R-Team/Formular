@@ -11,7 +11,7 @@
         android:summary="John Smith"
         android:title="Name" />
     <com.skydoves.colorpickerpreference.ColorPickerPreference
-        android:key="prefColor"
+        android:key="primaryColor"
         android:title="Kart Color"
         android:summary="changes color of your Kart"
         app:preference_dialog_title="Select your Kart color"
@@ -20,5 +20,4 @@
         app:preference_palette="@drawable/palette"
         app:preference_selector="@drawable/wheel"
         app:default_color="@color/colorPrimary"/>
-
 </PreferenceScreen>

@@ -1,7 +1,9 @@
 package io.github.formular_team.formular;
 
 import android.app.AlertDialog;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.widget.SeekBar;
 
 import com.google.ar.core.exceptions.CameraNotAvailableException;
@@ -21,6 +23,7 @@ import io.github.formular_team.formular.ar.KartNode;
 import io.github.formular_team.formular.core.KartDefinition;
 import io.github.formular_team.formular.core.KartModel;
 import io.github.formular_team.formular.core.SimpleGameModel;
+import io.github.formular_team.formular.core.math.Mth;
 
 public final class ShopActivity extends FormularActivity {
     private SceneView sceneView;
@@ -36,22 +39,28 @@ public final class ShopActivity extends FormularActivity {
         this.sceneView = this.findViewById(R.id.ar_scene);
         this.slider = this.findViewById(R.id.hue);
         this.slider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            private int getArgb(final SeekBar seekBar) {
+                final double[] c = HUSLColorConverter.hsluvToRgb(new double[] { seekBar.getProgress() / 100.0F * 360.0F, 85.0F, 30.0F });
+                return 0xFF000000 |
+                    Mth.clamp((int) (c[0] * 0xFF), 0x00, 0xFF) << 16 |
+                    Mth.clamp((int) (c[1] * 0xFF), 0x00, 0xFF) << 8 |
+                    Mth.clamp((int) (c[2] * 0xFF), 0x00, 0xFF);
+            }
+
             @Override
             public void onProgressChanged(final SeekBar seekBar, final int progress, final boolean fromUser) {
                 if (ShopActivity.this.kart != null) {
-                    final double[] rgb = HUSLColorConverter.hsluvToRgb(new double[] { progress / 100.0F * 360.0F, 85.0F, 30.0F });
-                    ShopActivity.this.kart.setColor(new Color((float) rgb[0], (float) rgb[1], (float) rgb[2]));
+                    ShopActivity.this.kart.setColor(new Color(this.getArgb(seekBar)));
                 }
             }
 
             @Override
-            public void onStartTrackingTouch(final SeekBar seekBar) {
-
-            }
+            public void onStartTrackingTouch(final SeekBar seekBar) {}
 
             @Override
             public void onStopTrackingTouch(final SeekBar seekBar) {
-
+                final SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(ShopActivity.this);
+                settings.edit().putInt("primaryColor", this.getArgb(seekBar)).apply();
             }
         });
         final WeakOptional<ShopActivity> act = WeakOptional.of(this);
@@ -104,8 +113,10 @@ public final class ShopActivity extends FormularActivity {
             .thenCombine(SimpleKartNodeFactory.create(this, R.raw.kart_body, R.raw.kart_wheel_front, R.raw.kart_wheel_rear), (platter, factory) -> {
                 act.ifPresent(activity -> {
                     final KartNode kart = factory.create(new KartModel(new SimpleGameModel(), 0, KartDefinition.createKart2()));
+                    final SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(ShopActivity.this);
+                    final int argb = settings.getInt("primaryColor", 0);
+                    kart.setColor(new Color(argb));
                     activity.kart = kart;
-                    activity.slider.setProgress(30);
                     platter.addChild(kart);
                 });
                 return null;

@@ -6,13 +6,11 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.StringRes;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.ar.core.Anchor;
 import com.google.ar.core.Frame;
@@ -23,7 +21,7 @@ import com.google.ar.sceneform.AnchorNode;
 import com.google.ar.sceneform.ArSceneView;
 import com.google.ar.sceneform.Node;
 import com.google.ar.sceneform.math.Matrix;
-import com.google.ar.sceneform.math.Vector3;
+import com.google.ar.sceneform.rendering.Color;
 import com.google.ar.sceneform.ux.ArFragment;
 
 import java.util.List;
@@ -63,8 +61,6 @@ import io.github.formular_team.formular.core.tracing.SimpleStepFunction;
 public class RaceActivity extends FormularActivity {
     private static final String TAG = RaceActivity.class.getSimpleName();
 
-    private static final int KART_BODY = 0, KART_WHEEL = 1;
-
     private KartNodeFactory factory;
 
     private Node courseAnchor;
@@ -81,20 +77,13 @@ public class RaceActivity extends FormularActivity {
 
     private ArFragment arFragment;
 
-    public void onException(final int id, final Throwable throwable) {
-        final Toast toast = Toast.makeText(this, "Unable to load renderable: " + id, Toast.LENGTH_LONG);
-        toast.setGravity(Gravity.CENTER, 0, 0);
-        toast.show();
-        Log.e(TAG, "Unable to load renderable", throwable);
-    }
-
     @Override
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.setContentView(R.layout.activity_race);
         final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         final String namePref = prefs.getString("prefName", "Player 1");
-        final int colorPref = prefs.getInt("prefColor", 0xFFFF007F);
+        final int colorPref = prefs.getInt("primaryColor", 0xFFFF007F);
         this.user = User.create(namePref, colorPref);
         this.lapView = this.findViewById(R.id.lap);
         this.positionView = this.findViewById(R.id.position);
@@ -138,14 +127,14 @@ public class RaceActivity extends FormularActivity {
         if (arFrame == null) {
             throw new AssertionError();
         }
-        {
-            final AnchorNode aa = new AnchorNode(hitResult.createAnchor());
-            final KartNode kart = this.factory.create(new KartModel(new SimpleGameModel(), 0, KartDefinition.createKart2()));
-            aa.setLocalScale(Vector3.one().scaled(0.3F));
-            aa.addChild(kart);
-            view.getScene().addChild(aa);
-            if (true)return;
-        }
+//        {
+//            final AnchorNode aa = new AnchorNode(hitResult.createAnchor());
+//            final KartNode kart = this.factory.create(new KartModel(new SimpleGameModel(), 0, KartDefinition.createKart2()));
+//            aa.setLocalScale(Vector3.one().scaled(0.3F));
+//            aa.addChild(kart);
+//            view.getScene().addChild(aa);
+//            if (true)return;
+//        }
         final float captureRange = 0.25F;
         final int captureSize = 200;
         final Bitmap rectifiedCapture;
@@ -361,7 +350,7 @@ public class RaceActivity extends FormularActivity {
                 for (final Driver driver : this.game.getDrivers()) {
 //                    this.factory.create(this.game, driver.getVehicle())
                     final KartNode kart = this.factory.create(driver.getVehicle());
-//                    kart.setColor(new Color(0xFF000000 | driver.getUser().getColor()));
+                    kart.setColor(new Color(driver.getUser().getColor()));
                     LabelFactory.create(this, driver.getUser() == this.user ? "YOU" : driver.getUser().getName(), 1.5F)
                             .thenAccept(label -> {
                                 label.setLocalPosition(com.google.ar.sceneform.math.Vector3.up().scaled(1.8F));

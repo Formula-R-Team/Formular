@@ -40,7 +40,7 @@ fragment {
     prepareMaterial(material);
     float mask = texture(materialParams_primaryColorMaskMap, getUV0()).r;
     vec4 diffuse = texture(materialParams_diffuseMap, getUV0());
-    material.baseColor = diffuse * (1.0 - mask) + materialParams.primaryColor * mask;
+    material.baseColor = mix(diffuse, materialParams.primaryColor, mask);
     material.metallic = texture(materialParams_metallicMap, getUV0()).r;
     material.roughness = texture(materialParams_roughnessMap, getUV0()).r;
   }
