@@ -4,6 +4,7 @@ import com.google.ar.sceneform.FrameTime;
 import com.google.ar.sceneform.Node;
 import com.google.ar.sceneform.math.Quaternion;
 import com.google.ar.sceneform.math.Vector3;
+import com.google.ar.sceneform.rendering.Color;
 import com.google.ar.sceneform.rendering.ModelRenderable;
 
 import io.github.formular_team.formular.core.Kart;
@@ -19,9 +20,17 @@ public class KartNode extends Node {
 
     private final Quaternion localRotation = new Quaternion();
 
-    private KartNode(final KartModel kart, final Node pivot) {
+    private final ModelRenderable body;
+
+    private KartNode(final KartModel kart, final Node pivot, final ModelRenderable body) {
         this.kart = kart;
         this.pivot = pivot;
+        this.body = body;
+    }
+
+    public void setColor(final Color color) {
+        // TODO: strategy color name
+//        this.body.getMaterial().setFloat4("baseColor", color);
     }
 
     @Override
@@ -73,32 +82,30 @@ public class KartNode extends Node {
         }
     }
 
-    public static KartNode create(final KartModel kart, final ModelRenderable bodyModel, final ModelRenderable wheelModel) {
+    public static KartNode create(final KartModel kart, final ModelRenderable bodyModel, final ModelRenderable wheelFront, final ModelRenderable wheelRear) {
         final float x = 0.5F * kart.getDefinition().width;
-        final float y = kart.getDefinition().wheelradius;
         final float z = 0.5F * kart.getDefinition().wheelbase;
         final Node pivotRoot = new Node();
-        final KartNode root = new KartNode(kart, pivotRoot);
+        final KartNode root = new KartNode(kart, pivotRoot, bodyModel);
         pivotRoot.setParent(root);
         final Node body = new Node();
-        body.setLocalPosition(new Vector3(0.0F, y, 0.0F));
         body.setRenderable(bodyModel);
         body.setParent(pivotRoot);
         final WheelNode frontLeft = root.new SteerWheelNode(Quaternion.axisAngle(Vector3.up(), 180.0F));
-        frontLeft.setRenderable(wheelModel);
-        frontLeft.setLocalPosition(new Vector3(-x, y, z));
+        frontLeft.setRenderable(wheelFront);
+        frontLeft.setLocalPosition(new Vector3(-x, kart.getDefinition().frontWheelRadius, z));
         frontLeft.setParent(pivotRoot);
         final WheelNode frontRight = root.new SteerWheelNode(Quaternion.identity());
-        frontRight.setRenderable(wheelModel);
-        frontRight.setLocalPosition(new Vector3(x, y, z));
+        frontRight.setRenderable(wheelFront);
+        frontRight.setLocalPosition(new Vector3(x, kart.getDefinition().frontWheelRadius, z));
         frontRight.setParent(pivotRoot);
         final WheelNode rearLeft = root.new WheelNode(Quaternion.axisAngle(Vector3.up(), 180.0F));
-        rearLeft.setRenderable(wheelModel);
-        rearLeft.setLocalPosition(new Vector3(-x, y, -z));
+        rearLeft.setRenderable(wheelRear);
+        rearLeft.setLocalPosition(new Vector3(-x, kart.getDefinition().rearWheelRadius, -z));
         rearLeft.setParent(pivotRoot);
         final WheelNode rearRight = root.new WheelNode(Quaternion.identity());
-        rearRight.setRenderable(wheelModel);
-        rearRight.setLocalPosition(new Vector3(x, y, -z));
+        rearRight.setRenderable(wheelRear);
+        rearRight.setLocalPosition(new Vector3(x, kart.getDefinition().rearWheelRadius, -z));
         rearRight.setParent(pivotRoot);
         return root;
     }

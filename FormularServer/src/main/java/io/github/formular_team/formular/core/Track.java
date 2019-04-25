@@ -51,7 +51,7 @@ public final class Track {
     }
 
     public Pose getStartPlacement(final int position) {
-        final float kartWidth = 2.0F, kartLength = 3.5F; // TODO: parameters from somewhere
+        final float kartWidth = 1.2F, kartLength = 2.25F; // TODO: parameters from somewhere
         final int kartsPerRow = (int) ((this.roadWidth - kartWidth) / kartWidth);
         final int col = position % kartsPerRow;
         final int row = position / kartsPerRow;

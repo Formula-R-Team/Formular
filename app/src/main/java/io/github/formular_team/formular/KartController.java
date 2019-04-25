@@ -31,13 +31,13 @@ public final class KartController implements View.OnTouchListener {
             final float y = Mth.clamp(event.getY() / v.getHeight() * 2.0F - 1.0F, -1.0F, 1.0F);
             final float angle = -Mth.PI / 4.0F * x;
             this.kart.getControlState().setSteeringAngle(angle);
-            this.kart.getControlState().setThrottle(-y * 40.0F);
+            this.kart.getControlState().setThrottle(-y * 6.0F);
             this.kart.getControlState().setBrake(0.0F);
             this.wheel.setRotation(-Mth.toDegrees(angle));
             return true;
         case MotionEvent.ACTION_UP:
             this.kart.getControlState().setThrottle(0.0F);
-            this.kart.getControlState().setBrake(100.0F);
+            this.kart.getControlState().setBrake(10.0F);
             return true;
         }
         return false;

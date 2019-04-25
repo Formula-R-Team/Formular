@@ -134,7 +134,7 @@ public class KartModel implements Kart {
             -sn * this.linearVelocity.getY() + cs * this.linearVelocity.getX()
         );
 
-        this.wheelAngularVelocity = velocity.getX() / this.definition.wheelradius;
+        this.wheelAngularVelocity = velocity.getX() / this.definition.rearWheelRadius;
 
         // Lateral force on wheels
         //

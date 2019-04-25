@@ -1,0 +1,81 @@
+{
+  materials: [
+    {
+      name: 'Material__42',
+      parameters: [
+        {
+          baseColorMap: "kart_diffuse",
+        },
+        {
+          normalMap: "kart_normal",
+        },
+        {
+          metallicMap: "kart_metallic",
+        },
+        {
+          roughnessMap: "kart_roughness",
+        },
+      ],
+      source: 'sampledata/materials/pbr_material.mat',
+    },
+  ],
+  model: {
+    attributes: [
+      'Position',
+      'TexCoord',
+      'Orientation',
+    ],
+    collision: {},
+    file: 'sampledata/kart_2/body.obj',
+    name: 'body',
+    recenter: false,
+    scale: 0.0254
+  },
+  samplers: [
+      {
+         file: "sampledata/kart_2/kart_diffuse.png",
+         name: "kart_diffuse",
+         params: {
+            usage_type: "Color",
+            mag_filter: "Linear",
+            min_filter: "NearestMipmapLinear",
+            wrap_s: "Repeat",
+            wrap_t: "Repeat",
+         },
+      },
+      {
+         file: "sampledata/kart_2/kart_metallic.png",
+         name: "kart_metallic",
+         params: {
+            usage_type: "Data",
+            mag_filter: "Linear",
+            min_filter: "NearestMipmapLinear",
+            wrap_s: "Repeat",
+            wrap_t: "Repeat",
+         },
+      },
+      {
+         file: "sampledata/kart_2/kart_roughness.png",
+         name: "kart_roughness",
+         params: {
+            usage_type: "Data",
+            mag_filter: "Linear",
+            min_filter: "NearestMipmapLinear",
+            wrap_s: "Repeat",
+            wrap_t: "Repeat",
+         },
+      },
+      {
+         file: "sampledata/kart_2/kart_normal.png",
+         name: "kart_normal",
+         params: {
+            usage_type: "Normal",
+            mag_filter: "Linear",
+            min_filter: "NearestMipmapLinear",
+            wrap_s: "Repeat",
+            wrap_t: "Repeat",
+         },
+      },
+  ],
+  version: '0.54:1',
+}

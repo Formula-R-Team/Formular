@@ -19,7 +19,9 @@ public class KartDefinition {
 
     public float width;
 
-    public float wheelradius;
+    public float frontWheelRadius;
+
+    public float rearWheelRadius;
 
     public float tireGrip;
 
@@ -27,20 +29,26 @@ public class KartDefinition {
 
     public float caR;
 
-    public static KartDefinition createDefault() {
+    public static KartDefinition createKart2() {
         final KartDefinition definition = new KartDefinition();
-        definition.b = 0.9F;
-        definition.c = 0.82F;
-        definition.wheelbase = definition.b + definition.c;
-        definition.h = 0.7F;
-        definition.mass = 1500.0F;
-        definition.inertia = 1500.0F;
-        definition.width = 1.5F;
-        definition.length = 3.0F;
-        definition.wheelradius = 0.7F;
+        definition.wheelbase = inchToMeter(2.0F * 16.8F);
+        final float t = 0.52F;
+        definition.b = definition.wheelbase * t;
+        definition.c = definition.wheelbase * (1.0F - t);
+        definition.h = 0.2F;
+        definition.mass = 82.0F;
+        definition.inertia = 82.0F;
+        definition.width = inchToMeter(2.0F * 10.8F);
+        definition.length = inchToMeter(2.0F * 18.0F);
+        definition.frontWheelRadius = inchToMeter(4.8F);
+        definition.rearWheelRadius = inchToMeter(5.4F);
         definition.tireGrip = 2.0F;
-        definition.caF = -5.0F;
-        definition.caR = -5.2F;
+        definition.caF = -4.8F;
+        definition.caR = -5.0F;
         return definition;
+    }
+
+    public static float inchToMeter(final float x) {
+        return 0.0254F * x;
     }
 }

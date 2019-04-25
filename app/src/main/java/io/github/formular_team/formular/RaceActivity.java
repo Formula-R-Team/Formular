@@ -1,6 +1,5 @@
 package io.github.formular_team.formular;
 
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.os.Bundle;
@@ -24,8 +23,7 @@ import com.google.ar.sceneform.AnchorNode;
 import com.google.ar.sceneform.ArSceneView;
 import com.google.ar.sceneform.Node;
 import com.google.ar.sceneform.math.Matrix;
-import com.google.ar.sceneform.rendering.Color;
-import com.google.ar.sceneform.rendering.ModelRenderable;
+import com.google.ar.sceneform.math.Vector3;
 import com.google.ar.sceneform.ux.ArFragment;
 
 import java.util.List;
@@ -34,7 +32,6 @@ import java.util.concurrent.TimeUnit;
 import io.github.formular_team.formular.ar.CourseNode;
 import io.github.formular_team.formular.ar.KartNode;
 import io.github.formular_team.formular.ar.LabelFactory;
-import io.github.formular_team.formular.ar.ModelLoader;
 import io.github.formular_team.formular.ar.Rectifier;
 import io.github.formular_team.formular.core.Checkpoint;
 import io.github.formular_team.formular.core.Course;
@@ -63,14 +60,12 @@ import io.github.formular_team.formular.core.tracing.PathFinder;
 import io.github.formular_team.formular.core.tracing.SimplePathTracer;
 import io.github.formular_team.formular.core.tracing.SimpleStepFunction;
 
-public class RaceActivity extends FormularActivity implements ModelLoader.Listener {
+public class RaceActivity extends FormularActivity {
     private static final String TAG = RaceActivity.class.getSimpleName();
-
-    private ModelLoader modelLoader;
 
     private static final int KART_BODY = 0, KART_WHEEL = 1;
 
-    private ModelRenderable kartBody, kartWheel;
+    private KartNodeFactory factory;
 
     private Node courseAnchor;
 
@@ -86,21 +81,6 @@ public class RaceActivity extends FormularActivity implements ModelLoader.Listen
 
     private ArFragment arFragment;
 
-    @Override
-    public Context getContext() {
-        return this;
-    }
-
-    @Override
-    public void setRenderable(final int id, final ModelRenderable modelRenderable) {
-        if (id == KART_BODY) {
-            this.kartBody = modelRenderable;
-        } else if (id == KART_WHEEL) {
-            this.kartWheel = modelRenderable;
-        }
-    }
-
-    @Override
     public void onException(final int id, final Throwable throwable) {
         final Toast toast = Toast.makeText(this, "Unable to load renderable: " + id, Toast.LENGTH_LONG);
         toast.setGravity(Gravity.CENTER, 0, 0);
@@ -122,9 +102,9 @@ public class RaceActivity extends FormularActivity implements ModelLoader.Listen
         this.pad = this.findViewById(R.id.pad);
         this.wheel = this.findViewById(R.id.wheel);
         this.arFragment = (ArFragment) this.getSupportFragmentManager().findFragmentById(R.id.ar);
-        this.modelLoader = new ModelLoader(this);
-        this.modelLoader.loadModel(KART_BODY, R.raw.kart);
-        this.modelLoader.loadModel(KART_WHEEL, R.raw.wheel);
+        final WeakOptional<RaceActivity> act = WeakOptional.of(this);
+        SimpleKartNodeFactory.create(this, R.raw.kart_body, R.raw.kart_wheel_front, R.raw.kart_wheel_rear)
+            .thenAccept(factory -> act.ifPresent(activity -> activity.factory = factory));
         this.arFragment.setOnTapArPlaneListener(this::onPlaneTap);
         this.findViewById(R.id.reset).setOnClickListener(v -> {
             if (this.courseAnchor != null) {
@@ -148,32 +128,23 @@ public class RaceActivity extends FormularActivity implements ModelLoader.Listen
         });
     }
 
-    public static KartDefinition createKartDefinition() {
-        final KartDefinition definition = new KartDefinition();
-        definition.wheelbase = 1.982F;
-        final float t = 0.477F;
-        definition.b = (1.0F - t) * definition.wheelbase;
-        definition.c = t * definition.wheelbase;
-        definition.h = 0.7F;
-        definition.mass = 1100.0F;
-        definition.inertia = 1100.0F;
-        definition.width = 1.1176F;
-        definition.length = 2.794F;
-        definition.wheelradius = 0.248F;
-        definition.tireGrip = 2.2F;
-        definition.caF = -6.0F;
-        definition.caR = -6.2F;
-        return definition;
-    }
-
     private void onPlaneTap(final HitResult hitResult, final Plane scenePlane, final MotionEvent event) {
-        if (this.kartBody == null || this.kartWheel == null) {
+        if (this.factory == null) {
             return;
         }
+
         final ArSceneView view = this.arFragment.getArSceneView();
         final Frame arFrame = view.getArFrame();
         if (arFrame == null) {
             throw new AssertionError();
+        }
+        {
+            final AnchorNode aa = new AnchorNode(hitResult.createAnchor());
+            final KartNode kart = this.factory.create(new KartModel(new SimpleGameModel(), 0, KartDefinition.createKart2()));
+            aa.setLocalScale(Vector3.one().scaled(0.3F));
+            aa.addChild(kart);
+            view.getScene().addChild(aa);
+            if (true)return;
         }
         final float captureRange = 0.25F;
         final int captureSize = 200;
@@ -188,7 +159,7 @@ public class RaceActivity extends FormularActivity implements ModelLoader.Listen
         } catch (final NotYetAvailableException e) {
             throw new AssertionError();
         }
-        final float courseRoadWidth = 6.0F;
+        final float courseRoadWidth = 5.5F;
         final float courseToSceneScale = 0.05F / courseRoadWidth;
         final float courseCaptureSize = captureRange / courseToSceneScale;
         final Path linePath = new Path();
@@ -245,7 +216,7 @@ public class RaceActivity extends FormularActivity implements ModelLoader.Listen
             this.game.getWalls().add(new LineCurve(checkpoints.get(i).getP1(), checkpoints.get((i + 1) % checkpoints.size()).getP1()));
             this.game.getWalls().add(new LineCurve(checkpoints.get(i).getP2(), checkpoints.get((i + 1) % checkpoints.size()).getP2()));
         }
-        this.kart = new KartModel(this.game, 0, this.createKartDefinition());
+        this.kart = new KartModel(this.game, 0, KartDefinition.createKart2());
         this.pad.setOnTouchListener(new KartController(this.kart, this.pad, this.wheel));
         final Driver self = SimpleDriver.create(this.user, this.kart);
         RaceConfiguration.Builder raceConfigBuilder = new RaceConfiguration.Builder().lapCount(3);
@@ -374,29 +345,30 @@ public class RaceActivity extends FormularActivity implements ModelLoader.Listen
 //            }
         race.start();
 
-        CourseNode.create(RaceActivity.this, course).thenAccept(courseNode -> {
-            if (this.courseAnchor != null) {
-                view.getScene().removeChild(this.courseAnchor);
-            }
-            view.getPlaneRenderer().setVisible(false);
-            final Anchor anchor = hitResult.createAnchor();//scenePlane.createAnchor(hitResult.getHitPose());
-            this.courseAnchor = new AnchorNode(anchor);
-            this.courseAnchor.setLocalScale(com.google.ar.sceneform.math.Vector3.one().scaled(courseToSceneScale));
-            this.courseAnchor.setLocalPosition(new com.google.ar.sceneform.math.Vector3(0.0F, 0.01F, 0.0F));
-            this.courseAnchor.addChild(courseNode);
-            view.getScene().addChild(this.courseAnchor);
+        CourseNode.create(RaceActivity.this, course)
+            .thenAccept(courseNode -> {
+                if (this.courseAnchor != null) {
+                    view.getScene().removeChild(this.courseAnchor);
+                }
+                view.getPlaneRenderer().setVisible(false);
+                final Anchor anchor = hitResult.createAnchor();//scenePlane.createAnchor(hitResult.getHitPose());
+                this.courseAnchor = new AnchorNode(anchor);
+                this.courseAnchor.setLocalScale(com.google.ar.sceneform.math.Vector3.one().scaled(courseToSceneScale));
+                this.courseAnchor.setLocalPosition(new com.google.ar.sceneform.math.Vector3(0.0F, 0.01F, 0.0F));
+                this.courseAnchor.addChild(courseNode);
+                view.getScene().addChild(this.courseAnchor);
 
-            for (final Driver driver : this.game.getDrivers()) {
-                final ModelRenderable body = this.kartBody.makeCopy();
-                body.getMaterial(0).setFloat4("baseColor", new Color(0xFF000000 | driver.getUser().getColor()));
-                final KartNode kart = KartNode.create(driver.getVehicle(), body, this.kartWheel);
-                LabelFactory.create(this, driver.getUser() == this.user ? "YOU" : driver.getUser().getName(), 1.5F)
-                        .thenAccept(label -> {
-                            label.setLocalPosition(com.google.ar.sceneform.math.Vector3.up().scaled(1.8F));
-                            kart.addChild(label);
-                        });
-                courseNode.add(kart);
-            }
-        });
+                for (final Driver driver : this.game.getDrivers()) {
+//                    this.factory.create(this.game, driver.getVehicle())
+                    final KartNode kart = this.factory.create(driver.getVehicle());
+//                    kart.setColor(new Color(0xFF000000 | driver.getUser().getColor()));
+                    LabelFactory.create(this, driver.getUser() == this.user ? "YOU" : driver.getUser().getName(), 1.5F)
+                            .thenAccept(label -> {
+                                label.setLocalPosition(com.google.ar.sceneform.math.Vector3.up().scaled(1.8F));
+                                kart.addChild(label);
+                            });
+                    courseNode.add(kart);
+                }
+            });
     }
 }

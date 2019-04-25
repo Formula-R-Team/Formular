@@ -18,7 +18,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
-    dataBinding{
+    dataBinding {
         enabled = true
     }
     compileOptions {
@@ -29,13 +29,14 @@ android {
 
 dependencies {
     implementation "com.github.skydoves:colorpickerpreference:1.0.7"
+    implementation "org.hsluv:hsluv:0.2"
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'com.android.support:appcompat-v7:28.0.0'
     implementation 'com.android.support.constraint:constraint-layout:1.1.3'
     implementation 'android.arch.lifecycle:extensions:1.1.1'
-    implementation 'com.google.ar:core:1.8.0'
-    implementation 'com.google.ar.sceneform.ux:sceneform-ux:1.8.0'
-    implementation 'com.google.ar.sceneform:core:1.8.0'
+    implementation 'com.google.ar:core:1.7.0'
+    implementation 'com.google.ar.sceneform.ux:sceneform-ux:1.7.0'
+    implementation 'com.google.ar.sceneform:core:1.7.0'
     implementation 'com.google.guava:guava:24.1-jre'
     implementation 'com.google.code.gson:gson:2.8.5'
     implementation project(path: ':FormularServer')
@@ -50,6 +51,11 @@ sceneform.asset('sampledata/teapot.obj',
         'sampledata/teapot.sfa',
         'src/main/assets/teapot')
 
+sceneform.asset('sampledata/box.fbx',
+        'default',
+        'sampledata/box.sfa',
+        'src/main/res/raw/box')
+
 sceneform.asset('sampledata/kart/kart.fbx',
         'default',
         'sampledata/kart/kart.sfa',
@@ -60,12 +66,28 @@ sceneform.asset('sampledata/kart/wheel.fbx',
         'sampledata/kart/wheel.sfa',
         'src/main/assets/wheel')
 
-sceneform.asset('sampledata/kart/kart.fbx',
-        'default',
-        'sampledata/kart/kart.sfa',
-        'src/main/res/raw/kart')
 
-sceneform.asset('sampledata/kart/wheel.fbx',
+sceneform.asset('sampledata/kart_2/body.obj',
         'default',
-        'sampledata/kart/wheel.sfa',
-        'src/main/res/raw/wheel')
+        'sampledata/kart_2/body.sfa',
+        'src/main/res/raw/kart_body')
+
+sceneform.asset('sampledata/kart_2/wheel_front.obj',
+        'default',
+        'sampledata/kart_2/wheel_front.sfa',
+        'src/main/res/raw/kart_wheel_front')
+
+sceneform.asset('sampledata/kart_2/wheel_rear.obj',
+        'default',
+        'sampledata/kart_2/wheel_rear.sfa',
+        'src/main/res/raw/kart_wheel_rear')
+
+sceneform.asset('sampledata/shop_platter.obj',
+        'default',
+        'sampledata/shop_platter.sfa',
+        'src/main/res/raw/shop_platter')
+
+sceneform.asset('sampledata/shop_room.obj',
+        'default',
+        'sampledata/shop_room.sfa',
+        'src/main/res/raw/shop_room')

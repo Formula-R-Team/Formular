@@ -85,9 +85,9 @@ public class CourseNode extends Node {
                 final CurvePath wallRightPath = toCurve3(new Path().fromPoints(track.getCheckpoints().stream().map(Checkpoint::getP2).collect(Collectors.toList()), true));
                 final Shape wallShape = new Shape();
                 wallShape.moveTo(-roadHeight, -wallWidth * 0.5F);
-                wallShape.lineTo(-roadHeight - wallHeight, 0.0F);
-//                wallShape.lineTo(-roadHeight - wallHeight, wallWidth * 0.5F);
                 wallShape.lineTo(-roadHeight, wallWidth * 0.5F);
+                wallShape.lineTo(-roadHeight - wallHeight, wallWidth * 0.5F);
+                wallShape.lineTo(-roadHeight - wallHeight, wallWidth * 0.5F);
                 wallShape.closePath();
                 final Geometry wallLeft = new ExtrudeGeometry(ImmutableList.of(wallShape), new ExtrudeGeometry.ExtrudeGeometryParameters() {{
                     this.steps = (int) (wallLeftPath.getLength());

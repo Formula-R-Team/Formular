@@ -1,0 +1,32 @@
+{
+  materials: [{
+      name: 'mat1',
+      parameters: [
+        { baseColor: [ 0, 0, 0, 1, ] },
+        { baseColorMap: null },
+        { normalMap: null },
+        { interpolatedColor: null },
+        { metallic: 1 },
+        { metallicMap: null },
+        { roughness: 0 },
+        { roughnessMap: null },
+        { opacity: null }
+      ],
+      source: 'build/sceneform_sdk/default_materials/fbx_material.sfm'
+  }],
+  model: {
+    attributes: [
+      'Position',
+      'TexCoord',
+      'Orientation',
+      'BoneIndices',
+      'BoneWeights'
+    ],
+    collision: {},
+    file: 'sampledata/box.fbx',
+    name: 'box',
+    recenter: 'root',
+    scale: 1
+  },
+  version: '0.54:1'
+}

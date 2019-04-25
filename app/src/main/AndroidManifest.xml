@@ -28,6 +28,9 @@
             android:name=".RaceActivity"
             android:configChanges="orientation|screenSize" />
         <activity
+            android:name=".ShopActivity"
+            android:configChanges="orientation|screenSize" />
+        <activity
             android:name=".ArActivity"
             android:configChanges="orientation|screenSize"
             android:exported="true" />
