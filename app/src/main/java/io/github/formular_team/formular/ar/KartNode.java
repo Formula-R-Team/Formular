@@ -30,7 +30,7 @@ public class KartNode extends Node {
 
     public void setColor(final Color color) {
         // TODO: strategy color name
-//        this.body.getMaterial().setFloat4("baseColor", color);
+        this.body.getMaterial().setFloat4("primaryColor", color);
     }
 
     @Override

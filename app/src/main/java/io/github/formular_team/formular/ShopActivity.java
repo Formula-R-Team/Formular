@@ -2,7 +2,6 @@ package io.github.formular_team.formular;
 
 import android.app.AlertDialog;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.SeekBar;
 
 import com.google.ar.core.exceptions.CameraNotAvailableException;
@@ -13,6 +12,7 @@ import com.google.ar.sceneform.Scene;
 import com.google.ar.sceneform.SceneView;
 import com.google.ar.sceneform.math.Quaternion;
 import com.google.ar.sceneform.math.Vector3;
+import com.google.ar.sceneform.rendering.Color;
 import com.google.ar.sceneform.rendering.ModelRenderable;
 
 import org.hsluv.HUSLColorConverter;
@@ -35,14 +35,12 @@ public final class ShopActivity extends FormularActivity {
         this.setContentView(R.layout.activity_shop);
         this.sceneView = this.findViewById(R.id.ar_scene);
         this.slider = this.findViewById(R.id.hue);
-        this.slider.setVisibility(View.INVISIBLE);
         this.slider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(final SeekBar seekBar, final int progress, final boolean fromUser) {
                 if (ShopActivity.this.kart != null) {
                     final double[] rgb = HUSLColorConverter.hsluvToRgb(new double[] { progress / 100.0F * 360.0F, 85.0F, 30.0F });
-
-                    //ShopActivity.this.kart.setColor(new Color((float) rgb[0], (float) rgb[1], (float) rgb[2]));
+                    ShopActivity.this.kart.setColor(new Color((float) rgb[0], (float) rgb[1], (float) rgb[2]));
                 }
             }
 

@@ -4,7 +4,13 @@
       name: 'Material__42',
       parameters: [
         {
-          baseColorMap: "kart_diffuse",
+          primaryColor: [ 0.8, 0.2, 0.1, 1.0 ]
+        },
+        {
+          primaryColorMaskMap: "kart_primary_color_mask",
+        },
+        {
+          diffuseMap: "kart_diffuse",
         },
         {
           normalMap: "kart_normal",
@@ -16,7 +22,7 @@
           roughnessMap: "kart_roughness",
         },
       ],
-      source: 'sampledata/materials/pbr_material.mat',
+      source: 'sampledata/materials/kart_material.mat',
     },
   ],
   model: {
@@ -32,6 +38,17 @@
     scale: 0.0254
   },
   samplers: [
+      {
+         file: "sampledata/kart_2/kart_primary_color_mask.png",
+         name: "kart_primary_color_mask",
+         params: {
+            usage_type: "Data",
+            mag_filter: "Linear",
+            min_filter: "NearestMipmapLinear",
+            wrap_s: "Repeat",
+            wrap_t: "Repeat",
+         },
+      },
       {
          file: "sampledata/kart_2/kart_diffuse.png",
          name: "kart_diffuse",

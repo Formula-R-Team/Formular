@@ -1,9 +1,17 @@
 material {
-  name: "PBR material",
+  name: "Kart material",
   parameters: [
     {
-       type: sampler2d,
-       name: baseColorMap
+      type: float4,
+      name: primaryColor
+    },
+    {
+      type: sampler2d,
+      name: primaryColorMaskMap
+    },
+    {
+      type: sampler2d,
+      name: diffuseMap
     },
     {
       type: sampler2d,
@@ -30,7 +38,9 @@ fragment {
     vec3 normal = texture(materialParams_normalMap, getUV0()).xyz;
     material.normal = normal * 2.0 - 1.0;
     prepareMaterial(material);
-    material.baseColor = texture(materialParams_baseColorMap, getUV0());
+    float mask = texture(materialParams_primaryColorMaskMap, getUV0()).r;
+    vec4 diffuse = texture(materialParams_diffuseMap, getUV0());
+    material.baseColor = diffuse * (1.0 - mask) + materialParams.primaryColor * mask;
     material.metallic = texture(materialParams_metallicMap, getUV0()).r;
     material.roughness = texture(materialParams_roughnessMap, getUV0()).r;
   }
