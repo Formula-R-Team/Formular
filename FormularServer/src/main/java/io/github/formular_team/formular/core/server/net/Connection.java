@@ -34,6 +34,7 @@ public class Connection {
     public Connection(final SelectionKey key, final StateManager.ContextState<?> context) {
         this.key = key;
         this.context = context;
+        this.writeBuf.position(this.writeBuf.limit());
         this.readState(new HeaderReadState());
     }
 
