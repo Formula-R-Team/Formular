@@ -9,7 +9,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 import io.github.formular_team.formular.ar.KartNode;
-import io.github.formular_team.formular.core.KartModel;
+import io.github.formular_team.formular.core.KartView;
 
 public class SimpleKartNodeFactory implements KartNodeFactory {
     private final ModelRenderable body;
@@ -25,7 +25,7 @@ public class SimpleKartNodeFactory implements KartNodeFactory {
     }
 
     @Override
-    public KartNode create(final KartModel kart) {
+    public KartNode create(final KartView kart) {
         final ModelRenderable body = this.body.makeCopy();
         final ModelRenderable wheelFront = this.wheelFront.makeCopy();
         final ModelRenderable wheelRear = this.wheelRear.makeCopy();

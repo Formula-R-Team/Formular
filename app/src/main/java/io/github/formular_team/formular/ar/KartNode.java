@@ -7,12 +7,11 @@ import com.google.ar.sceneform.math.Vector3;
 import com.google.ar.sceneform.rendering.Color;
 import com.google.ar.sceneform.rendering.ModelRenderable;
 
-import io.github.formular_team.formular.core.Kart;
-import io.github.formular_team.formular.core.KartModel;
+import io.github.formular_team.formular.core.KartView;
 import io.github.formular_team.formular.core.math.Mth;
 
 public class KartNode extends Node {
-    private final Kart kart;
+    private final KartView kart;
 
     private final Node pivot;
 
@@ -22,7 +21,7 @@ public class KartNode extends Node {
 
     private final ModelRenderable body;
 
-    private KartNode(final KartModel kart, final Node pivot, final ModelRenderable body) {
+    private KartNode(final KartView kart, final Node pivot, final ModelRenderable body) {
         this.kart = kart;
         this.pivot = pivot;
         this.body = body;
@@ -82,7 +81,7 @@ public class KartNode extends Node {
         }
     }
 
-    public static KartNode create(final KartModel kart, final ModelRenderable bodyModel, final ModelRenderable wheelFront, final ModelRenderable wheelRear) {
+    public static KartNode create(final KartView kart, final ModelRenderable bodyModel, final ModelRenderable wheelFront, final ModelRenderable wheelRear) {
         final float x = 0.5F * kart.getDefinition().width;
         final float z = 0.5F * kart.getDefinition().wheelbase;
         final Node pivotRoot = new Node();

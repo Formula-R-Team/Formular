@@ -2,23 +2,23 @@ package io.github.formular_team.formular.core.server;
 
 import io.github.formular_team.formular.core.server.command.StopCommand;
 
-public final class ServerController {
-    private final Server server;
+public final class EndpointController {
+    private final Endpoint<? extends Endpoint> endpoint;
 
     private final Thread thread;
 
-    private ServerController(final Server server, final Thread thread) {
-        this.server = server;
+    private EndpointController(final Endpoint<? extends Endpoint> endpoint, final Thread thread) {
+        this.endpoint = endpoint;
         this.thread = thread;
     }
 
     public void start() {
         this.thread.start();
-        this.server.awaitJob(Server.Job.of(game -> {}));
+        this.endpoint.awaitJob(Server.Job.of(game -> {}));
     }
 
     public void stop() {
-        this.server.submitJob(new StopCommand());
+        this.endpoint.submitJob(new StopCommand<>());
         this.join();
     }
 
@@ -40,7 +40,7 @@ public final class ServerController {
         }
     }
 
-    public static ServerController create(final Server server) {
-        return new ServerController(server, new Thread(server));
+    public static EndpointController create(final Endpoint<? extends Endpoint> endpoint) {
+        return new EndpointController(endpoint, new Thread(endpoint));
     }
 }

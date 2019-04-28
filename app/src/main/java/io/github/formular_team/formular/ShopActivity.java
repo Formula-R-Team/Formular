@@ -20,9 +20,9 @@ import com.google.ar.sceneform.rendering.ModelRenderable;
 import org.hsluv.HUSLColorConverter;
 
 import io.github.formular_team.formular.ar.KartNode;
+import io.github.formular_team.formular.core.DirectKartView;
 import io.github.formular_team.formular.core.KartDefinition;
 import io.github.formular_team.formular.core.KartModel;
-import io.github.formular_team.formular.core.SimpleGameModel;
 import io.github.formular_team.formular.core.math.Mth;
 
 public final class ShopActivity extends FormularActivity {
@@ -112,7 +112,7 @@ public final class ShopActivity extends FormularActivity {
                 }).orElse(null))
             .thenCombine(SimpleKartNodeFactory.create(this, R.raw.kart_body, R.raw.kart_wheel_front, R.raw.kart_wheel_rear), (platter, factory) -> {
                 act.ifPresent(activity -> {
-                    final KartNode kart = factory.create(new KartModel(new SimpleGameModel(), 0, KartDefinition.createKart2()));
+                    final KartNode kart = factory.create(new DirectKartView(new KartModel(0, KartDefinition.createKart2())));
                     final SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(ShopActivity.this);
                     final int argb = settings.getInt("primaryColor", 0);
                     kart.setColor(new Color(argb));

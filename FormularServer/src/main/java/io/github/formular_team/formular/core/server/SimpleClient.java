@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
-import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 import java.util.Set;
@@ -17,25 +16,27 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import io.github.formular_team.formular.core.GameModel;
+import io.github.formular_team.formular.core.GameView;
+import io.github.formular_team.formular.core.User;
+import io.github.formular_team.formular.core.server.net.ClientContext;
 import io.github.formular_team.formular.core.server.net.Connection;
 import io.github.formular_team.formular.core.server.net.Packet;
 import io.github.formular_team.formular.core.server.net.Protocol;
-import io.github.formular_team.formular.core.server.net.ServerContext;
 import io.github.formular_team.formular.core.server.net.StateManager;
-import io.github.formular_team.formular.core.server.net.clientbound.KartAddPacket;
-import io.github.formular_team.formular.core.server.net.clientbound.SetPosePacket;
 
-public final class SimpleServer implements Server {
+// TODO not duplicate server
+public final class SimpleClient implements Client {
     private static final Logger LOGGER = Logger.getLogger("SimpleServer");
 
     private final Selector selector;
 
-    private final InetSocketAddress address;
+    private final InetSocketAddress remoteAddress;
 
     private final StateManager factory;
 
-    private final GameModel game;
+    private final User user;
+
+    private final GameView game;
 
     private final BlockingQueue<RunnableFuture<?>> queue;
 
@@ -43,22 +44,23 @@ public final class SimpleServer implements Server {
 
     private boolean running = true;
 
-    private SimpleServer(final Selector selector, final InetSocketAddress address, final StateManager factory, final GameModel game, final BlockingQueue<RunnableFuture<?>> queue, final long ups) {
+    private SimpleClient(final Selector selector, final InetSocketAddress remoteAddress, final StateManager factory, final User user, final GameView game, final BlockingQueue<RunnableFuture<?>> queue, final long ups) {
         this.selector = selector;
-        this.address = address;
+        this.remoteAddress = remoteAddress;
         this.factory = factory;
+        this.user = user;
         this.game = game;
         this.queue = queue;
         this.ups = ups;
     }
 
     @Override
-    public GameModel getGame() {
+    public GameView getGame() {
         return this.game;
     }
 
     @Override
-    public <V> Future<V> submitJob(final Job<? super Server, V> job) {
+    public <V> Future<V> submitJob(final Job<? super Client, V> job) {
         final FutureTask<V> futureJob = new FutureTask<>(() -> job.call(this));
         this.addJob(futureJob);
         return futureJob;
@@ -83,44 +85,37 @@ public final class SimpleServer implements Server {
 
     @Override
     public void run() {
-        final ServerSocketChannel socket;
+        final SocketChannel socket;
         try {
-            socket = ServerSocketChannel.open();
+            socket = SocketChannel.open();
             socket.configureBlocking(false);
-            socket.register(this.selector, SelectionKey.OP_ACCEPT);
-            socket.bind(this.address);
+            socket.register(this.selector, SelectionKey.OP_CONNECT);
+            socket.connect(this.remoteAddress);
         } catch (final IOException e) {
             throw new RuntimeException(e);
         }
-        this.game.addOnKartAddListener(kart -> this.send(new KartAddPacket(kart)));
-        this.game.addOnPoseChangeListener(kart -> this.send(new SetPosePacket(kart)));
         final RunnableFuture<?> STEP_PILL = new FutureTask<>(() -> null);
         final long timeout = 1000 / this.ups;
         for (long past = this.currentTimeMillis(), present = past; this.running; past = present) {
             final long duration = present - past;
             final long deadline = present + timeout;
             this.addJob(STEP_PILL);
-            this.step(duration / 1000.0F);
+//            this.game.step(duration / 1000.0F);
             for (RunnableFuture<?> job; (job = this.pollJob()) != null && job != STEP_PILL; job.run());
-            /*try {
-                for (RunnableFuture<?> job; (present = this.currentTimeMillis()) < deadline && (job = this.pollJob(deadline - present)) != null; job.run());
-            } catch (final InterruptedException e) {
-                break;
-            }*/
             try {
                 while ((present = this.currentTimeMillis()) < deadline) {
                     this.selector.select(deadline - present);
                     final Set<SelectionKey> keys = this.selector.selectedKeys();
                     for (final Iterator<SelectionKey> it = keys.iterator(); it.hasNext(); it.remove()) {
                         final SelectionKey key = it.next();
-                        if (key.isAcceptable()) {
-                            this.accept(this.selector, socket, key);
+                        if (key.isConnectable()) {
+                            this.connect(this.selector, socket, key);
                         } else {
                             key.interestOps(0);
                             if (key.isReadable()) {
                                 this.read(key);
                             }
-                            if (key.isValid() && key.isWritable()) {
+                            if (key.isWritable()) {
                                 this.write(key);
                             }
                         }
@@ -139,18 +134,9 @@ public final class SimpleServer implements Server {
         } catch (final IOException ignored) {}
     }
 
-    private void step(final float delta) {
-        final float targetDt = 0.01F;
-        final int steps = Math.max((int) (delta / targetDt), 1);
-        final float dt = delta / steps;
-        for (int n = 0; n < steps; n++) {
-            this.game.step(dt);
-        }
-    }
-
     @Override
     public void send(final Packet packet) {
-        for (final SelectionKey key : this.selector.keys()) {
+        for (final SelectionKey key: this.selector.keys()) {
             final Object att = key.attachment();
             if (att instanceof Connection) {
                 ((Connection) att).send(packet);
@@ -158,11 +144,13 @@ public final class SimpleServer implements Server {
         }
     }
 
-    private void accept(final Selector selector, final ServerSocketChannel server, final SelectionKey key) throws IOException {
-        final SocketChannel socket = server.accept();
-        socket.configureBlocking(false);
-        socket.register(selector, SelectionKey.OP_READ, new Connection(key, this.factory.create(new ServerContext(this))));
-        LOGGER.info("Accepting connection from " + socket.getRemoteAddress());
+    private void connect(final Selector selector, final SocketChannel socket, final SelectionKey key) throws IOException {
+        if (!socket.finishConnect()) {
+            throw new AssertionError();
+        }
+        key.interestOps(SelectionKey.OP_READ);
+        key.attach(new Connection(key, this.factory.create(new ClientContext(this))));
+        LOGGER.info("Connection established");
     }
 
     private void read(final SelectionKey key) throws IOException {
@@ -181,7 +169,7 @@ public final class SimpleServer implements Server {
         return System.currentTimeMillis();
     }
 
-    public static SimpleServer open(final InetSocketAddress address, final GameModel game, final long ups) throws IOException {
-        return new SimpleServer(Selector.open(), address, Protocol.createConnectionFactory(), game, new LinkedBlockingDeque<>(), ups);
+    public static SimpleClient open(final InetSocketAddress remote, final User user, final GameView game, final long ups) throws IOException {
+        return new SimpleClient(Selector.open(), remote, Protocol.createConnectionFactory(), user, game, new LinkedBlockingDeque<>(), ups);
     }
 }

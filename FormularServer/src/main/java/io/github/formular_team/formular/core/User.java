@@ -18,6 +18,14 @@ public final class User {
         return this.color;
     }
 
+    @Override
+    public String toString() {
+        return "User{" +
+            "name='" + this.name + '\'' +
+            ", color=" + Long.toHexString(0x100000000L | this.color).substring(1) +
+            '}';
+    }
+
     public static User create(final String name, final int color) {
         return new User(name, color);
     }

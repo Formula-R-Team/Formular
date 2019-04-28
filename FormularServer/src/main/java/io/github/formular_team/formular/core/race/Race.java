@@ -10,7 +10,7 @@ import io.github.formular_team.formular.core.Checkpoint;
 import io.github.formular_team.formular.core.Course;
 import io.github.formular_team.formular.core.Driver;
 import io.github.formular_team.formular.core.GameModel;
-import io.github.formular_team.formular.core.Track;
+import io.github.formular_team.formular.core.Pose;
 import io.github.formular_team.formular.core.User;
 import io.github.formular_team.formular.core.math.Mth;
 import io.github.formular_team.formular.core.math.Vector2;
@@ -89,9 +89,9 @@ public final class Race {
     }
 
     public void add(final Driver driver) {
-        final Track.Pose pose = this.course.getTrack().getStartPlacement(this.racers.size());
-        driver.getVehicle().setPosition(pose.position);
-        driver.getVehicle().setRotation(-pose.rotation);
+        final Pose pose = this.course.getTrack().getStartPlacement(this.racers.size());
+        driver.getVehicle().setPosition(pose.getPosition());
+        driver.getVehicle().setRotation(-pose.getRotation());
         final Racer racer = new Racer(this, driver);
         this.racers.add(racer);
         this.sortedRacers.add(racer);

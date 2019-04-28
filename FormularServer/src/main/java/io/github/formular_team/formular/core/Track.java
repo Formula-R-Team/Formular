@@ -64,17 +64,6 @@ public final class Track {
         );
     }
 
-    public static final class Pose {
-        public final Vector2 position;
-
-        public final float rotation;
-
-        private Pose(final Vector2 position, final float rotation) {
-            this.position = position;
-            this.rotation = rotation;
-        }
-    }
-
     public static final class TrackBuilder {
         private Path roadPath;
         private float roadWidth;

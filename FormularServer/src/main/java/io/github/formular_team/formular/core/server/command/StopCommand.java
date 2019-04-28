@@ -1,12 +1,11 @@
 package io.github.formular_team.formular.core.server.command;
 
-import io.github.formular_team.formular.core.SimpleGameModel;
-import io.github.formular_team.formular.core.server.Server;
+import io.github.formular_team.formular.core.server.Endpoint;
 
-public final class StopCommand implements Server.Command<Void> {
+public final class StopCommand<T extends Endpoint<?>> implements Endpoint.Command<T, Void> {
     @Override
-    public Void call(final SimpleGameModel game) {
-        game.stop();
+    public Void call(final T endpoint) {
+        endpoint.stop();
         return null;
     }
 }

@@ -13,6 +13,8 @@ public interface GameModel extends Game {
 
     List<Driver> getDrivers();
 
+    KartModel createKart();
+
     void addDriver(final Driver driver);
 
     void addKart(final KartModel kart);
@@ -24,4 +26,22 @@ public interface GameModel extends Game {
     void addRace(final Race race);
 
     void step(final float delta);
+
+    void addOnKartAddListener(final OnKartAddListener listener);
+
+    void addOnKartRemoveListener(final OnKartRemoveListener listener);
+
+    void addOnPoseChangeListener(final OnPoseChangeListener listener);
+
+    interface OnKartAddListener {
+        void onKartAdd(final Kart kart);
+    }
+
+    interface OnKartRemoveListener {
+        void onKartRemove(final Kart kart);
+    }
+
+    interface OnPoseChangeListener {
+        void onPoseChange(final Kart kart);
+    }
 }

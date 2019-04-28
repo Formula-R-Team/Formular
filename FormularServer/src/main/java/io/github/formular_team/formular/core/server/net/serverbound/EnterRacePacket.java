@@ -1,26 +1,20 @@
 package io.github.formular_team.formular.core.server.net.serverbound;
 
 import java.nio.ByteBuffer;
+import java.util.function.Function;
 
-import io.github.formular_team.formular.core.Game;
 import io.github.formular_team.formular.core.server.net.Packet;
-import io.github.formular_team.formular.core.server.net.PacketHandler;
 
 public class EnterRacePacket implements Packet {
+    public static final Function<ByteBuffer, EnterRacePacket> CREATOR = EnterRacePacket::new;
+
+    public EnterRacePacket(final ByteBuffer buf) {}
+
     @Override
-    public void write(final ByteBuffer buf) {
-
+    public Function<ByteBuffer, ? extends Packet> creator() {
+        return CREATOR;
     }
 
     @Override
-    public void read(final ByteBuffer buf) {
-
-    }
-
-    public static class Handler implements PacketHandler<Game> {
-        @Override
-        public void handle(final Game game) {
-
-        }
-    }
+    public void write(final ByteBuffer buf) {}
 }

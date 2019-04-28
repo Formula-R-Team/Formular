@@ -16,9 +16,13 @@ public final class SimpleGameModel implements GameModel {
 
     private final List<LineCurve> walls = new ArrayList<>();
 
-    public boolean isRunning() {
-        return true;
-    }
+    private final List<OnKartAddListener> addListeners = new ArrayList<>();
+
+    private final List<OnKartRemoveListener> removeListeners = new ArrayList<>();
+
+    private final List<OnPoseChangeListener> changeListeners = new ArrayList<>();
+
+    private int nextKartId = 0;
 
     @Override
     public List<LineCurve> getWalls() {
@@ -43,8 +47,16 @@ public final class SimpleGameModel implements GameModel {
     public void stop() {}
 
     @Override
+    public KartModel createKart() {
+        return new KartModel(this.nextKartId++, KartDefinition.createKart2());
+    }
+
+    @Override
     public void addKart(final KartModel kart) {
         this.karts.add(kart);
+        for (final OnKartAddListener listener : this.addListeners) {
+            listener.onKartAdd(kart);
+        }
     }
 
     @Override
@@ -54,6 +66,9 @@ public final class SimpleGameModel implements GameModel {
             final KartModel kart = it.next();
             if (kart.getUniqueId() == uniqueId) {
                 it.remove();
+                for (final OnKartRemoveListener listener : this.removeListeners) {
+                    listener.onKartRemove(kart);
+                }
                 return kart;
             }
         }
@@ -82,9 +97,27 @@ public final class SimpleGameModel implements GameModel {
         }
         for (final KartModel kart : this.karts) {
             kart.step(delta);
+            for (final OnPoseChangeListener listener : this.changeListeners) {
+                listener.onPoseChange(kart);
+            }
         }
         for (final Race race : this.races) {
             race.step(delta);
         }
+    }
+
+    @Override
+    public void addOnKartAddListener(final OnKartAddListener listener) {
+        this.addListeners.add(listener);
+    }
+
+    @Override
+    public void addOnKartRemoveListener(final OnKartRemoveListener listener) {
+        this.removeListeners.add(listener);
+    }
+
+    @Override
+    public void addOnPoseChangeListener(final OnPoseChangeListener listener) {
+        this.changeListeners.add(listener);
     }
 }

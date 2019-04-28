@@ -21,7 +21,11 @@ public class MainActivity extends FormularActivity {
         this.btnRace = this.findViewById(R.id.btnRace);
         this.btnCustomize = this.findViewById(R.id.btnCustomize);
         this.btnCustomize.setOnClickListener(this.activityChange(ShopActivity.class));
-        this.btnRace.setOnClickListener(this.activityChange(NewRaceActivity.class));
+        this.btnRace.setOnClickListener(v -> {
+            final Intent intent = new Intent(this, SandboxActivity.class);
+            intent.putExtra(SandboxActivity.EXTRA_HOST, false);
+            this.startActivity(intent);
+        });
     }
 
     private View.OnClickListener activityChange(final Class<?> cls) {

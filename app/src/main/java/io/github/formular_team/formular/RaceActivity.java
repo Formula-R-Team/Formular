@@ -34,6 +34,7 @@ import io.github.formular_team.formular.ar.Rectifier;
 import io.github.formular_team.formular.core.Checkpoint;
 import io.github.formular_team.formular.core.Course;
 import io.github.formular_team.formular.core.CourseMetadata;
+import io.github.formular_team.formular.core.DirectKartView;
 import io.github.formular_team.formular.core.Driver;
 import io.github.formular_team.formular.core.GameModel;
 import io.github.formular_team.formular.core.KartDefinition;
@@ -90,10 +91,10 @@ public class RaceActivity extends FormularActivity {
         this.countView = this.findViewById(R.id.count);
         this.pad = this.findViewById(R.id.pad);
         this.wheel = this.findViewById(R.id.wheel);
-        this.arFragment = (ArFragment) this.getSupportFragmentManager().findFragmentById(R.id.ar);
         final WeakOptional<RaceActivity> act = WeakOptional.of(this);
         SimpleKartNodeFactory.create(this, R.raw.kart_body, R.raw.kart_wheel_front, R.raw.kart_wheel_rear)
             .thenAccept(factory -> act.ifPresent(activity -> activity.factory = factory));
+        this.arFragment = (ArFragment) this.getSupportFragmentManager().findFragmentById(R.id.ar);
         this.arFragment.setOnTapArPlaneListener(this::onPlaneTap);
         this.findViewById(R.id.reset).setOnClickListener(v -> {
             if (this.courseAnchor != null) {
@@ -205,7 +206,7 @@ public class RaceActivity extends FormularActivity {
             this.game.getWalls().add(new LineCurve(checkpoints.get(i).getP1(), checkpoints.get((i + 1) % checkpoints.size()).getP1()));
             this.game.getWalls().add(new LineCurve(checkpoints.get(i).getP2(), checkpoints.get((i + 1) % checkpoints.size()).getP2()));
         }
-        this.kart = new KartModel(this.game, 0, KartDefinition.createKart2());
+        this.kart = new KartModel(0, KartDefinition.createKart2());
         this.pad.setOnTouchListener(new KartController(this.kart, this.pad, this.wheel));
         final Driver self = SimpleDriver.create(this.user, this.kart);
         RaceConfiguration.Builder raceConfigBuilder = new RaceConfiguration.Builder().lapCount(3);
@@ -349,7 +350,7 @@ public class RaceActivity extends FormularActivity {
 
                 for (final Driver driver : this.game.getDrivers()) {
 //                    this.factory.create(this.game, driver.getVehicle())
-                    final KartNode kart = this.factory.create(driver.getVehicle());
+                    final KartNode kart = this.factory.create(new DirectKartView(driver.getVehicle()));
                     kart.setColor(new Color(driver.getUser().getColor()));
                     LabelFactory.create(this, driver.getUser() == this.user ? "YOU" : driver.getUser().getName(), 1.5F)
                             .thenAccept(label -> {

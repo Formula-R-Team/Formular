@@ -20,6 +20,8 @@ public interface Kart {
     ControlState getControlState();
 
     interface ControlState {
+        void copy(final ControlState other);
+
         void setThrottle(final float throttle);
 
         float getThrottle();
