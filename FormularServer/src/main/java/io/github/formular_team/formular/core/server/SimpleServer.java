@@ -150,11 +150,18 @@ public final class SimpleServer implements Server {
 
     @Override
     public void send(final Packet packet) {
+        boolean sent = false;
         for (final SelectionKey key : this.selector.keys()) {
             final Object att = key.attachment();
             if (att instanceof Connection) {
                 ((Connection) att).send(packet);
+                sent = true;
             }
+        }
+        if (sent) {
+            LOGGER.info("Sent " + packet.getClass().getName());
+        } else {
+            LOGGER.info("Discarding " + packet.getClass().getName());
         }
     }
 
