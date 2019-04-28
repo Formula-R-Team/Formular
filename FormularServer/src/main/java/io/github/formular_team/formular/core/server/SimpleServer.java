@@ -158,10 +158,11 @@ public final class SimpleServer implements Server {
         }
     }
 
-    private void accept(final Selector selector, final ServerSocketChannel server, final SelectionKey key) throws IOException {
+    private void accept(final Selector selector, final ServerSocketChannel server, final SelectionKey acceptKey) throws IOException {
         final SocketChannel socket = server.accept();
         socket.configureBlocking(false);
-        socket.register(selector, SelectionKey.OP_READ, new Connection(key, this.factory.create(new ServerContext(this))));
+        final SelectionKey key = socket.register(selector, SelectionKey.OP_READ);
+        key.attach(new Connection(key, this.factory.create(new ServerContext(this))));
         LOGGER.info("Accepting connection from " + socket.getRemoteAddress());
     }
 
