@@ -24,7 +24,6 @@ import io.github.formular_team.formular.core.server.net.Protocol;
 import io.github.formular_team.formular.core.server.net.ServerContext;
 import io.github.formular_team.formular.core.server.net.StateManager;
 import io.github.formular_team.formular.core.server.net.clientbound.KartAddPacket;
-import io.github.formular_team.formular.core.server.net.clientbound.SetPosePacket;
 
 public final class SimpleServer implements Server {
     private static final Logger LOGGER = Logger.getLogger("SimpleServer");
@@ -93,7 +92,7 @@ public final class SimpleServer implements Server {
             throw new RuntimeException(e);
         }
         this.game.addOnKartAddListener(kart -> this.send(new KartAddPacket(kart)));
-        this.game.addOnPoseChangeListener(kart -> this.send(new SetPosePacket(kart)));
+//        this.game.addOnPoseChangeListener(kart -> this.send(new SetPosePacket(kart)));
         final RunnableFuture<?> STEP_PILL = new FutureTask<>(() -> null);
         final long timeout = 1000 / this.ups;
         for (long past = this.currentTimeMillis(), present = past; this.running; past = present) {
@@ -113,16 +112,21 @@ public final class SimpleServer implements Server {
                     final Set<SelectionKey> keys = this.selector.selectedKeys();
                     for (final Iterator<SelectionKey> it = keys.iterator(); it.hasNext(); it.remove()) {
                         final SelectionKey key = it.next();
-                        if (key.isAcceptable()) {
-                            this.accept(this.selector, socket, key);
-                        } else {
-                            key.interestOps(0);
-                            if (key.isReadable()) {
-                                this.read(key);
+                        try {
+                            if (key.isAcceptable()) {
+                                this.accept(this.selector, socket, key);
+                            } else {
+                                key.interestOps(0);
+                                if (key.isReadable()) {
+                                    this.read(key);
+                                }
+                                if (key.isValid() && key.isWritable()) {
+                                    this.write(key);
+                                }
                             }
-                            if (key.isValid() && key.isWritable()) {
-                                this.write(key);
-                            }
+                        } catch (final IOException e) {
+                            LOGGER.log(Level.WARNING, "Network error", e);
+                            key.cancel();
                         }
                     }
                 }
@@ -150,18 +154,11 @@ public final class SimpleServer implements Server {
 
     @Override
     public void send(final Packet packet) {
-        boolean sent = false;
         for (final SelectionKey key : this.selector.keys()) {
             final Object att = key.attachment();
             if (att instanceof Connection) {
                 ((Connection) att).send(packet);
-                sent = true;
             }
-        }
-        if (sent) {
-            LOGGER.info("Sent " + packet.getClass().getName());
-        } else {
-            LOGGER.info("Discarding " + packet.getClass().getName());
         }
     }
 
