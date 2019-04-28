@@ -22,7 +22,7 @@ public final class User {
     public String toString() {
         return "User{" +
             "name='" + this.name + '\'' +
-            ", color=" + Long.toHexString(0x100000000L | this.color).substring(1) +
+            ", color=" + Long.toHexString(0x100000000L | (long) this.color).substring(1) +
             '}';
     }
 
