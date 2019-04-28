@@ -62,7 +62,7 @@ public class SandboxActivity extends FormularActivity {
         }
         this.arFragment.setOnTapArPlaneListener((result, plane, event) -> {
             final AnchorNode anchor = new AnchorNode(result.createAnchor());
-            anchor.setLocalScale(Vector3.one().scaled(0.01F));
+            anchor.setLocalScale(Vector3.one().scaled(0.075F));
             this.arFragment.getArSceneView().getScene().addChild(anchor);
             if (!this.host) {
                 this.promptConnect(anchor);
@@ -100,7 +100,7 @@ public class SandboxActivity extends FormularActivity {
 
     private void startClient(final Node surface, final InetSocketAddress address) {
         try {
-            this.controller = EndpointController.create(SimpleClient.open(address, this.user, ArGameView.create(this.arFragment.getArSceneView().getScene(), surface, this.factory), 20));
+            this.controller = EndpointController.create(SimpleClient.open(address, this.user, ArGameView.create(this, this.arFragment.getArSceneView().getScene(), surface, this.factory), 20));
             this.controller.start();
         } catch (final IOException e) {
             Log.e(TAG, "Error creating client", e);
@@ -109,7 +109,7 @@ public class SandboxActivity extends FormularActivity {
 
     private void startServer() {
         try {
-            this.controller = EndpointController.create(SimpleServer.open(new InetSocketAddress("localhost", Endpoint.DEFAULT_PORT), new SimpleGameModel(), 20));
+            this.controller = EndpointController.create(SimpleServer.open(new InetSocketAddress(Endpoint.DEFAULT_PORT), new SimpleGameModel(), 20));
             this.controller.start();
         } catch (final IOException e) {
             Log.e(TAG, "Error creating server", e);

@@ -18,11 +18,14 @@ import java.util.logging.Logger;
 
 import io.github.formular_team.formular.core.GameView;
 import io.github.formular_team.formular.core.User;
+import io.github.formular_team.formular.core.math.Vector2;
 import io.github.formular_team.formular.core.server.net.ClientContext;
 import io.github.formular_team.formular.core.server.net.Connection;
 import io.github.formular_team.formular.core.server.net.Packet;
 import io.github.formular_team.formular.core.server.net.Protocol;
 import io.github.formular_team.formular.core.server.net.StateManager;
+import io.github.formular_team.formular.core.server.net.serverbound.AddKartPacket;
+import io.github.formular_team.formular.core.server.net.serverbound.NewUserPacket;
 
 // TODO not duplicate server
 public final class SimpleClient implements Client {
@@ -111,11 +114,11 @@ public final class SimpleClient implements Client {
                         if (key.isConnectable()) {
                             this.connect(this.selector, socket, key);
                         } else {
-                            key.interestOps(0);
+//                            key.interestOps(0);
                             if (key.isReadable()) {
                                 this.read(key);
                             }
-                            if (key.isWritable()) {
+                            if (key.isValid() && key.isWritable()) {
                                 this.write(key);
                             }
                         }
@@ -151,6 +154,8 @@ public final class SimpleClient implements Client {
         key.interestOps(SelectionKey.OP_READ);
         key.attach(new Connection(key, this.factory.create(new ClientContext(this))));
         LOGGER.info("Connection established");
+        this.send(new NewUserPacket(this.user));
+        this.send(new AddKartPacket(new Vector2(0.0F, 0.0F)));
     }
 
     private void read(final SelectionKey key) throws IOException {

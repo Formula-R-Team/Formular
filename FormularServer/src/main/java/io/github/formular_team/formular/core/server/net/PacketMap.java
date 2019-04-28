@@ -6,8 +6,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.logging.Logger;
 
 public final class PacketMap<T extends Context> {
+    private static final Logger LOGGER = Logger.getLogger("PacketMap");
+
     private final Map<Integer, PacketMap.Entry<T>> entries;
 
     private final Map<Function<? super ByteBuffer, ?>, Integer> ids;
@@ -63,6 +66,7 @@ public final class PacketMap<T extends Context> {
         @Override
         public ContextFunction<T> read(final ByteBuffer buf) {
             final U u = this.packet.apply(buf);
+            LOGGER.info("Read " + u.getClass().getName());
             return t -> this.handler.apply(t, u);
         }
     }

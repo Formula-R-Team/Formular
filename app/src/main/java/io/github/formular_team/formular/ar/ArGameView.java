@@ -1,5 +1,6 @@
 package io.github.formular_team.formular.ar;
 
+import android.app.Activity;
 import android.util.SparseArray;
 
 import com.google.ar.sceneform.Node;
@@ -17,6 +18,8 @@ import io.github.formular_team.formular.core.StateKartView;
 import io.github.formular_team.formular.core.math.Vector2;
 
 public class ArGameView implements GameView {
+    private final Activity activity;
+
     private final Scene scene;
 
     private final Node surface;
@@ -25,7 +28,8 @@ public class ArGameView implements GameView {
 
     private final SparseArray<KartView> karts;
 
-    private ArGameView(final Scene scene, final Node surface, final KartNodeFactory factory, final SparseArray<KartView> karts) {
+    private ArGameView(final Activity activity, final Scene scene, final Node surface, final KartNodeFactory factory, final SparseArray<KartView> karts) {
+        this.activity = activity;
         this.scene = scene;
         this.surface = surface;
         this.factory = factory;
@@ -40,7 +44,7 @@ public class ArGameView implements GameView {
     @Override
     public Kart createKart(final int uniqueId) {
         final KartView kart = new StateKartView(uniqueId, KartDefinition.createKart2(), new Vector2(), 0.0F);
-        this.surface.addChild(this.factory.create(kart));
+        this.activity.runOnUiThread(() -> this.surface.addChild(this.factory.create(kart))); // FIXME
         this.karts.put(uniqueId, kart);
         return kart;
     }
@@ -60,7 +64,7 @@ public class ArGameView implements GameView {
         return Optional.ofNullable(this.karts.get(uniqueId));
     }
 
-    public static ArGameView create(final Scene scene, final Node surface, final KartNodeFactory factory) {
-        return new ArGameView(scene, surface, factory, new SparseArray<>());
+    public static ArGameView create(final Activity activity, final Scene scene, final Node surface, final KartNodeFactory factory) {
+        return new ArGameView(activity, scene, surface, factory, new SparseArray<>());
     }
 }
