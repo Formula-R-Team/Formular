@@ -29,7 +29,8 @@
     <string name="race_position_2">3rd</string>
     <string name="race_position_default">%dth</string>
     <string name="race">Race</string>
-    <string name="new_race">New Race</string>
+    <string name="host_race">Host Race</string>
+    <string name="join_race">Join Race</string>
     <string name="customize">Customize</string>
     <string name="course_library">Course Library</string>
     <string name="search">Search</string>

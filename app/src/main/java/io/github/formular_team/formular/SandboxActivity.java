@@ -3,12 +3,15 @@ package io.github.formular_team.formular;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AlertDialog;
+import android.text.format.Formatter;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import com.google.ar.sceneform.AnchorNode;
 import com.google.ar.sceneform.Node;
@@ -16,6 +19,7 @@ import com.google.ar.sceneform.math.Vector3;
 import com.google.ar.sceneform.ux.ArFragment;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -23,11 +27,14 @@ import java.net.URISyntaxException;
 import io.github.formular_team.formular.ar.ArGameView;
 import io.github.formular_team.formular.core.Kart;
 import io.github.formular_team.formular.core.SimpleControlState;
+import io.github.formular_team.formular.core.SimpleGameModel;
 import io.github.formular_team.formular.core.User;
 import io.github.formular_team.formular.core.server.Client;
 import io.github.formular_team.formular.core.server.Endpoint;
 import io.github.formular_team.formular.core.server.EndpointController;
+import io.github.formular_team.formular.core.server.Server;
 import io.github.formular_team.formular.core.server.SimpleClient;
+import io.github.formular_team.formular.core.server.SimpleServer;
 
 public class SandboxActivity extends FormularActivity {
     private static final String TAG = "SandboxActivity";
@@ -45,6 +52,8 @@ public class SandboxActivity extends FormularActivity {
     private KartNodeFactory factory;
 
     private EndpointController<Client> client;
+
+    private EndpointController<Server> server;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -65,11 +74,16 @@ public class SandboxActivity extends FormularActivity {
             throw new AssertionError("Missing ar fragment");
         }
         this.arFragment.setOnTapArPlaneListener((result, plane, event) -> {
-            final AnchorNode anchor = new AnchorNode(result.createAnchor());
-            anchor.setLocalScale(Vector3.one().scaled(0.075F));
-            this.arFragment.getArSceneView().getScene().addChild(anchor);
-            if (!this.host) {
-                this.promptConnect(anchor);
+            if (this.factory != null && this.client == null) {
+                final AnchorNode anchor = new AnchorNode(result.createAnchor());
+                anchor.setLocalScale(Vector3.one().scaled(0.075F));
+                this.arFragment.getArSceneView().getScene().addChild(anchor);
+                if (this.host) {
+                    this.startServer();
+                    this.startClient(anchor, new InetSocketAddress(InetAddress.getLoopbackAddress(), Endpoint.DEFAULT_PORT));
+                } else {
+                    this.promptConnect(anchor);
+                }
             }
         });
         this.pad.setOnTouchListener(new KartController(new SimpleControlState(), state -> {
@@ -140,20 +154,26 @@ public class SandboxActivity extends FormularActivity {
         }
     }
 
-//    private void startServer() {
-//        try {
-//            this.server = EndpointController.create(SimpleServer.open(new InetSocketAddress(Endpoint.DEFAULT_PORT), new SimpleGameModel(), 20));
-//            this.server.start();
-//        } catch (final IOException e) {
-//            Log.e(TAG, "Error creating server", e);
-//        }
-//    }
+    private void startServer() {
+        try {
+            this.server = EndpointController.create(SimpleServer.open(new InetSocketAddress(Endpoint.DEFAULT_PORT), new SimpleGameModel(), 30));
+            this.server.start();
+        } catch (final IOException e) {
+            Log.e(TAG, "Error creating server", e);
+        }
+        final WifiManager wifi = this.getSystemService(WifiManager.class);
+        final String ip = Formatter.formatIpAddress(wifi.getConnectionInfo().getIpAddress());
+        this.<TextView>findViewById(R.id.ip).setText(ip);
+    }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         if (this.client != null) {
             this.client.stop();
+        }
+        if (this.server != null) {
+            this.server.stop();
         }
     }
 }

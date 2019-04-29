@@ -7,7 +7,7 @@ import java.util.function.Consumer;
 import io.github.formular_team.formular.core.server.net.Packet;
 
 public interface Endpoint<T> extends Runnable {
-    int DEFAULT_PORT = 50050;
+    int DEFAULT_PORT = 56250;
 
     <V> Future<V> submitJob(final Job<? super T, V> job);
 

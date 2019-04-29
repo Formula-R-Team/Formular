@@ -6,9 +6,9 @@ import android.view.View;
 import android.widget.Button;
 
 public class MainActivity extends FormularActivity {
-    private Button btnRace;
+    private Button hostRace, joinRace;
 
-    private Button btnCustomize;
+    private Button customize;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -18,10 +18,16 @@ public class MainActivity extends FormularActivity {
     }
 
     private void setupButtons() {
-        this.btnRace = this.findViewById(R.id.btnRace);
-        this.btnCustomize = this.findViewById(R.id.btnCustomize);
-        this.btnCustomize.setOnClickListener(this.activityChange(ShopActivity.class));
-        this.btnRace.setOnClickListener(v -> {
+        this.hostRace = this.findViewById(R.id.btnHostRace);
+        this.joinRace = this.findViewById(R.id.btnJoinRace);
+        this.customize = this.findViewById(R.id.btnCustomize);
+        this.customize.setOnClickListener(this.activityChange(ShopActivity.class));
+        this.hostRace.setOnClickListener(v -> {
+            final Intent intent = new Intent(this, SandboxActivity.class);
+            intent.putExtra(SandboxActivity.EXTRA_HOST, true);
+            this.startActivity(intent);
+        });
+        this.joinRace.setOnClickListener(v -> {
             final Intent intent = new Intent(this, SandboxActivity.class);
             intent.putExtra(SandboxActivity.EXTRA_HOST, false);
             this.startActivity(intent);
