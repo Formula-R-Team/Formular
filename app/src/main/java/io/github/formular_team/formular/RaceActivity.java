@@ -207,7 +207,7 @@ public class RaceActivity extends FormularActivity {
             this.game.getWalls().add(new LineCurve(checkpoints.get(i).getP2(), checkpoints.get((i + 1) % checkpoints.size()).getP2()));
         }
         this.kart = new KartModel(0, KartDefinition.createKart2());
-        this.pad.setOnTouchListener(new KartController(this.kart, this.pad, this.wheel));
+        this.pad.setOnTouchListener(new KartController(this.kart.getControlState(), s -> {}, this.wheel));
         final Driver self = SimpleDriver.create(this.user, this.kart);
         RaceConfiguration.Builder raceConfigBuilder = new RaceConfiguration.Builder().lapCount(3);
         final Race race = Race.create(this.game, raceConfigBuilder.build(), this.user, course);

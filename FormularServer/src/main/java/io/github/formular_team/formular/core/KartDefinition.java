@@ -32,12 +32,12 @@ public class KartDefinition {
     public static KartDefinition createKart2() {
         final KartDefinition definition = new KartDefinition();
         definition.wheelbase = inchToMeter(2.0F * 16.8F);
-        final float t = 0.52F;
+        final float t = 0.55F;
         definition.b = definition.wheelbase * t;
         definition.c = definition.wheelbase * (1.0F - t);
         definition.h = 0.2F;
-        definition.mass = 82.0F;
-        definition.inertia = 82.0F;
+        definition.mass = 90.0F;
+        definition.inertia = 90.0F;
         definition.width = inchToMeter(2.0F * 10.8F);
         definition.length = inchToMeter(2.0F * 18.0F);
         definition.frontWheelRadius = inchToMeter(4.8F);

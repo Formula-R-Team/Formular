@@ -95,14 +95,30 @@ public final class SimpleGameModel implements GameModel {
         for (final Driver driver : this.drivers) {
             driver.step(delta);
         }
+        this.stepPhysics(delta);
+        // TODO: optimized onPoseChange
         for (final KartModel kart : this.karts) {
-            kart.step(delta);
             for (final OnPoseChangeListener listener : this.changeListeners) {
                 listener.onPoseChange(kart);
             }
         }
         for (final Race race : this.races) {
             race.step(delta);
+        }
+    }
+
+    private void stepPhysics(final float delta) {
+        final float targetDt = 0.01F;
+        final int steps = Math.max((int) (delta / targetDt), 1);
+        final float dt = delta / steps;
+        for (int n = 0; n < steps; n++) {
+            this.stepKarts(dt);
+        }
+    }
+
+    private void stepKarts(final float dt) {
+        for (final KartModel kart : this.karts) {
+            kart.step(dt);
         }
     }
 

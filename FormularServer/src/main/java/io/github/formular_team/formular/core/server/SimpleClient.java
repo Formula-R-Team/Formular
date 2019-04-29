@@ -6,6 +6,7 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.Iterator;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Future;
@@ -20,11 +21,13 @@ import io.github.formular_team.formular.core.GameView;
 import io.github.formular_team.formular.core.User;
 import io.github.formular_team.formular.core.math.Vector2;
 import io.github.formular_team.formular.core.server.net.ClientContext;
-import io.github.formular_team.formular.core.server.net.Connection;
+import io.github.formular_team.formular.core.server.net.Context;
 import io.github.formular_team.formular.core.server.net.Packet;
 import io.github.formular_team.formular.core.server.net.Protocol;
+import io.github.formular_team.formular.core.server.net.SimpleConnection;
 import io.github.formular_team.formular.core.server.net.StateManager;
 import io.github.formular_team.formular.core.server.net.serverbound.AddKartPacket;
+import io.github.formular_team.formular.core.server.net.serverbound.ControlPacket;
 import io.github.formular_team.formular.core.server.net.serverbound.NewUserPacket;
 
 // TODO not duplicate server
@@ -99,15 +102,18 @@ public final class SimpleClient implements Client {
         }
         final RunnableFuture<?> STEP_PILL = new FutureTask<>(() -> null);
         final long timeout = 1000 / this.ups;
-        for (long past = this.currentTimeMillis(), present = past; this.running; past = present) {
+        for (long past = this.currentTimeMillis(), present; this.running; past = present) {
+            present = this.currentTimeMillis();
             final long duration = present - past;
             final long deadline = present + timeout;
             this.addJob(STEP_PILL);
 //            this.game.step(duration / 1000.0F);
+            // FIXME
+            this.send(new ControlPacket(this.game.getControlState()));
             for (RunnableFuture<?> job; (job = this.pollJob()) != null && job != STEP_PILL; job.run());
             try {
-                while ((present = this.currentTimeMillis()) < deadline) {
-                    this.selector.select(deadline - present);
+                for (long now; (now = this.currentTimeMillis()) < deadline; ) {
+                    this.selector.select(deadline - now);
                     final Set<SelectionKey> keys = this.selector.selectedKeys();
                     for (final Iterator<SelectionKey> it = keys.iterator(); it.hasNext(); it.remove()) {
                         final SelectionKey key = it.next();
@@ -141,8 +147,8 @@ public final class SimpleClient implements Client {
     public void send(final Packet packet) {
         for (final SelectionKey key: this.selector.keys()) {
             final Object att = key.attachment();
-            if (att instanceof Connection) {
-                ((Connection) att).send(packet);
+            if (att instanceof SimpleConnection) {
+                ((SimpleConnection) att).send(packet);
             }
         }
     }
@@ -152,10 +158,14 @@ public final class SimpleClient implements Client {
             throw new AssertionError();
         }
         key.interestOps(SelectionKey.OP_READ);
-        key.attach(new Connection(key, this.factory.create(new ClientContext(this))));
+        final SimpleConnection connection = new SimpleConnection(key, this.factory.create());
+        connection.setContext(this.factory.create(new ClientContext(new Context(connection), this)));
+        key.attach(connection);
         LOGGER.info("Connection established");
         this.send(new NewUserPacket(this.user));
-        this.send(new AddKartPacket(new Vector2(0.0F, 0.0F)));
+        // temp logic
+        final Random r = new Random();
+        this.send(new AddKartPacket(new Vector2(r.nextFloat() * 5.0F - 2.5F, r.nextFloat() * 5.0F - 2.5F), this.user.getColor()));
     }
 
     private void read(final SelectionKey key) throws IOException {
@@ -166,8 +176,8 @@ public final class SimpleClient implements Client {
         this.connection(key).write((SocketChannel) key.channel(), key);
     }
 
-    private Connection connection(final SelectionKey key) {
-        return (Connection) key.attachment();
+    private SimpleConnection connection(final SelectionKey key) {
+        return (SimpleConnection) key.attachment();
     }
 
     private long currentTimeMillis() {

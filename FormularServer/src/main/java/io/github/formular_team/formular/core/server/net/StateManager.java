@@ -22,13 +22,16 @@ public final class StateManager {
         this.ids = Collections.unmodifiableMap(builder.ids);
     }
 
+    public StateManager.ContextState<?> create() {
+        return new ContextState<>(null, RootNode.INSTANCE);
+    }
+
     public StateManager.ContextState<?> create(final Context context) {
         return this.createState(context);
     }
 
     private <T extends Context> ContextState<T> createState(final T context) {
-        //noinspection unchecked
-        return new ContextState<>(context, (Entry<T>) this.entries.get(context.getClass()));
+        return new ContextState<>(context, this.entries.get(context.getClass()));
     }
 
     public static Builder builder() {
@@ -117,7 +120,7 @@ public final class StateManager {
         }
 
         public StateManager build() {
-            this.add(this.build(new RootNode()));
+            this.add(this.build(RootNode.INSTANCE));
             return new StateManager(this);
         }
     }
@@ -143,9 +146,17 @@ public final class StateManager {
 
     interface Node {
         PacketMap.Entry<? super Context> get(final int id);
+
+        default PacketMap.Header<? super Context> readHeader(final ByteBuffer buf) {
+            final int id = ByteBuffers.getUnsignedShort(buf);
+            final int length = ByteBuffers.getUnsignedShort(buf);
+            return new PacketMap.Header<>(this.get(id), length);
+        }
     }
 
     static class RootNode implements Node {
+        static Node INSTANCE = new RootNode();
+
         @Override
         public PacketMap.Entry<? super Context> get(final int id) {
             return buf -> t -> t;
@@ -169,12 +180,6 @@ public final class StateManager {
         public PacketMap.Entry<? super Context> get(final int id) {
             return this.packets.get(id).orElseGet(() -> this.parent.get(id));
         }
-
-        PacketMap.Header<? super Context> readHeader(final ByteBuffer buf) {
-            final int id = ByteBuffers.getUnsignedShort(buf);
-            final int length = ByteBuffers.getUnsignedShort(buf);
-            return new PacketMap.Header<>(this.get(id), length);
-        }
     }
 
     private void write(final ByteBuffer buf, final Packet packet) {
@@ -196,9 +201,9 @@ public final class StateManager {
     public final class ContextState<T extends Context> {
         private final T context;
 
-        private final Entry<T> entry;
+        private final Node entry;
 
-        ContextState(final T context, final Entry<T> entry) {
+        ContextState(final T context, final Node entry) {
             this.context = context;
             this.entry = entry;
         }

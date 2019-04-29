@@ -4,19 +4,21 @@ import android.annotation.SuppressLint;
 import android.view.MotionEvent;
 import android.view.View;
 
-import io.github.formular_team.formular.core.math.Mth;
+import java.util.function.Consumer;
+
 import io.github.formular_team.formular.core.Kart;
+import io.github.formular_team.formular.core.math.Mth;
 
 public final class KartController implements View.OnTouchListener {
-    private final Kart kart;
+    private final Kart.ControlState state;
 
-    private final View pad;
+    private final Consumer<Kart.ControlState> listener;
 
     private final View wheel;
 
-    public KartController(final Kart kart, final View pad, final View wheel) {
-        this.kart = kart;
-        this.pad = pad;
+    public KartController(final Kart.ControlState state, final Consumer<Kart.ControlState> listener, final View wheel) {
+        this.state = state;
+        this.listener = listener;
         this.wheel = wheel;
     }
 
@@ -30,14 +32,16 @@ public final class KartController implements View.OnTouchListener {
             final float x = Mth.clamp(event.getX() / v.getWidth() * 2.0F - 1.0F, -1.0F, 1.0F);
             final float y = Mth.clamp(event.getY() / v.getHeight() * 2.0F - 1.0F, -1.0F, 1.0F);
             final float angle = -Mth.PI / 4.0F * x;
-            this.kart.getControlState().setSteeringAngle(angle);
-            this.kart.getControlState().setThrottle(-y * 6.0F);
-            this.kart.getControlState().setBrake(0.0F);
+            this.state.setSteeringAngle(angle);
+            this.state.setThrottle(-y * 6.0F);
+            this.state.setBrake(0.0F);
+            this.listener.accept(this.state);
             this.wheel.setRotation(-Mth.toDegrees(angle));
             return true;
         case MotionEvent.ACTION_UP:
-            this.kart.getControlState().setThrottle(0.0F);
-            this.kart.getControlState().setBrake(10.0F);
+            this.state.setThrottle(0.0F);
+            this.state.setBrake(10.0F);
+            this.listener.accept(this.state);
             return true;
         }
         return false;

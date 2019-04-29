@@ -29,6 +29,8 @@ public class KartModel implements Kart {
 
     private float wheelAngularVelocity;
 
+    private int color;
+
     public KartModel(final int uniqueId, final KartDefinition type) {
         this.uniqueId = uniqueId;
         this.definition = type;
@@ -72,6 +74,16 @@ public class KartModel implements Kart {
     @Override
     public Kart.ControlState getControlState() {
         return this.state;
+    }
+
+    @Override
+    public void setColor(final int color) {
+        this.color = color;
+    }
+
+    @Override
+    public int getColor() {
+        return this.color;
     }
 
     public void reset() {

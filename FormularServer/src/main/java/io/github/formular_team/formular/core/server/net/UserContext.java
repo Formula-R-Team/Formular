@@ -8,7 +8,7 @@ public class UserContext extends ServerContext {
     private final User user;
 
     public UserContext(final ServerContext parent, final User user) {
-        super(parent.getServer());
+        super(parent, parent.getServer());
         this.user = Objects.requireNonNull(user);
     }
 

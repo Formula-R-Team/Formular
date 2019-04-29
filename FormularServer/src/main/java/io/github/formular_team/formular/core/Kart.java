@@ -19,8 +19,12 @@ public interface Kart {
 
     ControlState getControlState();
 
+    void setColor(int color);
+
+    int getColor();
+
     interface ControlState {
-        void copy(final ControlState other);
+        ControlState copy(final ControlState other);
 
         void setThrottle(final float throttle);
 

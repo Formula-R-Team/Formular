@@ -18,12 +18,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import io.github.formular_team.formular.core.GameModel;
-import io.github.formular_team.formular.core.server.net.Connection;
+import io.github.formular_team.formular.core.server.net.Context;
 import io.github.formular_team.formular.core.server.net.Packet;
 import io.github.formular_team.formular.core.server.net.Protocol;
 import io.github.formular_team.formular.core.server.net.ServerContext;
+import io.github.formular_team.formular.core.server.net.SimpleConnection;
 import io.github.formular_team.formular.core.server.net.StateManager;
 import io.github.formular_team.formular.core.server.net.clientbound.KartAddPacket;
+import io.github.formular_team.formular.core.server.net.clientbound.SetPosePacket;
 
 public final class SimpleServer implements Server {
     private static final Logger LOGGER = Logger.getLogger("SimpleServer");
@@ -91,15 +93,17 @@ public final class SimpleServer implements Server {
         } catch (final IOException e) {
             throw new RuntimeException(e);
         }
+        LOGGER.info("Listening on port " + this.address.getPort());
         this.game.addOnKartAddListener(kart -> this.send(new KartAddPacket(kart)));
-//        this.game.addOnPoseChangeListener(kart -> this.send(new SetPosePacket(kart)));
+        this.game.addOnPoseChangeListener(kart -> this.send(new SetPosePacket(kart)));
         final RunnableFuture<?> STEP_PILL = new FutureTask<>(() -> null);
         final long timeout = 1000 / this.ups;
-        for (long past = this.currentTimeMillis(), present = past; this.running; past = present) {
+        for (long past = this.currentTimeMillis(), present; this.running; past = present) {
+            present = this.currentTimeMillis();
             final long duration = present - past;
             final long deadline = present + timeout;
             this.addJob(STEP_PILL);
-            this.step(duration / 1000.0F);
+            this.game.step(duration / 1000.0F);
             for (RunnableFuture<?> job; (job = this.pollJob()) != null && job != STEP_PILL; job.run());
             /*try {
                 for (RunnableFuture<?> job; (present = this.currentTimeMillis()) < deadline && (job = this.pollJob(deadline - present)) != null; job.run());
@@ -107,8 +111,8 @@ public final class SimpleServer implements Server {
                 break;
             }*/
             try {
-                while ((present = this.currentTimeMillis()) < deadline) {
-                    this.selector.select(deadline - present);
+                for (long now; (now = this.currentTimeMillis()) < deadline; ) {
+                    this.selector.select(deadline - now);
                     final Set<SelectionKey> keys = this.selector.selectedKeys();
                     for (final Iterator<SelectionKey> it = keys.iterator(); it.hasNext(); it.remove()) {
                         final SelectionKey key = it.next();
@@ -116,7 +120,7 @@ public final class SimpleServer implements Server {
                             if (key.isAcceptable()) {
                                 this.accept(this.selector, socket, key);
                             } else {
-                                key.interestOps(0);
+//                                key.interestOps(0);
                                 if (key.isReadable()) {
                                     this.read(key);
                                 }
@@ -143,21 +147,12 @@ public final class SimpleServer implements Server {
         } catch (final IOException ignored) {}
     }
 
-    private void step(final float delta) {
-        final float targetDt = 0.01F;
-        final int steps = Math.max((int) (delta / targetDt), 1);
-        final float dt = delta / steps;
-        for (int n = 0; n < steps; n++) {
-            this.game.step(dt);
-        }
-    }
-
     @Override
     public void send(final Packet packet) {
         for (final SelectionKey key : this.selector.keys()) {
             final Object att = key.attachment();
-            if (att instanceof Connection) {
-                ((Connection) att).send(packet);
+            if (att instanceof SimpleConnection) {
+                ((SimpleConnection) att).send(packet);
             }
         }
     }
@@ -166,7 +161,9 @@ public final class SimpleServer implements Server {
         final SocketChannel socket = server.accept();
         socket.configureBlocking(false);
         final SelectionKey key = socket.register(selector, SelectionKey.OP_READ);
-        key.attach(new Connection(key, this.factory.create(new ServerContext(this))));
+        final SimpleConnection connection = new SimpleConnection(key, this.factory.create());
+        connection.setContext(this.factory.create(new ServerContext(new Context(connection), this)));
+        key.attach(connection);
         LOGGER.info("Accepting connection from " + socket.getRemoteAddress());
     }
 
@@ -178,8 +175,8 @@ public final class SimpleServer implements Server {
         this.connection(key).write((SocketChannel) key.channel(), key);
     }
 
-    private Connection connection(final SelectionKey key) {
-        return (Connection) key.attachment();
+    private SimpleConnection connection(final SelectionKey key) {
+        return (SimpleConnection) key.attachment();
     }
 
     private long currentTimeMillis() {

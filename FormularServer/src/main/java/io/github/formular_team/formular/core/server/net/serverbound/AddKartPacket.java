@@ -20,12 +20,16 @@ public class AddKartPacket implements Packet {
 
     private final Vector2 position;
 
-    public AddKartPacket(final Vector2 position) {
+    private final int color;
+
+    public AddKartPacket(final Vector2 position, final int color) {
         this.position = Objects.requireNonNull(position);
+        this.color = color;
     }
 
     public AddKartPacket(final ByteBuffer buf) {
         this.position = ByteBuffers.getVector2(buf);
+        this.color = buf.getInt();
     }
 
     @Override
@@ -36,6 +40,7 @@ public class AddKartPacket implements Packet {
     @Override
     public void write(final ByteBuffer buf) {
         ByteBuffers.putVector2(buf, this.position);
+        buf.putInt(this.color);
     }
 
     public static class Handler implements PacketHandler<UserContext, AddKartPacket, KartContext> {
@@ -44,6 +49,7 @@ public class AddKartPacket implements Packet {
             final GameModel game = context.getServer().getGame();
             final KartModel kart = game.createKart();
             kart.setPosition(packet.position);
+            kart.setColor(packet.color);
             final Driver driver = SimpleDriver.create(context.getUser(), kart);
             game.addKart(kart);
             game.addDriver(driver);

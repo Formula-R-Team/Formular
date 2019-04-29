@@ -8,10 +8,11 @@ public final class SimpleControlState implements Kart.ControlState {
     private float steeringAngle;
 
     @Override
-    public void copy(final Kart.ControlState other) {
+    public SimpleControlState copy(final Kart.ControlState other) {
         this.setThrottle(other.getThrottle());
         this.setBrake(other.getBrake());
         this.setSteeringAngle(other.getSteeringAngle());
+        return this;
     }
 
     @Override

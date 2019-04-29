@@ -13,6 +13,8 @@ public class StateKartView implements KartView {
 
     private float rotation;
 
+    private int color;
+
     public StateKartView(final int uniqueId, final KartDefinition definition, final Vector2 position, final float rotation) {
         this.uniqueId = uniqueId;
         this.definition = definition;
@@ -58,5 +60,15 @@ public class StateKartView implements KartView {
     @Override
     public ControlState getControlState() {
         return this.state;
+    }
+
+    @Override
+    public void setColor(final int color) {
+        this.color = color;
+    }
+
+    @Override
+    public int getColor() {
+        return this.color;
     }
 }

@@ -5,6 +5,7 @@ import android.util.SparseArray;
 
 import com.google.ar.sceneform.Node;
 import com.google.ar.sceneform.Scene;
+import com.google.ar.sceneform.rendering.Color;
 
 import java.util.Optional;
 
@@ -14,6 +15,7 @@ import io.github.formular_team.formular.core.Kart;
 import io.github.formular_team.formular.core.KartDefinition;
 import io.github.formular_team.formular.core.KartView;
 import io.github.formular_team.formular.core.RacerStatus;
+import io.github.formular_team.formular.core.SimpleControlState;
 import io.github.formular_team.formular.core.StateKartView;
 import io.github.formular_team.formular.core.math.Vector2;
 
@@ -27,6 +29,8 @@ public class ArGameView implements GameView {
     private final KartNodeFactory factory;
 
     private final SparseArray<KartView> karts;
+
+    private final Kart.ControlState controlState = new SimpleControlState();
 
     private ArGameView(final Activity activity, final Scene scene, final Node surface, final KartNodeFactory factory, final SparseArray<KartView> karts) {
         this.activity = activity;
@@ -42,9 +46,13 @@ public class ArGameView implements GameView {
     }
 
     @Override
-    public Kart createKart(final int uniqueId) {
+    public Kart createKart(final int uniqueId, final int color) {
         final KartView kart = new StateKartView(uniqueId, KartDefinition.createKart2(), new Vector2(), 0.0F);
-        this.activity.runOnUiThread(() -> this.surface.addChild(this.factory.create(kart))); // FIXME
+        this.activity.runOnUiThread(() -> {
+            final KartNode kn = this.factory.create(kart);
+            kn.setColor(new Color(color));
+            this.surface.addChild(kn);
+        }); // FIXME
         this.karts.put(uniqueId, kart);
         return kart;
     }
@@ -62,6 +70,11 @@ public class ArGameView implements GameView {
     @Override
     public Optional<Kart> getKart(final int uniqueId) {
         return Optional.ofNullable(this.karts.get(uniqueId));
+    }
+
+    @Override
+    public Kart.ControlState getControlState() {
+        return this.controlState;
     }
 
     public static ArGameView create(final Activity activity, final Scene scene, final Node surface, final KartNodeFactory factory) {

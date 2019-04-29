@@ -21,12 +21,13 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import io.github.formular_team.formular.ar.ArGameView;
-import io.github.formular_team.formular.core.SimpleGameModel;
+import io.github.formular_team.formular.core.Kart;
+import io.github.formular_team.formular.core.SimpleControlState;
 import io.github.formular_team.formular.core.User;
+import io.github.formular_team.formular.core.server.Client;
 import io.github.formular_team.formular.core.server.Endpoint;
 import io.github.formular_team.formular.core.server.EndpointController;
 import io.github.formular_team.formular.core.server.SimpleClient;
-import io.github.formular_team.formular.core.server.SimpleServer;
 
 public class SandboxActivity extends FormularActivity {
     private static final String TAG = "SandboxActivity";
@@ -43,7 +44,7 @@ public class SandboxActivity extends FormularActivity {
 
     private KartNodeFactory factory;
 
-    private EndpointController controller;
+    private EndpointController<Client> client;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -71,7 +72,15 @@ public class SandboxActivity extends FormularActivity {
                 this.promptConnect(anchor);
             }
         });
-//        this.pad.setOnTouchListener(new KartController(this.kart, this.pad, this.wheel));
+        this.pad.setOnTouchListener(new KartController(new SimpleControlState(), state -> {
+            if (this.client != null) {
+                final Kart.ControlState copy = new SimpleControlState().copy(state);
+                this.client.submitJob(Endpoint.Job.of(c -> {
+                    // TODO: better client state management
+                    c.getGame().getControlState().copy(copy);
+                }));
+            }
+        }, this.wheel));
         final WeakOptional<SandboxActivity> act = WeakOptional.of(this);
         SimpleKartNodeFactory.create(this, R.raw.kart_body, R.raw.kart_wheel_front, R.raw.kart_wheel_rear)
             .thenAccept(factory -> act.ifPresent(activity -> activity.factory = factory));
@@ -85,13 +94,21 @@ public class SandboxActivity extends FormularActivity {
         dialog.setButton(DialogInterface.BUTTON_POSITIVE, "OK", (d, which) -> {
             final EditText addressText = dialog.findViewById(R.id.host_address);
             if (addressText != null) {
-                final InetSocketAddress address = this.parseAddress(addressText.getText().toString());
+                final String text = addressText.getText().toString();
+                final InetSocketAddress address = this.parseAddress(text);
                 if (address != null) {
+                    final SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+                    settings.edit().putString("lastHostAddress", text).apply();
                     this.startClient(node, address);
                 }
             }
         });
         dialog.show();
+        final EditText addressText = dialog.findViewById(R.id.host_address);
+        if (addressText != null) {
+            final SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+            addressText.setText(settings.getString("lastHostAddress", ""));
+        }
     }
 
     private InetSocketAddress parseAddress(final String address) {
@@ -116,27 +133,27 @@ public class SandboxActivity extends FormularActivity {
 
     private void startClient(final Node surface, final InetSocketAddress address) {
         try {
-            this.controller = EndpointController.create(SimpleClient.open(address, this.user, ArGameView.create(this, this.arFragment.getArSceneView().getScene(), surface, this.factory), 20));
-            this.controller.start();
+            this.client = EndpointController.create(SimpleClient.open(address, this.user, ArGameView.create(this, this.arFragment.getArSceneView().getScene(), surface, this.factory), 30));
+            this.client.start();
         } catch (final IOException e) {
             Log.e(TAG, "Error creating client", e);
         }
     }
 
-    private void startServer() {
-        try {
-            this.controller = EndpointController.create(SimpleServer.open(new InetSocketAddress(Endpoint.DEFAULT_PORT), new SimpleGameModel(), 20));
-            this.controller.start();
-        } catch (final IOException e) {
-            Log.e(TAG, "Error creating server", e);
-        }
-    }
+//    private void startServer() {
+//        try {
+//            this.server = EndpointController.create(SimpleServer.open(new InetSocketAddress(Endpoint.DEFAULT_PORT), new SimpleGameModel(), 20));
+//            this.server.start();
+//        } catch (final IOException e) {
+//            Log.e(TAG, "Error creating server", e);
+//        }
+//    }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (this.controller != null) {
-            this.controller.stop();
+        if (this.client != null) {
+            this.client.stop();
         }
     }
 }

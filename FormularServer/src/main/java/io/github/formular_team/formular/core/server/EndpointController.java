@@ -1,13 +1,15 @@
 package io.github.formular_team.formular.core.server;
 
+import java.util.concurrent.Future;
+
 import io.github.formular_team.formular.core.server.command.StopCommand;
 
-public final class EndpointController {
-    private final Endpoint<? extends Endpoint> endpoint;
+public final class EndpointController<T extends Endpoint<T>> {
+    private final T endpoint;
 
     private final Thread thread;
 
-    private EndpointController(final Endpoint<? extends Endpoint> endpoint, final Thread thread) {
+    private EndpointController(final T endpoint, final Thread thread) {
         this.endpoint = endpoint;
         this.thread = thread;
     }
@@ -15,6 +17,10 @@ public final class EndpointController {
     public void start() {
         this.thread.start();
         this.endpoint.awaitJob(Server.Job.of(game -> {}));
+    }
+
+    public <V> Future<V> submitJob(final Endpoint.Job<? super T, V> job) {
+        return this.endpoint.submitJob(job);
     }
 
     public void stop() {
@@ -40,7 +46,7 @@ public final class EndpointController {
         }
     }
 
-    public static EndpointController create(final Endpoint<? extends Endpoint> endpoint) {
-        return new EndpointController(endpoint, new Thread(endpoint));
+    public static <T extends Endpoint<T>> EndpointController<T> create(final T endpoint) {
+        return new EndpointController<>(endpoint, new Thread(endpoint));
     }
 }

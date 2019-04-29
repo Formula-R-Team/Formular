@@ -48,4 +48,14 @@ public class DirectKartView implements KartView {
     public ControlState getControlState() {
         return this.kart.getControlState();
     }
+
+    @Override
+    public void setColor(final int color) {
+        this.kart.setColor(color);
+    }
+
+    @Override
+    public int getColor() {
+        return this.kart.getColor();
+    }
 }
