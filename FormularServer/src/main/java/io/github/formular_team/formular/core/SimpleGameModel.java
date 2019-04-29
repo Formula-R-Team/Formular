@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import io.github.formular_team.formular.core.math.LineCurve;
+import io.github.formular_team.formular.core.math.Vector2;
 import io.github.formular_team.formular.core.race.Race;
 
 public final class SimpleGameModel implements GameModel {
@@ -113,6 +114,23 @@ public final class SimpleGameModel implements GameModel {
         final float dt = delta / steps;
         for (int n = 0; n < steps; n++) {
             this.stepKarts(dt);
+        }
+        // temp
+        for (final KartModel kart : this.karts) {
+            for (final KartModel other : this.karts) {
+                if (kart != other) {
+                    final Vector2 d = other.getPosition().clone().sub(kart.getPosition());
+                    final float r = 1.3F;
+                    if (d.length() < r) {
+                        if (d.length() == 0.0F) {
+                            d.set(1.0F, 0.0F);
+                        }
+                        d.setLength(r - d.length());
+                        kart.getPosition().sub(d);
+                        other.getPosition().add(d);
+                    }
+                }
+            }
         }
     }
 

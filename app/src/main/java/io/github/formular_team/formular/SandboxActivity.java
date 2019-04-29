@@ -167,8 +167,8 @@ public class SandboxActivity extends FormularActivity {
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
+    protected void onStop() {
+        super.onStop();
         if (this.client != null) {
             this.client.stop();
         }
