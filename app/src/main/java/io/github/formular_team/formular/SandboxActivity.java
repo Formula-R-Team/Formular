@@ -1,5 +1,6 @@
 package io.github.formular_team.formular;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -16,6 +17,8 @@ import com.google.ar.sceneform.ux.ArFragment;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import io.github.formular_team.formular.ar.ArGameView;
 import io.github.formular_team.formular.core.SimpleGameModel;
@@ -75,27 +78,40 @@ public class SandboxActivity extends FormularActivity {
     }
 
     private void promptConnect(final Node node) {
-        final View prompt = this.getLayoutInflater().inflate(R.layout.host_address_prompt, null);
-        final EditText hostAddress = prompt.findViewById(R.id.host_address);
-        new AlertDialog.Builder(this)
-            .setTitle("Host")
-            .setView(prompt)
-            .setPositiveButton("Connect", (dialog, which) -> {
-                final String text = hostAddress.getText().toString().trim();
-                final int split = text.indexOf(':');
-                final String host;
-                final int port;
-                if (split >= 0) {
-                    host = text.substring(0, split);
-                    port = Integer.parseInt(text.substring(split + 1));
-                } else {
-                    host = text;
-                    port = Endpoint.DEFAULT_PORT;
+        final AlertDialog dialog = new AlertDialog.Builder(this)
+            .setTitle("Connect to server")
+            .setView(R.layout.host_address_prompt)
+            .create();
+        dialog.setButton(DialogInterface.BUTTON_POSITIVE, "OK", (d, which) -> {
+            final EditText addressText = dialog.findViewById(R.id.host_address);
+            if (addressText != null) {
+                final InetSocketAddress address = this.parseAddress(addressText.getText().toString());
+                if (address != null) {
+                    this.startClient(node, address);
                 }
-                this.startClient(node, new InetSocketAddress(host, port));
-            })
-            .create()
-            .show();
+            }
+        });
+        dialog.show();
+    }
+
+    private InetSocketAddress parseAddress(final String address) {
+        final URI uri;
+        try {
+            uri = new URI("A", address, null, null, null);
+        } catch (final URISyntaxException e) {
+            return null;
+        }
+        final String host = uri.getHost();
+        if (host == null) {
+            return null;
+        }
+        final int port;
+        if (uri.getPort() == -1) {
+            port = Endpoint.DEFAULT_PORT;
+        } else {
+            port = uri.getPort();
+        }
+        return new InetSocketAddress(host, port);
     }
 
     private void startClient(final Node surface, final InetSocketAddress address) {
