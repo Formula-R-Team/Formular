@@ -6,6 +6,7 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class SimpleConnection implements Connection {
@@ -76,13 +77,23 @@ public class SimpleConnection implements Connection {
         this.key.interestOps(this.key.interestOps() | SelectionKey.OP_WRITE);
     }
 
+    @Override
+    public void close() {
+        try {
+            this.key.channel().close();
+        } catch (final IOException e) {
+            LOGGER.log(Level.WARNING, "Error closing", e);
+        }
+        this.key.cancel();
+    }
+
     private void append(final Packet packet) {
-        final int pos = this.writeBuf.position();
+        this.writeBuf.mark();
         this.writeBuf.position(this.writeBuf.limit());
         this.writeBuf.limit(this.writeBuf.capacity());
         this.context.write(this.writeBuf, packet);
         this.writeBuf.limit(this.writeBuf.position());
-        this.writeBuf.position(pos);
+        this.writeBuf.reset();
     }
 
     public void write(final SocketChannel socket, final SelectionKey key) throws IOException {
