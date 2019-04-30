@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 public class GenericTest {
-    interface Builder {
+    static class Builder {
 
     }
 
@@ -39,6 +39,15 @@ public class GenericTest {
         void work(final String k) {
             this.node.get(k).accept(this.context);
         }
+    }
+
+    public static void builder() {
+        /*final Node n = new Builder(Context.class)
+            .put("root", (Context context) -> {})
+            .add(new Builder(FooContext.class)
+                .put("foo", (FooContext context) -> {})
+            )
+            .build();*/
     }
 
     public static void node() {
