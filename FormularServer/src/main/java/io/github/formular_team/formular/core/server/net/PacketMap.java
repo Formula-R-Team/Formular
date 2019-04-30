@@ -6,18 +6,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.logging.Logger;
 
 public final class PacketMap<T extends Context> {
-    private static final Logger LOGGER = Logger.getLogger("PacketMap");
-
     private final Map<Integer, PacketMap.Entry<T>> entries;
-
-    private final Map<Function<? super ByteBuffer, ?>, Integer> ids;
 
     private PacketMap(final PacketMap.Builder<T> builder) {
         this.entries = Collections.unmodifiableMap(builder.entries);
-        this.ids = Collections.unmodifiableMap(builder.ids);
     }
 
     public Optional<Entry<? super T>> get(final int type) {
@@ -66,7 +60,6 @@ public final class PacketMap<T extends Context> {
         @Override
         public ContextFunction<T> read(final ByteBuffer buf) {
             final U u = this.packet.apply(buf);
-            LOGGER.info("Read " + u.getClass().getName());
             return t -> this.handler.apply(t, u);
         }
     }
@@ -74,20 +67,16 @@ public final class PacketMap<T extends Context> {
     public static final class Builder<T extends Context> {
         private final Map<Integer, PacketMap.Entry<T>> entries;
 
-        private final Map<Function<? super ByteBuffer, ?>, Integer> ids;
-
         private Builder() {
-            this(new HashMap<>(), new HashMap<>());
+            this(new HashMap<>());
         }
 
-        private Builder(final Map<Integer, PacketMap.Entry<T>> entries, final Map<Function<? super ByteBuffer, ?>, Integer> ids) {
+        private Builder(final Map<Integer, PacketMap.Entry<T>> entries) {
             this.entries = entries;
-            this.ids = ids;
         }
 
         public <U extends Packet> PacketMap.Builder<T> put(final int id, final Function<? super ByteBuffer, U> packet, final PacketHandler<? super T, ? super U, ?> handler) {
             this.entries.put(id, new PacketMap.PacketEntry<>(packet, handler));
-            this.ids.put(packet, id);
             return this;
         }
 
