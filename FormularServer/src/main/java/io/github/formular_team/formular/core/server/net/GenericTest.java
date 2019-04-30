@@ -9,12 +9,14 @@ public class GenericTest {
 
     }
 
-    static class Node<K, V> {
-        final Node<K, ? super V> parent;
+    static abstract class Node {}
+
+    static class MapNode<K, V> {
+        final MapNode<K, ? super V> parent;
 
         final Map<K, Consumer<V>> map;
 
-        Node(final Node<K, ? super V> parent, final Map<K, Consumer<V>> map) {
+        MapNode(final MapNode<K, ? super V> parent, final Map<K, Consumer<V>> map) {
             this.parent = parent;
             this.map = map;
         }
@@ -33,23 +35,23 @@ public class GenericTest {
 
     static class Container<T extends Context> {
         T context;
-        Node<String, T> node;
+        MapNode<String, T> node;
         void work(final String k) {
             this.node.get(k).accept(this.context);
         }
     }
 
     public static void node() {
-        final Node<String, Context> root = new Node<>(null, new HashMap<>());
+        final MapNode<String, Context> root = new MapNode<>(null, new HashMap<>());
         root.map.put("root", (Context context) -> {});
         root.get("root").accept(new Context());
         root.get("root").accept(new FooContext());
-        final Node<String, FooContext> foo = new Node<>(root, new HashMap<>());
+        final MapNode<String, FooContext> foo = new MapNode<>(root, new HashMap<>());
         foo.map.put("foo", (FooContext context) -> {});
         foo.get("foo").accept(new FooContext());
         final HashMap<String, Consumer<FooBarContext>> map = new HashMap<>();
         map.put("foobar", (FooBarContext context) -> {});
-        final Node<String, FooBarContext> foobar = new Node<>(foo, map);
+        final MapNode<String, FooBarContext> foobar = new MapNode<>(foo, map);
         foobar.map.put("foobar", (FooBarContext context) -> {});
         foobar.get("foobar").accept(new FooBarContext());
         foo.get("foo").accept(new FooBarContext());
