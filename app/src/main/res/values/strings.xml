@@ -40,4 +40,5 @@
     <string name="cpus">Allow CPUs</string>
     <string name="race_cap_text">Racer Cap:</string>
     <string name="race_type_text">Race Type:</string>
+    <string name="track_name">Track Name:</string>
 </resources>

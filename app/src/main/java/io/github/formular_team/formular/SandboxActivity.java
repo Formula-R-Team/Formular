@@ -68,7 +68,7 @@ public class SandboxActivity extends FormularActivity {
             this.host = intent.getBooleanExtra(EXTRA_HOST, true);
         }
         this.pad = this.findViewById(R.id.pad);
-        this.wheel = this.findViewById(R.id.wheel);
+        this.wheel = this.findViewById(R.id.joystick);
         this.arFragment = (ArFragment) this.getSupportFragmentManager().findFragmentById(R.id.ar);
         if (this.arFragment == null) {
             throw new AssertionError("Missing ar fragment");

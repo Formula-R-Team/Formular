@@ -20,13 +20,26 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.9">
+
         <ImageView
             android:id="@+id/wheel"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@drawable/steering_wheel"
+            android:background="@drawable/circle"
             android:scaleType="fitXY" />
+
     </LinearLayout>
+
+    <ImageView
+        android:id="@+id/joystick"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:background="@drawable/joystick"
+        android:scaleType="fitXY"
+        app:layout_constraintBottom_toBottomOf="@+id/pad"
+        app:layout_constraintEnd_toEndOf="@+id/pad"
+        app:layout_constraintStart_toStartOf="@+id/pad"
+        app:layout_constraintTop_toTopOf="@+id/pad" />
     <TextView
         android:id="@+id/ip"
         android:layout_width="wrap_content"
