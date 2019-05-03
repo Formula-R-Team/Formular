@@ -106,6 +106,8 @@ public class SimpleConnection implements Connection {
         }
         if (this.writeBuf.hasRemaining()) {
             key.interestOps(key.interestOps() | SelectionKey.OP_WRITE);
+        } else {
+            key.interestOps(key.interestOps() & ~SelectionKey.OP_WRITE);
         }
     }
 
@@ -116,8 +118,6 @@ public class SimpleConnection implements Connection {
             LOGGER.info("End of stream for " + socket.getRemoteAddress());
             socket.close();
             key.cancel();
-        } else {
-            key.interestOps(key.interestOps() | SelectionKey.OP_READ);
         }
     }
 
