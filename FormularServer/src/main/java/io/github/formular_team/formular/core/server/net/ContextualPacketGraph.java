@@ -8,31 +8,32 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.logging.Logger;
 
-public final class StateManager {
-    private static final Logger LOGGER = Logger.getLogger("StateManager");
-
+public final class ContextualPacketGraph {
     private final Map<Class<? extends Context>, NodeEntry<?>> entries;
 
     private final Map<Function<? super ByteBuffer, ?>, Integer> ids;
 
-    private StateManager(final Builder builder) {
+    private ContextualPacketGraph(final Builder builder) {
         this.entries = Collections.unmodifiableMap(builder.entries);
         this.ids = Collections.unmodifiableMap(builder.ids);
     }
 
-    public ContextState<?> create() {
-        return new ContextState<>(null, new RootNode<>());
+    public ContextHolder<?> create() {
+        return new ContextHolder<>(null, new RootNode<>());
     }
 
-    public ContextState<?> create(final Context context) {
+    public ContextHolder<?> create(final Context context) {
         return this.createState(context);
     }
 
-    private <T extends Context> ContextState<T> createState(final T context) {
+    private <T extends Context> ContextHolder<T> createState(final T context) {
+        return new ContextHolder<>(context, this.get(context));
+    }
+
+    private <T extends Context> Node<T> get(final T context) {
         //noinspection unchecked
-        return new ContextState<>(context, (Node<T>) this.entries.get(context.getClass()));
+        return (Node<T>) this.entries.get(context.getClass());
     }
 
     public static Builder builder() {
@@ -61,9 +62,9 @@ public final class StateManager {
     }
 
     public interface NodeBuilder<T extends Context> {
-        <U extends Packet> NodeBuilder<T> put(final Function<? super ByteBuffer, U> packet, final PacketHandler<T, ? super U, ?> handler);
+        <U extends Packet> NodeBuilder<T> accept(final Function<? super ByteBuffer, U> packet, final PacketHandler<T, ? super U, ?> handler);
 
-        <S extends T> NodeBuilder<T> in(final Class<S> type, final Consumer<NodeBuilder<S>> consumer);
+        <S extends T> NodeBuilder<T> when(final Class<S> type, final Consumer<NodeBuilder<S>> consumer);
     }
 
     private static abstract class BaseBuilder<T extends Context> implements NodeBuilder<T> {
@@ -71,23 +72,23 @@ public final class StateManager {
 
         final Map<Integer, Entry<T>> packets = new HashMap<>();
 
-        final List<ChildBuilder<? extends T>> subbuilders = new ArrayList<>();
+        final List<ChildBuilder<? extends T>> children = new ArrayList<>();
 
         private BaseBuilder(final Class<T> type) {
             this.type = type;
         }
 
         @Override
-        public <U extends Packet> BaseBuilder<T> put(final Function<? super ByteBuffer, U> packet, final PacketHandler<T, ? super U, ?> handler) {
+        public <U extends Packet> BaseBuilder<T> accept(final Function<? super ByteBuffer, U> packet, final PacketHandler<T, ? super U, ?> handler) {
             this.packets.put(this.assignId(packet), new PacketEntry<>(packet, handler));
             return this;
         }
 
         @Override
-        public <S extends T> NodeBuilder<T> in(final Class<S> type, final Consumer<NodeBuilder<S>> consumer) {
-            final ChildBuilder<S> sub = new ChildBuilder<>(this, type);
-            this.subbuilders.add(sub);
-            consumer.accept(sub);
+        public <S extends T> NodeBuilder<T> when(final Class<S> type, final Consumer<NodeBuilder<S>> consumer) {
+            final ChildBuilder<S> child = new ChildBuilder<>(this, type);
+            this.children.add(child);
+            consumer.accept(child);
             return this;
         }
 
@@ -97,8 +98,8 @@ public final class StateManager {
 
         NodeEntry<T> build(final Node<? super T> parent) {
             final NodeEntry<T> entry = new NodeEntry<>(parent, this.type, this.packets);
-            for (final ChildBuilder<? extends T> sub : this.subbuilders) {
-                this.add(sub.build(entry));
+            for (final ChildBuilder<? extends T> child : this.children) {
+                this.add(child.build(entry));
             }
             return entry;
         }
@@ -129,20 +130,20 @@ public final class StateManager {
         }
 
         @Override
-        public <U extends Packet> Builder put(final Function<? super ByteBuffer, U> packet, final PacketHandler<Context, ? super U, ?> handler) {
-            super.put(packet, handler);
+        public <U extends Packet> Builder accept(final Function<? super ByteBuffer, U> packet, final PacketHandler<Context, ? super U, ?> handler) {
+            super.accept(packet, handler);
             return this;
         }
 
         @Override
-        public <SUB extends Context> Builder in(final Class<SUB> type, final Consumer<NodeBuilder<SUB>> consumer) {
-            super.in(type, consumer);
+        public <SUB extends Context> Builder when(final Class<SUB> type, final Consumer<NodeBuilder<SUB>> consumer) {
+            super.when(type, consumer);
             return this;
         }
 
-        public StateManager build() {
+        public ContextualPacketGraph build() {
             this.add(this.build(new RootNode<>()));
-            return new StateManager(this);
+            return new ContextualPacketGraph(this);
         }
     }
 
@@ -196,47 +197,46 @@ public final class StateManager {
         }
     }
 
-    public final class ContextState<T extends Context> {
+    public final class ContextHolder<T extends Context> {
         private final T context;
 
         private final Node<T> node;
 
-        ContextState(final T context, final Node<T> node) {
+        ContextHolder(final T context, final Node<T> node) {
             this.context = context;
             this.node = node;
         }
 
         public void write(final ByteBuffer buf, final Packet packet) {
-            final Integer type = StateManager.this.ids.get(packet.creator());
-            if (type != null) {
-                ByteBuffers.putUnsignedShort(buf, type);
-                ByteBuffers.putUnsignedShort(buf, 0);
-                final int start = buf.position();
-                packet.write(buf);
-                final int end = buf.position();
-                buf.position(start - Short.BYTES);
-                ByteBuffers.putUnsignedShort(buf, end - start);
-                buf.position(end);
-            } else {
-                LOGGER.warning("Packet id unknown for write: " + packet.getClass().getName());
+            final Integer type = ContextualPacketGraph.this.ids.get(packet.creator());
+            if (type == null) {
+                throw new RuntimeException("Undefined packet " + packet.getClass().getName());
             }
+            ByteBuffers.putUnsignedShort(buf, type);
+            ByteBuffers.putUnsignedShort(buf, 0);
+            final int start = buf.position();
+            packet.write(buf);
+            final int end = buf.position();
+            buf.position(start - Short.BYTES);
+            ByteBuffers.putUnsignedShort(buf, end - start);
+            buf.position(end);
         }
 
-        public HeaderContext<T> readHeader(final ByteBuffer buf) {
+        public Header<T> readHeader(final ByteBuffer buf) {
             final int id = ByteBuffers.getUnsignedShort(buf);
             final int length = ByteBuffers.getUnsignedShort(buf);
-            return new HeaderContext<>(this.context, this.node.get(id), length);
+            return new Header<>(this.context, this.node.get(id), length);
         }
     }
 
-    public final class HeaderContext<T extends Context> {
+    public final class Header<T extends Context> {
         private final T context;
 
         private final Entry<? super T> type;
 
         private final int length;
 
-        private HeaderContext(final T context, final Entry<? super T> type, final int length) {
+        private Header(final T context, final Entry<? super T> type, final int length) {
             this.context = context;
             this.type = type;
             this.length = length;
@@ -246,8 +246,8 @@ public final class StateManager {
             return this.length;
         }
 
-        public ContextState<?> readBody(final ByteBuffer buf) {
-            return StateManager.this.createState(this.type.read(buf).apply(this.context));
+        public ContextHolder<?> readBody(final ByteBuffer buf) {
+            return ContextualPacketGraph.this.createState(this.type.read(buf).apply(this.context));
         }
     }
 }
