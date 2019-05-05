@@ -12,6 +12,8 @@ public interface GameView extends Game {
 
     void addCourse(final Course course);
 
+    void setCount(int count);
+
     void setLap(int lap);
 
     void setPosition(int position);

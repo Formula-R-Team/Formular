@@ -19,6 +19,7 @@ import io.github.formular_team.formular.core.server.net.KartContext;
 import io.github.formular_team.formular.core.server.net.Packet;
 import io.github.formular_team.formular.core.server.net.PacketHandler;
 import io.github.formular_team.formular.core.server.net.UserContext;
+import io.github.formular_team.formular.core.server.net.clientbound.SetCountPacket;
 import io.github.formular_team.formular.core.server.net.clientbound.SetLapPacket;
 import io.github.formular_team.formular.core.server.net.clientbound.SetPositionPacket;
 
@@ -64,6 +65,11 @@ public class CreateRacePacket implements Packet {
             // TODO: racer specific listeners
             race.addListener(new RaceListener() {
                 @Override
+                public void onCountDown(final int count) {
+                    conn.send(new SetCountPacket(count));
+                }
+
+                @Override
                 public void onPositionChange(final Driver driver, final int position) {
                     if (userDriver.equals(driver)) {
                         conn.send(new SetPositionPacket(position));
@@ -78,7 +84,6 @@ public class CreateRacePacket implements Packet {
                 }
             });
             race.add(userDriver);
-            race.start();
             return new KartContext(context, kart);
         }
     }

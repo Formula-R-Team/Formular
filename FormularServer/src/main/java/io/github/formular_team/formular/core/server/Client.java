@@ -8,4 +8,8 @@ public interface Client extends Endpoint<Client> {
     GameView getGame();
 
     void createRace(RaceConfiguration config, Course course);
+
+    void joinRace();
+
+    void startRace();
 }

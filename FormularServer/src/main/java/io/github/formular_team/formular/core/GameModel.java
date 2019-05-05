@@ -26,6 +26,8 @@ public interface GameModel extends Game {
 
     void addRace(final Race race);
 
+    Race getRace();
+
     Race createRace(User user, RaceConfiguration configuration, Course course);
 
     void step(final float delta);

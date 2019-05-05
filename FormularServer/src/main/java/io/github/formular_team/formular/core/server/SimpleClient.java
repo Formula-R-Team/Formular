@@ -26,8 +26,10 @@ import io.github.formular_team.formular.core.server.net.ContextualPacketGraph;
 import io.github.formular_team.formular.core.server.net.Packet;
 import io.github.formular_team.formular.core.server.net.Protocol;
 import io.github.formular_team.formular.core.server.net.SimpleConnection;
+import io.github.formular_team.formular.core.server.net.serverbound.BeginRacePacket;
 import io.github.formular_team.formular.core.server.net.serverbound.ControlPacket;
 import io.github.formular_team.formular.core.server.net.serverbound.CreateRacePacket;
+import io.github.formular_team.formular.core.server.net.serverbound.JoinRacePacket;
 import io.github.formular_team.formular.core.server.net.serverbound.NewUserPacket;
 
 // TODO not duplicate server
@@ -68,6 +70,16 @@ public final class SimpleClient implements Client {
     @Override
     public void createRace(final RaceConfiguration config, final Course course) {
         this.send(new CreateRacePacket(config, course));
+    }
+
+    @Override
+    public void joinRace() {
+        this.send(new JoinRacePacket());
+    }
+
+    @Override
+    public void startRace() {
+        this.send(new BeginRacePacket());
     }
 
     @Override

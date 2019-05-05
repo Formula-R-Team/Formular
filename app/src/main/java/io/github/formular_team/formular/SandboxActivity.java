@@ -10,6 +10,7 @@ import android.support.v7.app.AlertDialog;
 import android.text.format.Formatter;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
@@ -34,7 +35,6 @@ import io.github.formular_team.formular.core.CourseReader;
 import io.github.formular_team.formular.core.Kart;
 import io.github.formular_team.formular.core.SimpleControlState;
 import io.github.formular_team.formular.core.SimpleGameModel;
-import io.github.formular_team.formular.core.SimpleTrackFactory;
 import io.github.formular_team.formular.core.User;
 import io.github.formular_team.formular.core.race.RaceConfiguration;
 import io.github.formular_team.formular.core.server.Client;
@@ -127,6 +127,12 @@ public class SandboxActivity extends FormularActivity {
         this.startServer();
         this.startClient(surface, new InetSocketAddress(InetAddress.getLoopbackAddress(), Endpoint.DEFAULT_PORT));
         this.clientController.submitJob(Endpoint.Job.of(c -> c.createRace(config, course)));
+        final Button start = this.findViewById(R.id.start);
+        start.setVisibility(View.VISIBLE);
+        start.setOnClickListener(v -> {
+            this.clientController.submitJob(Endpoint.Job.of(Client::startRace));
+            v.setVisibility(View.INVISIBLE);
+        });
     }
 
     private void promptConnect(final Node node) {
@@ -143,6 +149,7 @@ public class SandboxActivity extends FormularActivity {
                     final SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
                     settings.edit().putString("lastHostAddress", text).apply();
                     this.startClient(node, address);
+                    this.clientController.submitJob(Endpoint.Job.of(Client::joinRace));
                 }
             }
         });
@@ -176,7 +183,7 @@ public class SandboxActivity extends FormularActivity {
 
     private void startClient(final Node surface, final InetSocketAddress address) {
         try {
-            this.clientController = EndpointController.create(SimpleClient.open(address, this.user, ArGameView.create(this, this.findViewById(R.id.position), this.findViewById(R.id.lap) , this.arFragment.getArSceneView().getScene(), surface, this.factory), 30));
+            this.clientController = EndpointController.create(SimpleClient.open(address, this.user, ArGameView.create(this, this.findViewById(R.id.count), this.findViewById(R.id.position), this.findViewById(R.id.lap) , this.arFragment.getArSceneView().getScene(), surface, this.factory), 30));
             this.clientController.start();
         } catch (final IOException e) {
             Log.e(TAG, "Error creating client", e);

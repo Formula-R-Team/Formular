@@ -97,6 +97,12 @@ public final class SimpleGameModel implements GameModel {
         }
     }
 
+    // FIXME
+    @Override
+    public Race getRace() {
+        return this.races.stream().findFirst().orElse(null);
+    }
+
     @Override
     public Race createRace(final User user, final RaceConfiguration configuration, final Course course) {
         final Race race = Race.create(this, user, configuration, course);

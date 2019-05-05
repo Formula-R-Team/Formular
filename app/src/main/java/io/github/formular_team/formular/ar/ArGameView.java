@@ -3,6 +3,8 @@ package io.github.formular_team.formular.ar;
 import android.app.Activity;
 import android.support.annotation.StringRes;
 import android.util.SparseArray;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
 import android.widget.TextView;
 
 import com.google.ar.sceneform.Node;
@@ -27,7 +29,7 @@ import io.github.formular_team.formular.core.math.Vector2;
 public class ArGameView implements GameView {
     private final Activity activity;
 
-    private final TextView positionText, lapText;
+    private final TextView countText, positionText, lapText;
 
     private final Scene scene;
 
@@ -39,8 +41,9 @@ public class ArGameView implements GameView {
 
     private final Kart.ControlState controlState = new SimpleControlState();
 
-    private ArGameView(final Activity activity, final TextView positionText, final TextView lapText, final Scene scene, final Node surface, final KartNodeFactory factory, final SparseArray<KartView> karts) {
+    private ArGameView(final Activity activity, final TextView countText, final TextView positionText, final TextView lapText, final Scene scene, final Node surface, final KartNodeFactory factory, final SparseArray<KartView> karts) {
         this.activity = activity;
+        this.countText = countText;
         this.positionText = positionText;
         this.lapText = lapText;
         this.scene = scene;
@@ -78,6 +81,34 @@ public class ArGameView implements GameView {
             this.pendingCourse = CourseNode.create(this.activity, course);
             this.pendingCourse.thenAccept(this.surface::addChild);
         });
+    }
+
+    @Override
+    public void setCount(final int count) {
+        this.activity.runOnUiThread(() -> {
+            this.countText.setText(this.getCountResource(count));
+            final Animation anim = new AlphaAnimation(1.0F, 0.0F);
+            anim.setDuration(1000);
+            anim.setFillEnabled(true);
+            anim.setFillAfter(true);
+            this.countText.startAnimation(anim);
+        });
+    }
+
+    @StringRes
+    private int getCountResource(final int count) {
+        switch (count) {
+        case 0:
+            return R.string.race_count_0;
+        case 1:
+            return R.string.race_count_1;
+        case 2:
+            return R.string.race_count_2;
+        case 3:
+            return R.string.race_count_3;
+        default:
+            return 0;
+        }
     }
 
     @Override
@@ -129,7 +160,7 @@ public class ArGameView implements GameView {
         return this.controlState;
     }
 
-    public static ArGameView create(final Activity activity, final TextView positionText, final TextView lapText, final Scene scene, final Node surface, final KartNodeFactory factory) {
-        return new ArGameView(activity, positionText, lapText, scene, surface, factory, new SparseArray<>());
+    public static ArGameView create(final Activity activity, final TextView countText, final TextView positionText, final TextView lapText, final Scene scene, final Node surface, final KartNodeFactory factory) {
+        return new ArGameView(activity, countText, positionText, lapText, scene, surface, factory, new SparseArray<>());
     }
 }
