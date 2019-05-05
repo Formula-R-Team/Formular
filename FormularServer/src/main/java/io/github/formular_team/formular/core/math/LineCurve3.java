@@ -78,6 +78,11 @@ public class LineCurve3 extends Curve {
     }
 
     @Override
+    public Box2 getBounds(final int divisions) {
+        return new Box2().expandByPoint(this.v1).expandByPoint(this.v1);
+    }
+
+    @Override
     public LineCurve3 clone() {
         return new LineCurve3(this.v1.clone(), this.v2.clone());
     }

@@ -47,9 +47,9 @@ public final class ContextualPacketGraph {
     private static class PacketEntry<T extends Context, U extends Packet> implements Entry<T> {
         final Function<? super ByteBuffer, U> packet;
 
-        final PacketHandler<? super T, ? super U, ?> handler;
+        final PacketHandler<? super T, ? super U> handler;
 
-        PacketEntry(final Function<? super ByteBuffer, U> packet, final PacketHandler<? super T, ? super U, ?> handler) {
+        PacketEntry(final Function<? super ByteBuffer, U> packet, final PacketHandler<? super T, ? super U> handler) {
             this.packet = packet;
             this.handler = handler;
         }
@@ -62,7 +62,7 @@ public final class ContextualPacketGraph {
     }
 
     public interface NodeBuilder<T extends Context> {
-        <U extends Packet> NodeBuilder<T> accept(final Function<? super ByteBuffer, U> packet, final PacketHandler<T, ? super U, ?> handler);
+        <U extends Packet> NodeBuilder<T> accept(final Function<? super ByteBuffer, U> packet, final PacketHandler<T, ? super U> handler);
 
         <S extends T> NodeBuilder<T> when(final Class<S> type, final Consumer<NodeBuilder<S>> consumer);
     }
@@ -79,7 +79,7 @@ public final class ContextualPacketGraph {
         }
 
         @Override
-        public <U extends Packet> BaseBuilder<T> accept(final Function<? super ByteBuffer, U> packet, final PacketHandler<T, ? super U, ?> handler) {
+        public <U extends Packet> BaseBuilder<T> accept(final Function<? super ByteBuffer, U> packet, final PacketHandler<T, ? super U> handler) {
             this.packets.put(this.assignId(packet), new PacketEntry<>(packet, handler));
             return this;
         }
@@ -130,7 +130,7 @@ public final class ContextualPacketGraph {
         }
 
         @Override
-        public <U extends Packet> Builder accept(final Function<? super ByteBuffer, U> packet, final PacketHandler<Context, ? super U, ?> handler) {
+        public <U extends Packet> Builder accept(final Function<? super ByteBuffer, U> packet, final PacketHandler<Context, ? super U> handler) {
             super.accept(packet, handler);
             return this;
         }
@@ -173,7 +173,7 @@ public final class ContextualPacketGraph {
     private static final class RootNode<T extends Context> implements Node<T> {
         @Override
         public Entry<? super T> get(final int id) {
-            return buf -> t -> t;
+            return b -> t -> t;
         }
     }
 
@@ -218,7 +218,11 @@ public final class ContextualPacketGraph {
             packet.write(buf);
             final int end = buf.position();
             buf.position(start - Short.BYTES);
-            ByteBuffers.putUnsignedShort(buf, end - start);
+            final int length = end - start;
+            if (length > (1 << Short.SIZE)) {
+                throw new RuntimeException("Packet overflow: " + packet.getClass().getName() + ", length: " + length);
+            }
+            ByteBuffers.putUnsignedShort(buf, length);
             buf.position(end);
         }
 

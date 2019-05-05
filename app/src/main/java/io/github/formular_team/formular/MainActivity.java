@@ -21,6 +21,7 @@ public class MainActivity extends FormularActivity {
         this.hostRace = this.findViewById(R.id.btnHostRace);
         this.joinRace = this.findViewById(R.id.btnJoinRace);
         this.customize = this.findViewById(R.id.btnCustomize);
+        /*this.findViewById(R.id.search).setOnClickListener(this.activityChange(RaceActivity.class));*/
         this.customize.setOnClickListener(this.activityChange(ShopActivity.class));
         this.hostRace.setOnClickListener(v -> {
             final Intent intent = new Intent(this, SandboxActivity.class);

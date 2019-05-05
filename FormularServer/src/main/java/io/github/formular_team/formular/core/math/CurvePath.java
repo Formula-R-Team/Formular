@@ -119,6 +119,15 @@ public class CurvePath extends Curve {
     }
 
     @Override
+    public Box2 getBounds(final int divisions) {
+        final Box2 box = new Box2();
+        for (final Curve curve : this.curves) {
+            box.union(curve.getBounds(divisions));
+        }
+        return box;
+    }
+
+    @Override
     public void refresh() {
         for (final Curve curve : this.curves) {
             curve.refresh();

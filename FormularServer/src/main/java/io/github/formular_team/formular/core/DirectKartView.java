@@ -1,5 +1,6 @@
 package io.github.formular_team.formular.core;
 
+import io.github.formular_team.formular.core.color.Color;
 import io.github.formular_team.formular.core.math.Vector2;
 
 public class DirectKartView implements KartView {
@@ -50,12 +51,12 @@ public class DirectKartView implements KartView {
     }
 
     @Override
-    public void setColor(final int color) {
+    public void setColor(final Color color) {
         this.kart.setColor(color);
     }
 
     @Override
-    public int getColor() {
+    public Color getColor() {
         return this.kart.getColor();
     }
 }

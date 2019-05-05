@@ -6,7 +6,6 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.Iterator;
-import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Future;
@@ -17,17 +16,18 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import io.github.formular_team.formular.core.Course;
 import io.github.formular_team.formular.core.GameView;
 import io.github.formular_team.formular.core.User;
-import io.github.formular_team.formular.core.math.Vector2;
+import io.github.formular_team.formular.core.race.RaceConfiguration;
 import io.github.formular_team.formular.core.server.net.ClientContext;
 import io.github.formular_team.formular.core.server.net.Context;
+import io.github.formular_team.formular.core.server.net.ContextualPacketGraph;
 import io.github.formular_team.formular.core.server.net.Packet;
 import io.github.formular_team.formular.core.server.net.Protocol;
 import io.github.formular_team.formular.core.server.net.SimpleConnection;
-import io.github.formular_team.formular.core.server.net.ContextualPacketGraph;
-import io.github.formular_team.formular.core.server.net.serverbound.AddKartPacket;
 import io.github.formular_team.formular.core.server.net.serverbound.ControlPacket;
+import io.github.formular_team.formular.core.server.net.serverbound.CreateRacePacket;
 import io.github.formular_team.formular.core.server.net.serverbound.NewUserPacket;
 
 // TODO not duplicate server
@@ -63,6 +63,11 @@ public final class SimpleClient implements Client {
     @Override
     public GameView getGame() {
         return this.game;
+    }
+
+    @Override
+    public void createRace(final RaceConfiguration config, final Course course) {
+        this.send(new CreateRacePacket(config, course));
     }
 
     @Override
@@ -162,9 +167,6 @@ public final class SimpleClient implements Client {
         key.attach(connection);
         LOGGER.info("Connection established");
         this.send(new NewUserPacket(this.user));
-        // temp logic
-        final Random r = new Random();
-        this.send(new AddKartPacket(new Vector2(r.nextFloat() * 5.0F - 2.5F, r.nextFloat() * 5.0F - 2.5F), this.user.getColor()));
     }
 
     private void read(final SelectionKey key) throws IOException {

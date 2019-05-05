@@ -1,5 +1,6 @@
 package io.github.formular_team.formular.core;
 
+import io.github.formular_team.formular.core.color.Color;
 import io.github.formular_team.formular.core.math.Vector2;
 
 public interface Kart {
@@ -19,9 +20,9 @@ public interface Kart {
 
     ControlState getControlState();
 
-    void setColor(int color);
+    void setColor(Color color);
 
-    int getColor();
+    Color getColor();
 
     interface ControlState {
         ControlState copy(final ControlState other);

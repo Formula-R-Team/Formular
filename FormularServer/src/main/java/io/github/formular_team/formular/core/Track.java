@@ -19,11 +19,11 @@ public final class Track {
 
     private final List<? extends Checkpoint> checkpoints;
 
-    private Track(final TrackBuilder trackBuilder){
-        this.roadPath = trackBuilder.roadPath;
-        this.roadWidth = trackBuilder.roadWidth;
-        this.roadShape = trackBuilder.roadShape;
-        this.checkpoints = trackBuilder.checkpoints;
+    private Track(final TrackBuilder builder){
+        this.roadPath = builder.roadPath;
+        this.roadWidth = builder.roadWidth;
+        this.roadShape = builder.roadShape;
+        this.checkpoints = builder.checkpoints;
     }
 
     public Path getRoadPath() {

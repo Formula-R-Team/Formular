@@ -1,70 +1,89 @@
 package io.github.formular_team.formular.core.race;
 
-public final class RaceConfiguration{
+public final class RaceConfiguration {
     private final int lapCount;
 
     private final boolean timeTrial;
 
     private final int racerCap;
 
-    private final boolean allowCpus;
+    private final boolean cpus;
 
-    private final boolean allowSpectators;
+    private final boolean spectators;
+
+    private RaceConfiguration(final Builder builder) {
+        this.lapCount = builder.lapCount;
+        this.timeTrial = builder.timeTrial;
+        this.racerCap = builder.racerCap;
+        this.cpus = builder.cpus;
+        this.spectators = builder.spectators;
+    }
 
     public int getLapCount() {
         return this.lapCount;
     }
 
-    public boolean isTimeTrial(){return timeTrial;}
-
-    public int getRacerCap(){return racerCap;}
-
-    public boolean isAllowCpus(){return allowCpus;}
-
-    public boolean isAllowSpectators(){return allowSpectators;}
-
-
-    private RaceConfiguration(final Builder builder){
-        this.lapCount = builder.lapCount;
-        this.timeTrial = builder.timeTrial;
-        this.racerCap = builder.racerCap;
-        this.allowCpus = builder.allowCpus;
-        this.allowSpectators = builder.allowSpectators;
+    public boolean isTimeTrial() {
+        return this.timeTrial;
     }
 
-    public final static class Builder{
+    public int getRacerCap() {
+        return this.racerCap;
+    }
+
+    public boolean hasCpus() {
+        return this.cpus;
+    }
+
+    public boolean hasSpectators() {
+        return this.spectators;
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public final static class Builder {
         private int lapCount;
 
         private boolean timeTrial;
 
         private int racerCap;
 
-        private boolean allowCpus;
+        private boolean cpus;
 
-        private boolean allowSpectators;
+        private boolean spectators;
 
-        public Builder lapCount(final int lapCount){
+        private Builder() {
+            this.lapCount = 3;
+            this.timeTrial = false;
+            this.racerCap = 0;
+            this.cpus = false;
+            this.spectators = true;
+        }
+
+        public Builder setLapCount(final int lapCount) {
             this.lapCount = lapCount;
             return this;
         }
 
-        public Builder timeTrial(final boolean timeTrial){
+        public Builder setTimeTrial(final boolean timeTrial) {
             this.timeTrial = timeTrial;
             return this;
         }
 
-        public Builder racerCap(final int racerCap){
+        public Builder setRacerCap(final int racerCap) {
             this.racerCap = racerCap;
             return this;
         }
 
-        public Builder allowCpus(final boolean allowCpus){
-            this.allowCpus = allowCpus;
+        public Builder setCpus(final boolean cpus) {
+            this.cpus = cpus;
             return this;
         }
 
-        public Builder allowSpectators(final boolean allowSpectators){
-            this.allowSpectators = allowSpectators;
+        public Builder setSpectators(final boolean spectators) {
+            this.spectators = spectators;
             return this;
         }
 
@@ -72,8 +91,4 @@ public final class RaceConfiguration{
             return new RaceConfiguration(this);
         }
     }
-
-    //public static RaceConfiguration create(final int lapCount) {
-    //    return new RaceConfiguration(lapCount);
-    //}
 }

@@ -1,15 +1,20 @@
 package io.github.formular_team.formular.ar;
 
 import android.app.Activity;
+import android.support.annotation.StringRes;
 import android.util.SparseArray;
+import android.widget.TextView;
 
 import com.google.ar.sceneform.Node;
 import com.google.ar.sceneform.Scene;
 import com.google.ar.sceneform.rendering.Color;
 
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 import io.github.formular_team.formular.KartNodeFactory;
+import io.github.formular_team.formular.R;
+import io.github.formular_team.formular.core.Course;
 import io.github.formular_team.formular.core.GameView;
 import io.github.formular_team.formular.core.Kart;
 import io.github.formular_team.formular.core.KartDefinition;
@@ -22,6 +27,8 @@ import io.github.formular_team.formular.core.math.Vector2;
 public class ArGameView implements GameView {
     private final Activity activity;
 
+    private final TextView positionText, lapText;
+
     private final Scene scene;
 
     private final Node surface;
@@ -32,8 +39,10 @@ public class ArGameView implements GameView {
 
     private final Kart.ControlState controlState = new SimpleControlState();
 
-    private ArGameView(final Activity activity, final Scene scene, final Node surface, final KartNodeFactory factory, final SparseArray<KartView> karts) {
+    private ArGameView(final Activity activity, final TextView positionText, final TextView lapText, final Scene scene, final Node surface, final KartNodeFactory factory, final SparseArray<KartView> karts) {
         this.activity = activity;
+        this.positionText = positionText;
+        this.lapText = lapText;
         this.scene = scene;
         this.surface = surface;
         this.factory = factory;
@@ -46,15 +55,58 @@ public class ArGameView implements GameView {
     }
 
     @Override
-    public Kart createKart(final int uniqueId, final int color) {
-        final KartView kart = new StateKartView(uniqueId, KartDefinition.createKart2(), new Vector2(), 0.0F);
+    public Kart createKart(final int uniqueId, final io.github.formular_team.formular.core.color.Color color, final Vector2 position, final float rotation) {
+        final KartView kart = new StateKartView(uniqueId, KartDefinition.createKart2(), position, rotation);
         this.activity.runOnUiThread(() -> {
             final KartNode kn = this.factory.create(kart);
-            kn.setColor(new Color(color));
-            this.surface.addChild(kn);
-        }); // FIXME
+            kn.setColor(new Color(color.getHex()));
+            if (this.pendingCourse != null) {
+                this.pendingCourse.thenAccept(n -> n.add(kn));
+            } else {
+                this.surface.addChild(kn);
+            }
+        });
         this.karts.put(uniqueId, kart);
         return kart;
+    }
+
+    private CompletableFuture<CourseNode> pendingCourse; // FIXME: course id mapping
+
+    @Override
+    public void addCourse(final Course course) {
+        this.activity.runOnUiThread(() -> {
+            this.pendingCourse = CourseNode.create(this.activity, course);
+            this.pendingCourse.thenAccept(this.surface::addChild);
+        });
+    }
+
+    @Override
+    public void setLap(final int lap) {
+        this.activity.runOnUiThread(() -> {
+            final int lapCount = 3/*race.getConfiguration().getLapCount()*/; // FIXME: lap count
+            this.lapText.setText(this.activity.getString(R.string.race_lap, Math.min(1 + lap, lapCount), lapCount));
+        });
+    }
+
+    @Override
+    public void setPosition(final int position) {
+        this.activity.runOnUiThread(() ->
+            this.positionText.setText(this.activity.getString(this.getPositionResource(position), position))
+        );
+    }
+
+    @StringRes
+    private int getPositionResource(final int position) {
+        switch (position) {
+        case 0:
+            return R.string.race_position_0;
+        case 1:
+            return R.string.race_position_1;
+        case 2:
+            return R.string.race_position_2;
+        default:
+            return R.string.race_position_default;
+        }
     }
 
     @Override
@@ -77,7 +129,7 @@ public class ArGameView implements GameView {
         return this.controlState;
     }
 
-    public static ArGameView create(final Activity activity, final Scene scene, final Node surface, final KartNodeFactory factory) {
-        return new ArGameView(activity, scene, surface, factory, new SparseArray<>());
+    public static ArGameView create(final Activity activity, final TextView positionText, final TextView lapText, final Scene scene, final Node surface, final KartNodeFactory factory) {
+        return new ArGameView(activity, positionText, lapText, scene, surface, factory, new SparseArray<>());
     }
 }

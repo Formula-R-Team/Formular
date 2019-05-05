@@ -38,7 +38,7 @@ public class ControlPacket implements Packet {
         buf.putFloat(this.state.getSteeringAngle());
     }
 
-    public static class Handler implements PacketHandler<KartContext, ControlPacket, KartContext> {
+    public static class Handler implements PacketHandler<KartContext, ControlPacket> {
         @Override
         public KartContext apply(final KartContext context, final ControlPacket packet) {
             final Kart kart = context.getKart();

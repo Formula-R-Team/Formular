@@ -26,9 +26,7 @@ public class NewUserPacket implements Packet {
     }
 
     public NewUserPacket(final ByteBuffer buf) {
-        final String name = ByteBuffers.getString(buf);
-        final int color = buf.getInt();
-        this.user = User.create(name, color);
+        this.user = ByteBuffers.getUser(buf);
     }
 
     @Override
@@ -38,13 +36,12 @@ public class NewUserPacket implements Packet {
 
     @Override
     public void write(final ByteBuffer buf) {
-        ByteBuffers.putString(buf, this.user.getName());
-        buf.putInt(this.user.getColor());
+        ByteBuffers.putUser(buf, this.user);
     }
 
     private static final Logger LOGGER = Logger.getLogger("NewUserPacket");
 
-    public static class Handler implements PacketHandler<ServerContext, NewUserPacket, UserContext> {
+    public static class Handler implements PacketHandler<ServerContext, NewUserPacket> {
         @Override
         public UserContext apply(final ServerContext context, final NewUserPacket packet) {
             LOGGER.info("" + packet.user);

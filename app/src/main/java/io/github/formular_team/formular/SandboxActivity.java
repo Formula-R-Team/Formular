@@ -13,9 +13,11 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.google.ar.core.Frame;
+import com.google.ar.core.HitResult;
+import com.google.ar.core.exceptions.NotYetAvailableException;
 import com.google.ar.sceneform.AnchorNode;
 import com.google.ar.sceneform.Node;
-import com.google.ar.sceneform.math.Vector3;
 import com.google.ar.sceneform.ux.ArFragment;
 
 import java.io.IOException;
@@ -25,10 +27,16 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import io.github.formular_team.formular.ar.ArGameView;
+import io.github.formular_team.formular.ar.Rectifier;
+import io.github.formular_team.formular.core.Capture;
+import io.github.formular_team.formular.core.Course;
+import io.github.formular_team.formular.core.CourseReader;
 import io.github.formular_team.formular.core.Kart;
 import io.github.formular_team.formular.core.SimpleControlState;
 import io.github.formular_team.formular.core.SimpleGameModel;
+import io.github.formular_team.formular.core.SimpleTrackFactory;
 import io.github.formular_team.formular.core.User;
+import io.github.formular_team.formular.core.race.RaceConfiguration;
 import io.github.formular_team.formular.core.server.Client;
 import io.github.formular_team.formular.core.server.Endpoint;
 import io.github.formular_team.formular.core.server.EndpointController;
@@ -51,18 +59,21 @@ public class SandboxActivity extends FormularActivity {
 
     private KartNodeFactory factory;
 
-    private EndpointController<Client> client;
+    private EndpointController<Client> clientController;
 
-    private EndpointController<Server> server;
+    private EndpointController<Server> serverController;
+
+    private Node createAnchor(final HitResult result) {
+        final AnchorNode anchor = new AnchorNode(result.createAnchor());
+        this.arFragment.getArSceneView().getScene().addChild(anchor);
+        return anchor;
+    }
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.setContentView(R.layout.activity_sandbox);
-        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        final String namePref = prefs.getString("prefName", "Player 1");
-        final int colorPref = prefs.getInt("primaryColor", 0xFFFF007F);
-        this.user = User.create(namePref, colorPref);
+        this.user = AppPreferences.getUser(PreferenceManager.getDefaultSharedPreferences(this));
         final Intent intent = this.getIntent();
         if (intent != null) {
             this.host = intent.getBooleanExtra(EXTRA_HOST, true);
@@ -71,25 +82,37 @@ public class SandboxActivity extends FormularActivity {
         this.wheel = this.findViewById(R.id.joystick);
         this.arFragment = (ArFragment) this.getSupportFragmentManager().findFragmentById(R.id.ar);
         if (this.arFragment == null) {
-            throw new AssertionError("Missing ar fragment");
+            throw new RuntimeException("Missing ar fragment");
         }
         this.arFragment.setOnTapArPlaneListener((result, plane, event) -> {
-            if (this.factory != null && this.client == null) {
-                final AnchorNode anchor = new AnchorNode(result.createAnchor());
-                anchor.setLocalScale(Vector3.one().scaled(0.075F));
-                this.arFragment.getArSceneView().getScene().addChild(anchor);
+            final Frame frame = this.arFragment.getArSceneView().getArFrame();
+            if (this.factory != null && this.clientController == null && frame != null) {
                 if (this.host) {
-                    this.startServer();
-                    this.startClient(anchor, new InetSocketAddress(InetAddress.getLoopbackAddress(), Endpoint.DEFAULT_PORT));
+                    final Capture capture;
+                    try (final Capturer capturer = new Capturer(new Rectifier(frame))) {
+                        capture = capturer.capture(result.getHitPose(), 0.25F, 200);
+                    } catch (final NotYetAvailableException e) {
+                        throw new RuntimeException(e);
+                    }
+                    final CourseReader reader = new CourseReader(this.user);
+                    reader.read(capture, new CourseReader.Callback() {
+                        @Override
+                        public void success(final Course course) {
+                            SandboxActivity.this.startRace(SandboxActivity.this.createAnchor(result), RaceConfiguration.builder().build(), course);
+                        }
+
+                        @Override
+                        public void fail() {}
+                    });
                 } else {
-                    this.promptConnect(anchor);
+                    this.promptConnect(this.createAnchor(result));
                 }
             }
         });
         this.pad.setOnTouchListener(new KartController(new SimpleControlState(), state -> {
-            if (this.client != null) {
+            if (this.clientController != null) {
                 final Kart.ControlState copy = new SimpleControlState().copy(state);
-                this.client.submitJob(Endpoint.Job.of(c -> {
+                this.clientController.submitJob(Endpoint.Job.of(c -> {
                     // TODO: better client state management
                     c.getGame().getControlState().copy(copy);
                 }));
@@ -98,6 +121,12 @@ public class SandboxActivity extends FormularActivity {
         final WeakOptional<SandboxActivity> act = WeakOptional.of(this);
         SimpleKartNodeFactory.create(this, R.raw.kart_body, R.raw.kart_wheel_front, R.raw.kart_wheel_rear)
             .thenAccept(factory -> act.ifPresent(activity -> activity.factory = factory));
+    }
+
+    private void startRace(final Node surface, final RaceConfiguration config, final Course course) {
+        this.startServer();
+        this.startClient(surface, new InetSocketAddress(InetAddress.getLoopbackAddress(), Endpoint.DEFAULT_PORT));
+        this.clientController.submitJob(Endpoint.Job.of(c -> c.createRace(config, course)));
     }
 
     private void promptConnect(final Node node) {
@@ -147,8 +176,8 @@ public class SandboxActivity extends FormularActivity {
 
     private void startClient(final Node surface, final InetSocketAddress address) {
         try {
-            this.client = EndpointController.create(SimpleClient.open(address, this.user, ArGameView.create(this, this.arFragment.getArSceneView().getScene(), surface, this.factory), 30));
-            this.client.start();
+            this.clientController = EndpointController.create(SimpleClient.open(address, this.user, ArGameView.create(this, this.findViewById(R.id.position), this.findViewById(R.id.lap) , this.arFragment.getArSceneView().getScene(), surface, this.factory), 30));
+            this.clientController.start();
         } catch (final IOException e) {
             Log.e(TAG, "Error creating client", e);
         }
@@ -156,8 +185,8 @@ public class SandboxActivity extends FormularActivity {
 
     private void startServer() {
         try {
-            this.server = EndpointController.create(SimpleServer.open(new InetSocketAddress(Endpoint.DEFAULT_PORT), new SimpleGameModel(), 30));
-            this.server.start();
+            this.serverController = EndpointController.create(SimpleServer.open(new InetSocketAddress(Endpoint.DEFAULT_PORT), new SimpleGameModel(), 30));
+            this.serverController.start();
         } catch (final IOException e) {
             Log.e(TAG, "Error creating server", e);
         }
@@ -169,11 +198,11 @@ public class SandboxActivity extends FormularActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        if (this.client != null) {
-            this.client.stop();
+        if (this.clientController != null) {
+            this.clientController.stop();
         }
-        if (this.server != null) {
-            this.server.stop();
+        if (this.serverController != null) {
+            this.serverController.stop();
         }
     }
 }

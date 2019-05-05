@@ -26,21 +26,24 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import io.github.formular_team.formular.GraphicsPathVisitor;
+import io.github.formular_team.formular.core.Checkpoint;
+import io.github.formular_team.formular.core.Course;
+import io.github.formular_team.formular.core.Track;
 import io.github.formular_team.formular.core.geom.ExtrudeGeometry;
 import io.github.formular_team.formular.core.geom.Geometry;
+import io.github.formular_team.formular.core.math.Box2;
 import io.github.formular_team.formular.core.math.CubicBezierCurve3;
 import io.github.formular_team.formular.core.math.CurvePath;
 import io.github.formular_team.formular.core.math.LineCurve3;
+import io.github.formular_team.formular.core.math.Matrix3;
 import io.github.formular_team.formular.core.math.Matrix4;
 import io.github.formular_team.formular.core.math.Mth;
 import io.github.formular_team.formular.core.math.Path;
 import io.github.formular_team.formular.core.math.PathVisitor;
 import io.github.formular_team.formular.core.math.Shape;
+import io.github.formular_team.formular.core.math.TransformingPathVisitor;
 import io.github.formular_team.formular.core.math.Vector2;
 import io.github.formular_team.formular.core.math.Vector3;
-import io.github.formular_team.formular.core.Checkpoint;
-import io.github.formular_team.formular.core.Course;
-import io.github.formular_team.formular.core.Track;
 
 public class CourseNode extends Node {
     private static final String TAG = "CourseNode";
@@ -61,7 +64,8 @@ public class CourseNode extends Node {
         final Path path = track.getRoadPath();
         final float roadWidth = track.getRoadWidth();
         final Bitmap courseDiffuse = createDiffuse(context, course, 2048);
-        return Texture.builder().setSource(courseDiffuse).build()
+        return Texture.builder()
+            .setSource(courseDiffuse).build()
             .thenCompose(diffuse -> MaterialFactory.makeOpaqueWithTexture(context, diffuse))
             .thenApply(material -> {
                 final float roadHeight = 0.225F;
@@ -71,18 +75,22 @@ public class CourseNode extends Node {
                 roadShape.lineTo(-roadHeight, 0.5F * (roadWidth + 0.75F));
                 roadShape.lineTo(0.0F, 0.5F * (roadWidth + 0.75F));
                 roadShape.closePath();
-                final CurvePath trackPath3 = toCurve3(path);
+                final CurvePath trackPath3 = CourseNode.toCurve3(path);
+                final Box2 bounds = CourseNode.getBounds(course);
+                final Vector2 center = bounds.center();
+                final float courseSize = CourseNode.getSize(bounds);
                 final Geometry roadGeom = new ExtrudeGeometry(ImmutableList.of(roadShape), new ExtrudeGeometry.ExtrudeGeometryParameters() {{
                     this.steps = (int) (6 * trackPath3.getLength());
                     this.extrudePath = trackPath3;
                     this.uvGenerator = ExtrudeGeometry.VertexUVGenerator.transform(new Matrix4()
                         .multiply(new Matrix4().makeTranslation(0.5F, 0.0F, 0.5F))
-                        .multiply(new Matrix4().makeScale(1.0F / course.getSize(), 1.0F / course.getSize(), 1.0F / course.getSize()))
+                        .multiply(new Matrix4().makeScale(1.0F / courseSize, 1.0F / courseSize, 1.0F / courseSize))
+                        .multiply(new Matrix4().makeTranslation(-center.getX(), 0.0F, -center.getY()))
                     );
                 }});
                 final float wallHeight = 0.42F, wallWidth = 0.34F;
-                final CurvePath wallLeftPath = toCurve3(new Path().fromPoints(track.getCheckpoints().stream().map(Checkpoint::getP1).collect(Collectors.toList()), true));
-                final CurvePath wallRightPath = toCurve3(new Path().fromPoints(track.getCheckpoints().stream().map(Checkpoint::getP2).collect(Collectors.toList()), true));
+                final CurvePath wallLeftPath = CourseNode.toCurve3(new Path().fromPoints(track.getCheckpoints().stream().map(Checkpoint::getP1).collect(Collectors.toList()), true));
+                final CurvePath wallRightPath = CourseNode.toCurve3(new Path().fromPoints(track.getCheckpoints().stream().map(Checkpoint::getP2).collect(Collectors.toList()), true));
                 final Shape wallShape = new Shape();
                 wallShape.moveTo(-roadHeight, -wallWidth * 0.5F);
                 wallShape.lineTo(-roadHeight, wallWidth * 0.5F);
@@ -102,6 +110,7 @@ public class CourseNode extends Node {
                 final Node road = new Node();
                 road.setLocalPosition(new com.google.ar.sceneform.math.Vector3(0.0F, roadHeight, 0.0F));
                 final CourseNode node = new CourseNode(road);
+                node.setLocalScale(com.google.ar.sceneform.math.Vector3.one().scaled(course.getWorldScale()));
                 final Node trackNode = new Node();
                 final ModelRenderable trackRenderable = Geometries.toRenderable(ImmutableList.of(roadGeom, wallLeft, wallRight), material);
                 trackNode.setRenderable(trackRenderable);
@@ -149,15 +158,29 @@ public class CourseNode extends Node {
             ;
     }
 
+    private static Box2 getBounds(final Course course) {
+        final Track track = course.getTrack();
+        return track.getRoadPath()
+            .getBounds(4)
+            .expandByScalar(0.5F * track.getRoadWidth() + 2.0F);
+    }
+
+    private static float getSize(final Box2 bounds) {
+        final Vector2 dim = bounds.size();
+        return Math.max(dim.getX(), dim.getY());
+    }
+
     private static Bitmap createDiffuse(final Context context, final Course course, final int resolution) {
-        final float courseRange = course.getSize() * 0.5F;
+        final Box2 bounds = CourseNode.getBounds(course);
+        final float size = CourseNode.getSize(bounds);
+        final float courseRange = 0.5F * size;
         final float wallTileSize = 1.0F;
         final Bitmap courseDiffuse = Bitmap.createBitmap(resolution, resolution, Bitmap.Config.ARGB_8888);
         final Bitmap pavementDiffuse = loadBitmap(context, "materials/pavement_diffuse.png");
         final Bitmap finishLineDiffuse = loadBitmap(context, "materials/finish_line_diffuse.png");
         final Canvas canvas = new Canvas(courseDiffuse);
         final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        final float courseToMap = resolution / course.getSize();
+        final float courseToMap = resolution / size;
         final Matrix mat = new Matrix();
         mat.preScale(courseToMap, -courseToMap);
         mat.preTranslate(courseRange, -courseRange);
@@ -171,7 +194,11 @@ public class CourseNode extends Node {
         canvas.drawRect(-courseRange, courseRange, -courseRange + wallTileSize, courseRange - wallTileSize, paint);
         // end wall tile
         final android.graphics.Path graphicsTrackPath = new android.graphics.Path();
-        final Path path = course.getTrack().getRoadPath();
+        final Path path = new Path();
+        course.getTrack().getRoadPath()
+            .visit(new TransformingPathVisitor(path, new Matrix3()
+                .translate(-bounds.center().getX(), -bounds.center().getY()))
+            );
         path.visit(new GraphicsPathVisitor(graphicsTrackPath));
         graphicsTrackPath.close();
         final int paintWhite = 0xFFF2F3F4;
@@ -276,7 +303,7 @@ public class CourseNode extends Node {
                 Log.e(TAG, "Unable to decode bitmap '" + fileName + "'");
             }
         } catch (final IOException e) {
-            Log.e(TAG, "Unable to read bitmap '" + fileName + "'", e);
+            Log.e(TAG, "Unable to create bitmap '" + fileName + "'", e);
         }
         if (map == null) {
             return MissingBitmap.INSTANCE;

@@ -7,6 +7,7 @@ import java.util.List;
 import io.github.formular_team.formular.core.math.LineCurve;
 import io.github.formular_team.formular.core.math.Vector2;
 import io.github.formular_team.formular.core.race.Race;
+import io.github.formular_team.formular.core.race.RaceConfiguration;
 
 public final class SimpleGameModel implements GameModel {
     private final List<Driver> drivers = new ArrayList<>();
@@ -22,6 +23,8 @@ public final class SimpleGameModel implements GameModel {
     private final List<OnKartRemoveListener> removeListeners = new ArrayList<>();
 
     private final List<OnPoseChangeListener> changeListeners = new ArrayList<>();
+
+    private final List<OnRaceAddListener> raceListeners = new ArrayList<>();
 
     private int nextKartId = 0;
 
@@ -89,6 +92,16 @@ public final class SimpleGameModel implements GameModel {
     @Override
     public void addRace(final Race race) {
         this.races.add(race);
+        for (final OnRaceAddListener listener : this.raceListeners) {
+            listener.onRaceAdd(race);
+        }
+    }
+
+    @Override
+    public Race createRace(final User user, final RaceConfiguration configuration, final Course course) {
+        final Race race = Race.create(this, user, configuration, course);
+        this.addRace(race);
+        return race;
     }
 
     @Override
@@ -153,5 +166,10 @@ public final class SimpleGameModel implements GameModel {
     @Override
     public void addOnPoseChangeListener(final OnPoseChangeListener listener) {
         this.changeListeners.add(listener);
+    }
+
+    @Override
+    public void addOnRaceAddListener(final OnRaceAddListener listener) {
+        this.raceListeners.add(listener);
     }
 }

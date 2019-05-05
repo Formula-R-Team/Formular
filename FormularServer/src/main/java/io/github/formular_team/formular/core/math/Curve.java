@@ -96,6 +96,10 @@ public abstract class Curve {
         return this.cacheArcLengths;
     }
 
+    public Box2 getBounds(final int divisions) {
+        return new Box2().setFromPoints(this.getSpacedPoints(divisions));
+    }
+
     public void refresh() {
         this.cacheArcLengths = null;
         this.getLengths();

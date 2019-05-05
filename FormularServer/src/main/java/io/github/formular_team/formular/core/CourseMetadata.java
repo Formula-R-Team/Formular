@@ -13,15 +13,15 @@ public final class CourseMetadata {
         this.name = name;
     }
 
-    public User creator() {
+    public User getCreator() {
         return this.creator;
     }
 
-    public long creationDate() {
+    public long getCreationDate() {
         return this.creationDate;
     }
 
-    public String name() {
+    public String getName() {
         return this.name;
     }
 

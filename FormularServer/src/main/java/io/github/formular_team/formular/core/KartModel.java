@@ -1,5 +1,6 @@
 package io.github.formular_team.formular.core;
 
+import io.github.formular_team.formular.core.color.Color;
 import io.github.formular_team.formular.core.math.Mth;
 import io.github.formular_team.formular.core.math.Vector2;
 
@@ -29,7 +30,7 @@ public class KartModel implements Kart {
 
     private float wheelAngularVelocity;
 
-    private int color;
+    private Color color = Color.color(0.5F, 0.5F, 0.5F);
 
     public KartModel(final int uniqueId, final KartDefinition type) {
         this.uniqueId = uniqueId;
@@ -77,12 +78,12 @@ public class KartModel implements Kart {
     }
 
     @Override
-    public void setColor(final int color) {
+    public void setColor(final Color color) {
         this.color = color;
     }
 
     @Override
-    public int getColor() {
+    public Color getColor() {
         return this.color;
     }
 

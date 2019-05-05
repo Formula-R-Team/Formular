@@ -44,7 +44,7 @@ public class SetPosePacket implements Packet {
         buf.putFloat(this.rotation);
     }
 
-    public static class Handler implements PacketHandler<ClientContext, SetPosePacket, ClientContext> {
+    public static class Handler implements PacketHandler<ClientContext, SetPosePacket> {
         @Override
         public ClientContext apply(final ClientContext context, final SetPosePacket packet) {
             final GameView game = context.getClient().getGame();

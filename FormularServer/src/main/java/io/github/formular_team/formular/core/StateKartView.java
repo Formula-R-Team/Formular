@@ -1,5 +1,6 @@
 package io.github.formular_team.formular.core;
 
+import io.github.formular_team.formular.core.color.Color;
 import io.github.formular_team.formular.core.math.Vector2;
 
 public class StateKartView implements KartView {
@@ -13,7 +14,7 @@ public class StateKartView implements KartView {
 
     private float rotation;
 
-    private int color;
+    private Color color;
 
     public StateKartView(final int uniqueId, final KartDefinition definition, final Vector2 position, final float rotation) {
         this.uniqueId = uniqueId;
@@ -63,12 +64,12 @@ public class StateKartView implements KartView {
     }
 
     @Override
-    public void setColor(final int color) {
+    public void setColor(final Color color) {
         this.color = color;
     }
 
     @Override
-    public int getColor() {
+    public Color getColor() {
         return this.color;
     }
 }

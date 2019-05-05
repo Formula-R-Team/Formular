@@ -10,28 +10,24 @@ import io.github.formular_team.formular.core.math.Shape;
 public final class Course {
     private final CourseMetadata metadata;
 
-    private final float size;
-
     private final Track track;
 
     private final List<? extends Patch> patches;
 
     private final List<? extends SceneryItem> sceneryItems;
 
+    private float worldScale;
+
     private Course(final Builder builder) {
         this.metadata = builder.metadata;
-        this.size = builder.size;
         this.track = builder.track;
         this.patches = builder.patches;
         this.sceneryItems = builder.sceneryItems;
+        this.worldScale = builder.worldScale;
     }
 
     public CourseMetadata getMetadata() {
         return this.metadata;
-    }
-
-    public float getSize() {
-        return this.size;
     }
 
     public Track getTrack() {
@@ -44,6 +40,10 @@ public final class Course {
 
     public List<? extends SceneryItem> getSceneryItems() {
         return this.sceneryItems;
+    }
+
+    public float getWorldScale() {
+        return this.worldScale;
     }
 
     interface Patch {
@@ -59,23 +59,18 @@ public final class Course {
     public static final class Builder {
         private CourseMetadata metadata;
 
-        private float size;
-
         private Track track;
 
         private List<? extends Patch> patches = Collections.emptyList();
 
         private List<? extends SceneryItem> sceneryItems = Collections.emptyList();
 
+        private float worldScale = 1.0F;
+
         private Builder() {}
 
         public Builder setMetadata(final CourseMetadata metadata) {
             this.metadata = metadata;
-            return this;
-        }
-
-        public Builder setSize(final float size) {
-            this.size = size;
             return this;
         }
 
@@ -94,11 +89,16 @@ public final class Course {
             return this;
         }
 
+        public Builder setWorldScale(final float worldScale) {
+            if (worldScale <= 0.0F) {
+                throw new IllegalStateException("World scale must be positive: " + worldScale);
+            }
+            this.worldScale = worldScale;
+            return this;
+        }
+
         public Course build() {
             Objects.requireNonNull(this.metadata, "Metadata must not be null");
-            if (this.size <= 0.0F) {
-                throw new IllegalArgumentException("Size must be greater than zero");
-            }
             Objects.requireNonNull(this.track, "Track must not be null");
             return new Course(this);
         }

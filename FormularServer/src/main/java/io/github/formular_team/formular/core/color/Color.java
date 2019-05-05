@@ -2,33 +2,35 @@ package io.github.formular_team.formular.core.color;
 
 import io.github.formular_team.formular.core.math.Mth;
 
-public class Color {
-    private float red;
+public final class Color {
+    private int hex;
 
-    private float green;
+    private Color() {
+        this(0xFFFFFFFF);
+    }
 
-    private float blue;
+    private Color(final int hex) {
+        this.hex = hex;
+    }
 
-    public Color() {
-        this(1.0F, 1.0F, 1.0F);
+    public int getHex() {
+        return this.hex;
     }
 
     public float getRed() {
-        return this.red;
+        return (this.hex >> 16 & 0xFF) / 255.0F;
     }
 
     public float getGreen() {
-        return this.green;
+        return (this.hex >> 8 & 0xFF) / 255.0F;
     }
 
     public float getBlue() {
-        return this.blue;
+        return (this.hex & 0xFF) / 255.0F;
     }
 
-    public Color(final float red, final float green, final float blue) {
-        this.red = red;
-        this.green = green;
-        this.blue = blue;
+    public float getOpacity() {
+        return (this.hex >> 24 & 0xFF) / 255.0F;
     }
 
     public Color copy() {
@@ -36,10 +38,33 @@ public class Color {
     }
 
     public Color copy(final Color target) {
-        this.red = target.red;
-        this.green = target.green;
-        this.blue = target.blue;
+        this.hex = target.hex;
         return this;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("0x%08x", this.hex);
+    }
+
+    public static Color hex(final int hex) {
+        return new Color(hex);
+    }
+
+    public static Color color(final float red, final float green, final float blue) {
+        return Color.color(red, green, blue, 1.0F);
+    }
+
+    public static Color color(final float red, final float green, final float blue, final float opacity) {
+        return Color.rgb((int) (red * 255.0F), (int) (green * 255.0F), (int) (blue * 255.0F), opacity);
+    }
+
+    public static Color rgb(final int red, final int green, final int blue) {
+        return Color.rgb(red, green, blue, 1.0F);
+    }
+
+    public static Color rgb(final int red, final int green, final int blue, final float opacity) {
+        return Color.hex((int) (opacity * 255.0F) << 24 | red << 16 | green << 8 | blue);
     }
 
     public static Color hsb(final float hue, final float saturation, final float brightness) {
@@ -89,6 +114,6 @@ public class Color {
         final float red = Mth.clamp(r, 0.0F, 1.0F);
         final float green = Mth.clamp(g, 0.0F, 1.0F);
         final float blue = Mth.clamp(b, 0.0F, 1.0F);
-        return new Color(red, green, blue);
+        return Color.color(red, green, blue);
     }
 }

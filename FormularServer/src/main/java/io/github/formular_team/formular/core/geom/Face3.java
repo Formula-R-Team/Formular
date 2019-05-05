@@ -74,7 +74,7 @@ public class Face3 {
 		this.setC(c);
 		this.setNormal(new Vector3());
 		this.vertexNormals = new ArrayList<>();
-		this.color = new Color(0.0F, 0.0F, 0.0F);
+		this.color = Color.color(0.0F, 0.0F, 0.0F);
 		this.vertexColors = new ArrayList<>();
 	}
 

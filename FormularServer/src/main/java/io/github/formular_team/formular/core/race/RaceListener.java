@@ -7,15 +7,15 @@ public interface RaceListener {
 
     default void onEnd() {}
 
-    default void onCount(final int count) {}
+    default void onCountDown(final int count) {}
 
-    default void onProgress(final Driver driver, final float progress) {}
+    default void onProgressChange(final Driver driver, final float progress) {}
 
-    default void onPosition(final Driver driver, final int position) {}
+    default void onPositionChange(final Driver driver, final int position) {}
 
-    default void onLap(final Driver driver, final int lap) {}
+    default void onLapChange(final Driver driver, final int lap) {}
 
-    default void onForward(final Driver driver) {}
+    default void onMoveForward(final Driver driver) {}
 
-    default void onReverse(final Driver driver) {}
+    default void onMoveBackward(final Driver driver) {}
 }

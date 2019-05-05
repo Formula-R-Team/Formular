@@ -1,6 +1,5 @@
 package io.github.formular_team.formular;
 
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -82,10 +81,7 @@ public class RaceActivity extends FormularActivity {
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.setContentView(R.layout.activity_race);
-        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        final String namePref = prefs.getString("prefName", "Player 1");
-        final int colorPref = prefs.getInt("primaryColor", 0xFFFF007F);
-        this.user = User.create(namePref, colorPref);
+        this.user = AppPreferences.getUser(PreferenceManager.getDefaultSharedPreferences(this));
         this.lapView = this.findViewById(R.id.lap);
         this.positionView = this.findViewById(R.id.position);
         this.countView = this.findViewById(R.id.count);
@@ -180,12 +176,8 @@ public class RaceActivity extends FormularActivity {
             return;
         }
         final Track track = new SimpleTrackFactory(courseRoadWidth).create(path);
-        final float coursePad = 2.0F;
-        final float courseRange = courseCaptureSize + coursePad;
-        final float courseSize = 2.0F * courseRange;
         final Course course = Course.builder()
             .setMetadata(CourseMetadata.create(this.user, TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()), "My Circuit"))
-            .setSize(courseSize)
             .setTrack(track)
             .build();
         if (course.getTrack().getCheckpoints().size() < 5) {
@@ -209,8 +201,7 @@ public class RaceActivity extends FormularActivity {
         this.kart = new KartModel(0, KartDefinition.createKart2());
         this.pad.setOnTouchListener(new KartController(this.kart.getControlState(), s -> {}, this.wheel));
         final Driver self = SimpleDriver.create(this.user, this.kart);
-        RaceConfiguration.Builder raceConfigBuilder = new RaceConfiguration.Builder().lapCount(3);
-        final Race race = Race.create(this.game, raceConfigBuilder.build(), this.user, course);
+        final Race race = Race.create(this.game, this.user, RaceConfiguration.builder().setLapCount(3).build(), course);
         race.addListener(new RaceListener() {
             int lap, position;
             float progress;
@@ -234,7 +225,7 @@ public class RaceActivity extends FormularActivity {
             }
 
             @Override
-            public void onCount(final int count) {
+            public void onCountDown(final int count) {
                 RaceActivity.this.countView.setText(this.getCountResource(count));
                 final Animation anim = new AlphaAnimation(1.0F, 0.0F);
                 anim.setDuration(1000);
@@ -260,14 +251,14 @@ public class RaceActivity extends FormularActivity {
             }
 
             @Override
-            public void onProgress(final Driver driver, final float progress) {
+            public void onProgressChange(final Driver driver, final float progress) {
                 if (self.equals(driver)) {
                     this.progress = progress;
                 }
             }
 
             @Override
-            public void onPosition(final Driver driver, final int position) {
+            public void onPositionChange(final Driver driver, final int position) {
                 if (self.equals(driver)) {
                     this.position = position;
                     RaceActivity.this.positionView.setText(RaceActivity.this.getString(this.getPositionResource(position), position));
@@ -289,7 +280,7 @@ public class RaceActivity extends FormularActivity {
             }
 
             @Override
-            public void onLap(final Driver driver, final int lap) {
+            public void onLapChange(final Driver driver, final int lap) {
                 if (self.equals(driver)) {
                     this.lap = lap;
                     final int lapCount = race.getConfiguration().getLapCount();
@@ -298,14 +289,14 @@ public class RaceActivity extends FormularActivity {
             }
 
             @Override
-            public void onForward(final Driver driver) {
+            public void onMoveForward(final Driver driver) {
                 if (self.equals(driver)) {
                     this.wrongWay = false;
                 }
             }
 
             @Override
-            public void onReverse(final Driver driver) {
+            public void onMoveBackward(final Driver driver) {
                 if (self.equals(driver)) {
                     this.wrongWay = true;
                 }
@@ -341,17 +332,15 @@ public class RaceActivity extends FormularActivity {
                     view.getScene().removeChild(this.courseAnchor);
                 }
                 view.getPlaneRenderer().setVisible(false);
-                final Anchor anchor = hitResult.createAnchor();//scenePlane.createAnchor(hitResult.getHitPose());
+                final Anchor anchor = hitResult.createAnchor();
                 this.courseAnchor = new AnchorNode(anchor);
                 this.courseAnchor.setLocalScale(com.google.ar.sceneform.math.Vector3.one().scaled(courseToSceneScale));
                 this.courseAnchor.setLocalPosition(new com.google.ar.sceneform.math.Vector3(0.0F, 0.01F, 0.0F));
                 this.courseAnchor.addChild(courseNode);
                 view.getScene().addChild(this.courseAnchor);
-
                 for (final Driver driver : this.game.getDrivers()) {
-//                    this.factory.create(this.game, driver.getVehicle())
                     final KartNode kart = this.factory.create(new DirectKartView(driver.getVehicle()));
-                    kart.setColor(new Color(driver.getUser().getColor()));
+                    kart.setColor(new Color(driver.getUser().getColor().getHex()));
                     LabelFactory.create(this, driver.getUser() == this.user ? "YOU" : driver.getUser().getName(), 1.5F)
                             .thenAccept(label -> {
                                 label.setLocalPosition(com.google.ar.sceneform.math.Vector3.up().scaled(1.8F));

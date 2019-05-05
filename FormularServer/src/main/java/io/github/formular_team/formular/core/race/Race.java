@@ -18,9 +18,9 @@ import io.github.formular_team.formular.core.math.Vector2;
 public final class Race {
     private final GameModel game;
 
-    private final RaceConfiguration configuration;
-
     private final User owner;
+
+    private final RaceConfiguration configuration;
 
     private final Course course;
 
@@ -38,10 +38,10 @@ public final class Race {
 
     private RaceState state;
 
-    private Race(final GameModel game, final RaceConfiguration configuration, final User owner, final Course course) {
+    private Race(final GameModel game, final User owner, final RaceConfiguration configuration, final Course course) {
         this.game = game;
-        this.configuration = configuration;
         this.owner = owner;
+        this.configuration = configuration;
         this.course = course;
         this.checkpoints = this.createCheckpointNodes(course.getTrack().getCheckpoints());
         this.finishline = this.checkpoints[0].cp.getPosition();
@@ -51,6 +51,10 @@ public final class Race {
 
     public RaceConfiguration getConfiguration() {
         return this.configuration;
+    }
+
+    public Course getCourse() {
+        return this.course;
     }
 
     public float getLength() {
@@ -130,7 +134,7 @@ public final class Race {
 
     void onCount(final int count) {
         for (final RaceListener listener : this.listeners) {
-            listener.onCount(count);
+            listener.onCountDown(count);
         }
     }
 
@@ -148,31 +152,31 @@ public final class Race {
 
     void onProgress(final Driver driver, final float progress) {
         for (final RaceListener listener : this.listeners) {
-            listener.onProgress(driver, progress);
+            listener.onProgressChange(driver, progress);
         }
     }
 
     void onPosition(final Driver driver, final int position) {
         for (final RaceListener listener : this.listeners) {
-            listener.onPosition(driver, position);
+            listener.onPositionChange(driver, position);
         }
     }
 
     void onLapComplete(final Driver driver, final int lap) {
         for (final RaceListener listener : this.listeners) {
-            listener.onLap(driver, lap);
+            listener.onLapChange(driver, lap);
         }
     }
 
     void onForward(final Driver driver) {
         for (final RaceListener listener : this.listeners) {
-            listener.onForward(driver);
+            listener.onMoveForward(driver);
         }
     }
 
     void onReverse(final Driver driver) {
         for (final RaceListener listener : this.listeners) {
-            listener.onReverse(driver);
+            listener.onMoveBackward(driver);
         }
     }
 
@@ -190,8 +194,8 @@ public final class Race {
         return this.checkpoints[0];
     }
 
-    public static Race create(final GameModel game, final RaceConfiguration configuration, final User owner, final Course course) {
-        return new Race(game, configuration, owner, course);
+    public static Race create(final GameModel game, final User owner, final RaceConfiguration configuration, final Course course) {
+        return new Race(game, owner, configuration, course);
     }
 
     final class Node {

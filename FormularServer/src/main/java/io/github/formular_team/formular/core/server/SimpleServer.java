@@ -25,6 +25,7 @@ import io.github.formular_team.formular.core.server.net.ServerContext;
 import io.github.formular_team.formular.core.server.net.SimpleConnection;
 import io.github.formular_team.formular.core.server.net.ContextualPacketGraph;
 import io.github.formular_team.formular.core.server.net.clientbound.KartAddPacket;
+import io.github.formular_team.formular.core.server.net.clientbound.RaceAddPacket;
 import io.github.formular_team.formular.core.server.net.clientbound.SetPosePacket;
 
 public final class SimpleServer implements Server {
@@ -96,6 +97,7 @@ public final class SimpleServer implements Server {
         LOGGER.info("Listening on port " + this.address.getPort());
         this.game.addOnKartAddListener(kart -> this.send(new KartAddPacket(kart)));
         this.game.addOnPoseChangeListener(kart -> this.send(new SetPosePacket(kart)));
+        this.game.addOnRaceAddListener(race -> this.send(new RaceAddPacket(race)));
         final RunnableFuture<?> STEP_PILL = new FutureTask<>(() -> null);
         final long timeout = 1000 / this.ups;
         for (long past = this.currentTimeMillis(), present; this.running; past = present) {

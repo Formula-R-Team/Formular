@@ -8,6 +8,7 @@ import io.github.formular_team.formular.core.Driver;
 import io.github.formular_team.formular.core.GameModel;
 import io.github.formular_team.formular.core.KartModel;
 import io.github.formular_team.formular.core.SimpleDriver;
+import io.github.formular_team.formular.core.color.Color;
 import io.github.formular_team.formular.core.math.Vector2;
 import io.github.formular_team.formular.core.server.net.ByteBuffers;
 import io.github.formular_team.formular.core.server.net.KartContext;
@@ -20,16 +21,16 @@ public class AddKartPacket implements Packet {
 
     private final Vector2 position;
 
-    private final int color;
+    private final Color color;
 
-    public AddKartPacket(final Vector2 position, final int color) {
+    public AddKartPacket(final Vector2 position, final Color color) {
         this.position = Objects.requireNonNull(position);
-        this.color = color;
+        this.color = Objects.requireNonNull(color);
     }
 
     public AddKartPacket(final ByteBuffer buf) {
         this.position = ByteBuffers.getVector2(buf);
-        this.color = buf.getInt();
+        this.color = ByteBuffers.getColor(buf);
     }
 
     @Override
@@ -40,10 +41,10 @@ public class AddKartPacket implements Packet {
     @Override
     public void write(final ByteBuffer buf) {
         ByteBuffers.putVector2(buf, this.position);
-        buf.putInt(this.color);
+        ByteBuffers.putColor(buf, this.color);
     }
 
-    public static class Handler implements PacketHandler<UserContext, AddKartPacket, KartContext> {
+    public static class Handler implements PacketHandler<UserContext, AddKartPacket> {
         @Override
         public KartContext apply(final UserContext context, final AddKartPacket packet) {
             final GameModel game = context.getServer().getGame();
