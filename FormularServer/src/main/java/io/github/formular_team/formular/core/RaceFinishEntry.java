@@ -14,6 +14,9 @@ public final class RaceFinishEntry {
         return this.user;
     }
 
+    /**
+     * @return time in milliseconds
+     */
     public long getTime() {
         return this.time;
     }
