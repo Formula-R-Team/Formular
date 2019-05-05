@@ -15,13 +15,13 @@ public final class Capturer implements Closeable {
         this.rectifier = rectifier;
     }
 
-    public Capture capture(final Pose pose, final float range, final int resolution) {
+    public Capture capture(final Pose pose, final float radius, final int resolution) {
         final Matrix model = new Matrix();
         pose.toMatrix(model.data, 0);
         final Matrix rangeScale = new Matrix();
-        rangeScale.makeScale(range);
+        rangeScale.makeScale(radius);
         Matrix.multiply(model, rangeScale, model);
-        return new Capture(range, resolution, new BitmapImageMap(this.rectifier.rectify(model.data, resolution)));
+        return new Capture(radius, resolution, new BitmapImageMap(this.rectifier.rectify(model.data, resolution)));
     }
 
     @Override

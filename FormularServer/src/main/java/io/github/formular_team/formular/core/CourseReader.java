@@ -21,11 +21,9 @@ public class CourseReader {
     }
 
     public void read(final Capture capture, final Callback callback) {
-        final float captureRange = capture.getRange();
-        final int captureSize = capture.getResolution();
         final float courseRoadWidth = 5.5F;
         final float courseToSceneScale = 0.05F / courseRoadWidth;
-        final float courseCaptureSize = captureRange / courseToSceneScale;
+        final float courseCaptureSize = capture.getRadius() / courseToSceneScale;
         final Path linePath = new Path();
         new PathFinder(
             new CirclePathLocator(25),
@@ -35,7 +33,7 @@ public class CourseReader {
             ))
             .find(capture.getImage())
             .visit(new TransformingPathVisitor(linePath, new Matrix3()
-                .scale(2.0F / captureSize)
+                .scale(2.0F / capture.getResolution())
                 .translate(-1.0F, -1.0F)
                 .scale(courseCaptureSize, -courseCaptureSize)
             ));
