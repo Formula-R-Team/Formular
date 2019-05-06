@@ -47,7 +47,5 @@ public class JoinRacePacket implements Packet {
             }
             return context;
         }
-
     }
-
 }

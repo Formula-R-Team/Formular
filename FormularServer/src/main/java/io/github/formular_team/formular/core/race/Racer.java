@@ -85,6 +85,7 @@ class Racer {
                 this.progress = prog;
             }
             this.race.onProgress(this.driver, this.progress);
+            // FIXME
             if (this.time != -1.0F && this.getLapProgress() >= this.race.getConfiguration().getLapCount()) {
                 this.race.onEnd(this.driver);
                 this.time = -1.0F;

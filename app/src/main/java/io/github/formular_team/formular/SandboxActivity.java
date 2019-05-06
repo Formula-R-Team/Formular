@@ -134,6 +134,7 @@ public class SandboxActivity extends FormularActivity {
             v.setVisibility(View.INVISIBLE);
             this.<TextView>findViewById(R.id.ip).setVisibility(View.INVISIBLE);
             this.pad.setVisibility(View.VISIBLE);
+            this.arFragment.getArSceneView().getPlaneRenderer().setVisible(false);
         });
     }
 

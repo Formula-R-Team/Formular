@@ -107,6 +107,11 @@ public final class SimpleGameModel implements GameModel {
     public Race createRace(final User user, final RaceConfiguration configuration, final Course course) {
         final Race race = Race.create(this, user, configuration, course);
         this.addRace(race);
+        final List<? extends Checkpoint> checkpoints = course.getTrack().getCheckpoints();
+        for (int i = 0; i < checkpoints.size(); i++) {
+            this.walls.add(new LineCurve(checkpoints.get(i).getP1(), checkpoints.get((i + 1) % checkpoints.size()).getP1()));
+            this.walls.add(new LineCurve(checkpoints.get(i).getP2(), checkpoints.get((i + 1) % checkpoints.size()).getP2()));
+        }
         return race;
     }
 
@@ -116,6 +121,12 @@ public final class SimpleGameModel implements GameModel {
             driver.step(delta);
         }
         this.stepPhysics(delta);
+        // TODO: good collision
+        for (final KartModel kart : this.karts) {
+            for (final LineCurve wall : this.walls) {
+                kart.collide(wall, delta);
+            }
+        }
         // TODO: optimized onPoseChange
         for (final KartModel kart : this.karts) {
             for (final OnPoseChangeListener listener : this.changeListeners) {

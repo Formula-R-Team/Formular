@@ -1,6 +1,8 @@
 package io.github.formular_team.formular.core;
 
 import io.github.formular_team.formular.core.color.Color;
+import io.github.formular_team.formular.core.math.Intersections;
+import io.github.formular_team.formular.core.math.LineCurve;
 import io.github.formular_team.formular.core.math.Mth;
 import io.github.formular_team.formular.core.math.Vector2;
 
@@ -174,5 +176,19 @@ public class KartModel implements Kart {
 
         this.position.add(this.linearVelocity.clone().multiply(dt));
         this.rotation += dt * this.angularVelocity;
+    }
+
+    public void collide(final LineCurve wall, final float dt) {
+        if (Intersections.lineCircle(wall.getStart(), wall.getEnd(), this.position, 1.2F)) {
+            final Vector2 normal = wall.getEnd().sub(wall.getStart()).normalize().rotateAround(new Vector2(), 0.5F * Mth.PI);
+            final float dot = this.linearVelocity.dot(normal);
+            // orient to direction kart is hitting
+            if (dot > 0.0F) {
+                normal.negate();
+            }
+            this.linearVelocity.reflect(normal).multiply(0.8F);
+            this.position.add(this.linearVelocity.clone().multiply(dt));
+            this.angularVelocity = -this.angularVelocity;
+        }
     }
 }
