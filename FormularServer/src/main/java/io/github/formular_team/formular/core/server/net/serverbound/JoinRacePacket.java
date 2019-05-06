@@ -10,6 +10,7 @@ import io.github.formular_team.formular.core.SimpleDriver;
 import io.github.formular_team.formular.core.race.Race;
 import io.github.formular_team.formular.core.server.net.Connection;
 import io.github.formular_team.formular.core.server.net.Context;
+import io.github.formular_team.formular.core.server.net.KartContext;
 import io.github.formular_team.formular.core.server.net.Packet;
 import io.github.formular_team.formular.core.server.net.PacketHandler;
 import io.github.formular_team.formular.core.server.net.UserContext;
@@ -44,6 +45,7 @@ public class JoinRacePacket implements Packet {
                 // TODO: racer specific listeners
                 race.addListener(new DriverRaceListener(conn, userDriver));
                 race.add(userDriver);
+                return new KartContext(context, kart);
             }
             return context;
         }

@@ -8,12 +8,14 @@ import java.util.logging.Logger;
 import io.github.formular_team.formular.core.GameModel;
 import io.github.formular_team.formular.core.KartModel;
 import io.github.formular_team.formular.core.User;
+import io.github.formular_team.formular.core.race.Race;
 import io.github.formular_team.formular.core.server.net.ByteBuffers;
 import io.github.formular_team.formular.core.server.net.Packet;
 import io.github.formular_team.formular.core.server.net.PacketHandler;
 import io.github.formular_team.formular.core.server.net.ServerContext;
 import io.github.formular_team.formular.core.server.net.UserContext;
 import io.github.formular_team.formular.core.server.net.clientbound.KartAddPacket;
+import io.github.formular_team.formular.core.server.net.clientbound.RaceAddPacket;
 import io.github.formular_team.formular.core.server.net.clientbound.SetPosePacket;
 
 public class NewUserPacket implements Packet {
@@ -47,6 +49,10 @@ public class NewUserPacket implements Packet {
             LOGGER.info("" + packet.user);
             // TODO: better management of sync
             final GameModel game = context.getServer().getGame();
+            final Race race = game.getRace();
+            if (race != null) {
+                context.getRemote().send(new RaceAddPacket(race));
+            }
             for (final KartModel kart : game.getKarts()) {
                 context.getRemote().send(new KartAddPacket(kart));
                 context.getRemote().send(new SetPosePacket(kart));

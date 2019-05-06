@@ -5,7 +5,9 @@ import java.net.InetSocketAddress;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Future;
@@ -106,6 +108,8 @@ public final class SimpleClient implements Client {
         return this.queue.poll(timeout, TimeUnit.MILLISECONDS);
     }
 
+    List<Packet> q = new ArrayList<>();
+
     @Override
     public void run() {
         final SocketChannel socket;
@@ -161,24 +165,36 @@ public final class SimpleClient implements Client {
 
     @Override
     public void send(final Packet packet) {
-        for (final SelectionKey key: this.selector.keys()) {
+        if (!this.connected) {
+            this.q.add(packet);
+            return;
+        }
+        for (final SelectionKey key : this.selector.keys()) {
             final Object att = key.attachment();
             if (att instanceof SimpleConnection) {
                 ((SimpleConnection) att).send(packet);
             }
+
         }
     }
+
+    boolean connected = false;
 
     private void connect(final Selector selector, final SocketChannel socket, final SelectionKey key) throws IOException {
         if (!socket.finishConnect()) {
             throw new AssertionError();
         }
+        this.connected = true;
         key.interestOps(SelectionKey.OP_READ);
         final SimpleConnection connection = new SimpleConnection(key, this.factory.create());
         connection.setContext(this.factory.create(new ClientContext(new Context(connection), this)));
         key.attach(connection);
         LOGGER.info("Connection established");
         this.send(new NewUserPacket(this.user));
+        for (final Packet p : this.q) {
+            this.send(p);
+        }
+        this.q.clear();
     }
 
     private void read(final SelectionKey key) throws IOException {

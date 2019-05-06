@@ -133,9 +133,13 @@ public class SandboxActivity extends FormularActivity {
             this.clientController.submitJob(Endpoint.Job.of(Client::startRace));
             v.setVisibility(View.INVISIBLE);
             this.<TextView>findViewById(R.id.ip).setVisibility(View.INVISIBLE);
-            this.pad.setVisibility(View.VISIBLE);
-            this.arFragment.getArSceneView().getPlaneRenderer().setVisible(false);
+            this.enterInGame();
         });
+    }
+
+    private void enterInGame() {
+        this.pad.setVisibility(View.VISIBLE);
+        this.arFragment.getArSceneView().getPlaneRenderer().setVisible(false);
     }
 
     private void promptConnect(final Node node) {
@@ -153,6 +157,7 @@ public class SandboxActivity extends FormularActivity {
                     settings.edit().putString("lastHostAddress", text).apply();
                     this.startClient(node, address);
                     this.clientController.submitJob(Endpoint.Job.of(Client::joinRace));
+                    this.enterInGame();
                 }
             }
         });

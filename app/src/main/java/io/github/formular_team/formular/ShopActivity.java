@@ -60,7 +60,7 @@ public final class ShopActivity extends FormularActivity {
             @Override
             public void onStopTrackingTouch(final SeekBar seekBar) {
                 final SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(ShopActivity.this);
-                settings.edit().putInt("primaryColor", this.getArgb(seekBar)).apply();
+                settings.edit().putInt("user.color", this.getArgb(seekBar)).apply();
             }
         });
         final WeakOptional<ShopActivity> act = WeakOptional.of(this);
@@ -114,7 +114,7 @@ public final class ShopActivity extends FormularActivity {
                 act.ifPresent(activity -> {
                     final KartNode kart = factory.create(new DirectKartView(new KartModel(0, KartDefinition.createKart2())));
                     final SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(ShopActivity.this);
-                    final int argb = settings.getInt("primaryColor", 0);
+                    final int argb = settings.getInt("user.color", 0);
                     kart.setColor(new Color(argb));
                     activity.kart = kart;
                     platter.addChild(kart);
