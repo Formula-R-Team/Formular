@@ -2,6 +2,7 @@ package io.github.formular_team.formular.core.server.net;
 
 import io.github.formular_team.formular.core.server.net.clientbound.KartAddPacket;
 import io.github.formular_team.formular.core.server.net.clientbound.RaceAddPacket;
+import io.github.formular_team.formular.core.server.net.clientbound.RaceFinishPacket;
 import io.github.formular_team.formular.core.server.net.clientbound.SetCountPacket;
 import io.github.formular_team.formular.core.server.net.clientbound.SetLapPacket;
 import io.github.formular_team.formular.core.server.net.clientbound.SetPosePacket;
@@ -23,6 +24,7 @@ public class Protocol {
                 .accept(SetCountPacket.CREATOR, new SetCountPacket.Handler())
                 .accept(SetPositionPacket.CREATOR, new SetPositionPacket.Handler())
                 .accept(SetLapPacket.CREATOR, new SetLapPacket.Handler())
+                .accept(RaceFinishPacket.CREATOR, new RaceFinishPacket.Handler())
             )
             .when(ServerContext.class, server -> server
                 .accept(NewUserPacket.CREATOR, new NewUserPacket.Handler())

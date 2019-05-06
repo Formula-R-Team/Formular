@@ -126,6 +126,20 @@ public class ArGameView implements GameView {
         );
     }
 
+    @Override
+    public void onFinish() {
+        this.activity.runOnUiThread(() -> {
+            this.countText.setText(R.string.race_finish);
+            final Animation anim = new AlphaAnimation(1.0F, 0.0F);
+            anim.setStartOffset(1200);
+            anim.setDuration(1000);
+            anim.setFillEnabled(true);
+            anim.setFillBefore(true);
+            anim.setFillAfter(true);
+            this.countText.startAnimation(anim);
+        });
+    }
+
     @StringRes
     private int getPositionResource(final int position) {
         switch (position) {

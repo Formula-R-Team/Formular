@@ -8,15 +8,11 @@ import io.github.formular_team.formular.core.GameModel;
 import io.github.formular_team.formular.core.KartModel;
 import io.github.formular_team.formular.core.SimpleDriver;
 import io.github.formular_team.formular.core.race.Race;
-import io.github.formular_team.formular.core.race.RaceListener;
 import io.github.formular_team.formular.core.server.net.Connection;
 import io.github.formular_team.formular.core.server.net.Context;
 import io.github.formular_team.formular.core.server.net.Packet;
 import io.github.formular_team.formular.core.server.net.PacketHandler;
 import io.github.formular_team.formular.core.server.net.UserContext;
-import io.github.formular_team.formular.core.server.net.clientbound.SetCountPacket;
-import io.github.formular_team.formular.core.server.net.clientbound.SetLapPacket;
-import io.github.formular_team.formular.core.server.net.clientbound.SetPositionPacket;
 
 public class JoinRacePacket implements Packet {
     public static final Function<ByteBuffer, JoinRacePacket> CREATOR = JoinRacePacket::new;
@@ -46,29 +42,12 @@ public class JoinRacePacket implements Packet {
                 game.addDriver(userDriver);
                 final Connection conn = context.getRemote();
                 // TODO: racer specific listeners
-                race.addListener(new RaceListener() {
-                    @Override
-                    public void onCountDown(final int count) {
-                        conn.send(new SetCountPacket(count));
-                    }
-
-                    @Override
-                    public void onPositionChange(final Driver driver, final int position) {
-                        if (userDriver.equals(driver)) {
-                            conn.send(new SetPositionPacket(position));
-                        }
-                    }
-
-                    @Override
-                    public void onLapChange(final Driver driver, final int lap) {
-                        if (userDriver.equals(driver)) {
-                            conn.send(new SetLapPacket(lap));
-                        }
-                    }
-                });
+                race.addListener(new DriverRaceListener(conn, userDriver));
                 race.add(userDriver);
             }
             return context;
         }
+
     }
+
 }

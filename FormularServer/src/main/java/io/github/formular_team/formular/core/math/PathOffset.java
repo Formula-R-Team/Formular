@@ -66,7 +66,7 @@ public final class PathOffset {
         for (int n = 0; n <= steps; ) {
             final Frame f0 = frames.get(n % frames.size());
             // TODO: adaptive lead
-            for (int lead = 2; lead <= 12; lead++) {
+            for (int lead = 2; lead <= 24; lead++) {
                 final int ln = n + lead;
                 final Frame f1 = frames.get(ln % frames.size());
                 final Vector2 r = new Vector2();

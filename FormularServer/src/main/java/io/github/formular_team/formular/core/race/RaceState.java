@@ -9,17 +9,14 @@ abstract class RaceState {
         this.race = race;
     }
 
-    abstract RaceState step(final float delta);
+    RaceState step(final float delta) {
+        this.race.stepRacers(delta);
+        return this;
+    }
 
     static class Start extends RaceState {
         Start(final Race race) {
             super(race);
-        }
-
-        @Override
-        RaceState step(final float delta) {
-            this.race.stepRacers(delta);
-            return this;
         }
     }
 
@@ -32,7 +29,7 @@ abstract class RaceState {
 
         @Override
         RaceState step(final float delta) {
-            RaceState ret = this;
+            RaceState ret = super.step(delta);
             if (this.countdown > -1.0F) {
                 final int c = (int) Mth.ceil(this.countdown);
                 this.countdown -= delta;
@@ -42,9 +39,9 @@ abstract class RaceState {
                 if (this.countdown < -1.0F) {
                     this.countdown = -1.0F;
                     ret = new Racing(this.race);
+                    this.race.go();
                 }
             }
-            this.race.stepRacers(delta);
             return ret;
         }
     }
@@ -53,28 +50,11 @@ abstract class RaceState {
         Racing(final Race race) {
             super(race);
         }
-
-        @Override
-        RaceState step(final float delta) {
-            this.race.stepRacers(delta);
-            final Racer first = this.race.getRacerByPlace(0);
-            if (first != null && first.getLapProgress() >= this.race.getConfiguration().getLapCount()) {
-                this.race.onEnd();
-                return new Finish(this.race);
-            }
-            return this;
-        }
     }
 
     static class Finish extends RaceState {
         Finish(final Race race) {
             super(race);
-        }
-
-        @Override
-        RaceState step(final float delta) {
-            this.race.stepRacers(delta);
-            return this;
         }
     }
 }

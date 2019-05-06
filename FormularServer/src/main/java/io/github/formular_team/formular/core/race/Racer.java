@@ -21,14 +21,24 @@ class Racer {
 
     private float progress = -0.5F;
 
+    private float time = -1;
+
     Racer(final Race race, final Driver driver) {
         this.race = race;
         this.driver = driver;
         this.node = this.race.getStartNode();
     }
 
+    void go() {
+        this.time = 0.0F;
+    }
+
     float getLapProgress() {
         return this.lap + this.progress;
+    }
+
+    public Driver getDriver() {
+        return this.driver;
     }
 
     void setPosition(final int position) {
@@ -54,6 +64,9 @@ class Racer {
                 }
             }
         }
+        if (this.time > 0.0F) {
+            this.time += delta;
+        }
         this.lastNode = node;
     }
 
@@ -72,6 +85,10 @@ class Racer {
                 this.progress = prog;
             }
             this.race.onProgress(this.driver, this.progress);
+            if (this.time != -1.0F && this.getLapProgress() >= this.race.getConfiguration().getLapCount()) {
+                this.race.onEnd(this.driver);
+                this.time = -1.0F;
+            }
             return Mth.deltaMod(this.progress, lastProgress, 1.0F);
         }
         return 0.0F;
@@ -89,8 +106,8 @@ class Racer {
             }
         }
     }
-
     // https://iquilezles.org/www/articles/ibilinear/ibilinear.htm
+
     private boolean ibilinear(final Vector2 p, final Vector2 a, final Vector2 b, Vector2 c, Vector2 d, final Vector2 result) {
         // TODO: better triangle case
         if (a.equals(d)) {

@@ -11,6 +11,7 @@ import io.github.formular_team.formular.core.Course;
 import io.github.formular_team.formular.core.Driver;
 import io.github.formular_team.formular.core.GameModel;
 import io.github.formular_team.formular.core.Pose;
+import io.github.formular_team.formular.core.RaceFinishEntry;
 import io.github.formular_team.formular.core.User;
 import io.github.formular_team.formular.core.math.Mth;
 import io.github.formular_team.formular.core.math.Vector2;
@@ -138,15 +139,23 @@ public final class Race {
         }
     }
 
+    public List<RaceFinishEntry> getFinishEntries() {
+        final List<RaceFinishEntry> entries = new ArrayList<>();
+        for (final Racer r : this.sortedRacers) {
+            entries.add(new RaceFinishEntry(r.getDriver().getUser(), 0));
+        }
+        return entries;
+    }
+
     void onBegin() {
         for (final RaceListener listener : this.listeners) {
             listener.onBegin();
         }
     }
 
-    void onEnd() {
+    void onEnd(final Driver driver) {
         for (final RaceListener listener : this.listeners) {
-            listener.onEnd();
+            listener.onEnd(driver);
         }
     }
 
@@ -196,6 +205,12 @@ public final class Race {
 
     public static Race create(final GameModel game, final User owner, final RaceConfiguration configuration, final Course course) {
         return new Race(game, owner, configuration, course);
+    }
+
+    public void go() {
+        for (final Racer r : this.racers) {
+            r.go();
+        }
     }
 
     final class Node {

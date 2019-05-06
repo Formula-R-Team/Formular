@@ -22,11 +22,11 @@ import com.google.common.collect.ImmutableList;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import io.github.formular_team.formular.GraphicsPathVisitor;
-import io.github.formular_team.formular.core.Checkpoint;
 import io.github.formular_team.formular.core.Course;
 import io.github.formular_team.formular.core.Track;
 import io.github.formular_team.formular.core.geom.ExtrudeGeometry;
@@ -39,6 +39,7 @@ import io.github.formular_team.formular.core.math.Matrix3;
 import io.github.formular_team.formular.core.math.Matrix4;
 import io.github.formular_team.formular.core.math.Mth;
 import io.github.formular_team.formular.core.math.Path;
+import io.github.formular_team.formular.core.math.PathOffset;
 import io.github.formular_team.formular.core.math.PathVisitor;
 import io.github.formular_team.formular.core.math.Shape;
 import io.github.formular_team.formular.core.math.TransformingPathVisitor;
@@ -88,14 +89,15 @@ public class CourseNode extends Node {
                         .multiply(new Matrix4().makeTranslation(-center.getX(), 0.0F, -center.getY()))
                     );
                 }});
-                final float wallHeight = 0.42F, wallWidth = 0.34F;
-                final CurvePath wallLeftPath = CourseNode.toCurve3(new Path().fromPoints(track.getCheckpoints().stream().map(Checkpoint::getP1).collect(Collectors.toList()), true));
-                final CurvePath wallRightPath = CourseNode.toCurve3(new Path().fromPoints(track.getCheckpoints().stream().map(Checkpoint::getP2).collect(Collectors.toList()), true));
+                final List<PathOffset.Frame> frames = PathOffset.createFrames(path, 0.0F, (int) (path.getLength() * 2.0F), track.getRoadWidth() + 0.5F);
+                final float wallHeight = 0.2F, wallWidth = 0.4F;
+                final CurvePath wallLeftPath = CourseNode.toCurve3(new Path().fromPoints(frames.stream().map(PathOffset.Frame::getP1).collect(Collectors.toList()), true));
+                final CurvePath wallRightPath = CourseNode.toCurve3(new Path().fromPoints(frames.stream().map(PathOffset.Frame::getP2).collect(Collectors.toList()), true));
                 final Shape wallShape = new Shape();
                 wallShape.moveTo(-roadHeight, -wallWidth * 0.5F);
                 wallShape.lineTo(-roadHeight, wallWidth * 0.5F);
                 wallShape.lineTo(-roadHeight - wallHeight, wallWidth * 0.5F);
-                wallShape.lineTo(-roadHeight - wallHeight, wallWidth * 0.5F);
+                wallShape.lineTo(-roadHeight - wallHeight, -wallWidth * 0.5F);
                 wallShape.closePath();
                 final Geometry wallLeft = new ExtrudeGeometry(ImmutableList.of(wallShape), new ExtrudeGeometry.ExtrudeGeometryParameters() {{
                     this.steps = (int) (wallLeftPath.getLength());

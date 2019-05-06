@@ -32,7 +32,7 @@ public class KartDefinition {
     public static KartDefinition createKart2() {
         final KartDefinition definition = new KartDefinition();
         definition.wheelbase = inchToMeter(2.0F * 16.8F);
-        final float t = 0.55F;
+        final float t = 0.52F;
         definition.b = definition.wheelbase * t;
         definition.c = definition.wheelbase * (1.0F - t);
         definition.h = 0.2F;

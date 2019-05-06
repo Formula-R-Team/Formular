@@ -18,6 +18,8 @@ public interface GameView extends Game {
 
     void setPosition(int position);
 
+    void onFinish();
+
     Optional<Kart> removeKart(final int uniqueId);
 
     Optional<Kart> getKart(final int uniqueId);

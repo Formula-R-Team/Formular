@@ -211,7 +211,7 @@ public class RaceActivity extends FormularActivity {
             public void onBegin() {}
 
             @Override
-            public void onEnd() {
+            public void onEnd(final Driver driver) {
                 if (this.position == 0) {
                     RaceActivity.this.countView.setText(R.string.race_finish);
                     final Animation anim = new AlphaAnimation(1.0F, 0.0F);

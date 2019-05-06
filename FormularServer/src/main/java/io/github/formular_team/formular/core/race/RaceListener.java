@@ -5,7 +5,7 @@ import io.github.formular_team.formular.core.Driver;
 public interface RaceListener {
     default void onBegin() {}
 
-    default void onEnd() {}
+    default void onEnd(final Driver driver) {}
 
     default void onCountDown(final int count) {}
 

@@ -79,7 +79,7 @@ public class SandboxActivity extends FormularActivity {
             this.host = intent.getBooleanExtra(EXTRA_HOST, true);
         }
         this.pad = this.findViewById(R.id.pad);
-        this.wheel = this.findViewById(R.id.joystick);
+        this.wheel = this.findViewById(R.id.wheel);
         this.arFragment = (ArFragment) this.getSupportFragmentManager().findFragmentById(R.id.ar);
         if (this.arFragment == null) {
             throw new RuntimeException("Missing ar fragment");
@@ -132,6 +132,8 @@ public class SandboxActivity extends FormularActivity {
         start.setOnClickListener(v -> {
             this.clientController.submitJob(Endpoint.Job.of(Client::startRace));
             v.setVisibility(View.INVISIBLE);
+            this.<TextView>findViewById(R.id.ip).setVisibility(View.INVISIBLE);
+            this.pad.setVisibility(View.VISIBLE);
         });
     }
 
@@ -199,7 +201,9 @@ public class SandboxActivity extends FormularActivity {
         }
         final WifiManager wifi = this.getSystemService(WifiManager.class);
         final String ip = Formatter.formatIpAddress(wifi.getConnectionInfo().getIpAddress());
-        this.<TextView>findViewById(R.id.ip).setText(ip);
+        final TextView ipText = this.findViewById(R.id.ip);
+        ipText.setVisibility(View.VISIBLE);
+        ipText.setText(ip);
     }
 
     @Override

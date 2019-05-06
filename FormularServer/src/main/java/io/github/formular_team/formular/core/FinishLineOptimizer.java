@@ -58,6 +58,6 @@ public class FinishLineOptimizer {
         if (end < start) {
             end += curvatureCount;
         }
-        return (end / (float) curvatureCount) % 1.0F;
+        return (0.5F * (start + end) / (float) curvatureCount) % 1.0F;
     }
 }
