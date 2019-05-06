@@ -21,8 +21,8 @@ public class CourseReader {
     }
 
     public void read(final Capture capture, final Callback callback) {
-        final float courseRoadWidth = 5.5F;
-        final float courseToSceneScale = 0.05F / courseRoadWidth;
+        final float courseRoadWidth = 5.0F;
+        final float courseToSceneScale = 0.06F / courseRoadWidth;
         final float courseCaptureSize = capture.getRadius() / courseToSceneScale;
         final Path linePath = new Path();
         new PathFinder(
