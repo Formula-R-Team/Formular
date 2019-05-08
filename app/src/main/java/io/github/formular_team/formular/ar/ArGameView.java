@@ -1,19 +1,26 @@
 package io.github.formular_team.formular.ar;
 
 import android.app.Activity;
+import android.content.Context;
+import android.preference.PreferenceManager;
 import android.support.annotation.StringRes;
 import android.util.SparseArray;
+import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import com.google.ar.sceneform.Node;
 import com.google.ar.sceneform.Scene;
 import com.google.ar.sceneform.rendering.Color;
 
+import java.util.ArrayList;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
+import io.github.formular_team.formular.AppPreferences;
+import io.github.formular_team.formular.FinishEntryListAdapter;
 import io.github.formular_team.formular.KartNodeFactory;
 import io.github.formular_team.formular.R;
 import io.github.formular_team.formular.core.Course;
@@ -21,6 +28,7 @@ import io.github.formular_team.formular.core.GameView;
 import io.github.formular_team.formular.core.Kart;
 import io.github.formular_team.formular.core.KartDefinition;
 import io.github.formular_team.formular.core.KartView;
+import io.github.formular_team.formular.core.RaceFinishEntry;
 import io.github.formular_team.formular.core.RacerStatus;
 import io.github.formular_team.formular.core.SimpleControlState;
 import io.github.formular_team.formular.core.StateKartView;
@@ -30,6 +38,8 @@ public class ArGameView implements GameView {
     private final Activity activity;
 
     private final TextView countText, positionText, lapText;
+
+    private final ListView finishPositions;
 
     private final Scene scene;
 
@@ -41,7 +51,7 @@ public class ArGameView implements GameView {
 
     private final Kart.ControlState controlState = new SimpleControlState();
 
-    private ArGameView(final Activity activity, final TextView countText, final TextView positionText, final TextView lapText, final Scene scene, final Node surface, final KartNodeFactory factory, final SparseArray<KartView> karts) {
+    private ArGameView(final Activity activity, final TextView countText, final TextView positionText, final TextView lapText, final Scene scene, final Node surface, final KartNodeFactory factory, final SparseArray<KartView> karts, final ListView finishPositions) {
         this.activity = activity;
         this.countText = countText;
         this.positionText = positionText;
@@ -50,6 +60,8 @@ public class ArGameView implements GameView {
         this.surface = surface;
         this.factory = factory;
         this.karts = karts;
+        this.finishPositions = finishPositions;
+
     }
 
     @Override
@@ -137,6 +149,16 @@ public class ArGameView implements GameView {
             anim.setFillBefore(true);
             anim.setFillAfter(true);
             this.countText.startAnimation(anim);
+
+            ArrayList<RaceFinishEntry> raceFinishEntries = new ArrayList<RaceFinishEntry>();
+            raceFinishEntries.add(new RaceFinishEntry(AppPreferences.getUser(PreferenceManager.getDefaultSharedPreferences(activity)),new Long(1000)));
+            raceFinishEntries.add(new RaceFinishEntry(AppPreferences.getUser(PreferenceManager.getDefaultSharedPreferences(activity)),new Long(2000)));
+            raceFinishEntries.add(new RaceFinishEntry(AppPreferences.getUser(PreferenceManager.getDefaultSharedPreferences(activity)),new Long(3000)));
+
+            FinishEntryListAdapter adapter = new FinishEntryListAdapter(this.activity, R.layout.finish_entry_list_adapter,raceFinishEntries);
+            finishPositions.setAdapter(adapter);
+
+            finishPositions.setVisibility(View.VISIBLE);
         });
     }
 
@@ -174,7 +196,7 @@ public class ArGameView implements GameView {
         return this.controlState;
     }
 
-    public static ArGameView create(final Activity activity, final TextView countText, final TextView positionText, final TextView lapText, final Scene scene, final Node surface, final KartNodeFactory factory) {
-        return new ArGameView(activity, countText, positionText, lapText, scene, surface, factory, new SparseArray<>());
+    public static ArGameView create(final Activity activity, final TextView countText, final TextView positionText, final TextView lapText, final Scene scene, final Node surface, final KartNodeFactory factory, final ListView raceFinishEntries) {
+        return new ArGameView(activity, countText, positionText, lapText, scene, surface, factory, new SparseArray<>(), raceFinishEntries);
     }
 }

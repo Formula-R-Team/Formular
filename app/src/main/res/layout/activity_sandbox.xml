@@ -6,6 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".SandboxActivity">
+
     <fragment
         android:id="@+id/ar"
         android:name="com.google.ar.sceneform.ux.ArFragment"
@@ -53,44 +54,69 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.9"
         android:visibility="invisible" />
+
     <TextView
         android:id="@+id/count"
         android:layout_width="match_parent"
         android:layout_height="240dp"
-        android:textColor="@android:color/white"
-        android:textStyle="bold"
-        android:textAlignment="center"
+        android:autoSizeMaxTextSize="100sp"
+        android:autoSizeMinTextSize="12sp"
+        android:autoSizeStepGranularity="2sp"
+        android:autoSizeTextType="uniform"
         android:paddingLeft="1sp"
         android:paddingRight="1sp"
-        android:autoSizeTextType="uniform"
-        android:autoSizeMinTextSize="12sp"
-        android:autoSizeMaxTextSize="100sp"
-        android:autoSizeStepGranularity="2sp"
+        android:textAlignment="center"
+        android:textColor="@android:color/white"
+        android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.498"
+        tools:layout_editor_absoluteX="-97dp" />
+
     <RelativeLayout
+        android:id="@+id/relativeLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="24dp"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
+
         <TextView
             android:id="@+id/lap"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentStart="true"
-            android:textSize="30sp"
             android:textColor="@android:color/white"
+            android:textSize="30sp"
             android:textStyle="bold" />
+
         <TextView
             android:id="@+id/position"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
             android:layout_toStartOf="@+id/lap"
-            android:textSize="30sp"
             android:textColor="@android:color/white"
+            android:textSize="30sp"
             android:textStyle="bold" />
+
+
     </RelativeLayout>
+
+    <ListView
+        android:id="@+id/race_finish_positions"
+        android:layout_width="345dp"
+        android:layout_height="471dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toBottomOf="@+id/ar"
+        app:layout_constraintEnd_toEndOf="@+id/count"
+        app:layout_constraintHorizontal_bias="0.568"
+        app:layout_constraintStart_toStartOf="@+id/count"
+        app:layout_constraintTop_toTopOf="@+id/relativeLayout"
+        app:layout_constraintVertical_bias="0.692" />
+
 </android.support.constraint.ConstraintLayout>

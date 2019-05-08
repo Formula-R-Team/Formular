@@ -10,8 +10,10 @@ import android.support.v7.app.AlertDialog;
 import android.text.format.Formatter;
 import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import com.google.ar.core.Frame;
@@ -26,6 +28,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 
 import io.github.formular_team.formular.ar.ArGameView;
 import io.github.formular_team.formular.ar.Rectifier;
@@ -33,6 +36,7 @@ import io.github.formular_team.formular.core.Capture;
 import io.github.formular_team.formular.core.Course;
 import io.github.formular_team.formular.core.CourseReader;
 import io.github.formular_team.formular.core.Kart;
+import io.github.formular_team.formular.core.RaceFinishEntry;
 import io.github.formular_team.formular.core.SimpleControlState;
 import io.github.formular_team.formular.core.SimpleGameModel;
 import io.github.formular_team.formular.core.User;
@@ -121,6 +125,8 @@ public class SandboxActivity extends FormularActivity {
         final WeakOptional<SandboxActivity> act = WeakOptional.of(this);
         SimpleKartNodeFactory.create(this, R.raw.kart_body, R.raw.kart_wheel_front, R.raw.kart_wheel_rear)
             .thenAccept(factory -> act.ifPresent(activity -> activity.factory = factory));
+
+
     }
 
     private void startRace(final Node surface, final RaceConfiguration config, final Course course) {
@@ -191,7 +197,7 @@ public class SandboxActivity extends FormularActivity {
 
     private void startClient(final Node surface, final InetSocketAddress address) {
         try {
-            this.clientController = EndpointController.create(SimpleClient.open(address, this.user, ArGameView.create(this, this.findViewById(R.id.count), this.findViewById(R.id.position), this.findViewById(R.id.lap) , this.arFragment.getArSceneView().getScene(), surface, this.factory), 30));
+            this.clientController = EndpointController.create(SimpleClient.open(address, this.user, ArGameView.create(this, this.findViewById(R.id.count), this.findViewById(R.id.position), this.findViewById(R.id.lap) , this.arFragment.getArSceneView().getScene(), surface, this.factory, this.findViewById(R.id.race_finish_positions)), 30));
             this.clientController.start();
         } catch (final IOException e) {
             Log.e(TAG, "Error creating client", e);

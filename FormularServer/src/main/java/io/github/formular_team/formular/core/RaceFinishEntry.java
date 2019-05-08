@@ -8,11 +8,14 @@ public final class RaceFinishEntry {
     public RaceFinishEntry(final User user, final long time) {
         this.user = user;
         this.time = time;
+
     }
 
     public User getUser() {
         return this.user;
     }
+
+
 
     /**
      * @return time in milliseconds
