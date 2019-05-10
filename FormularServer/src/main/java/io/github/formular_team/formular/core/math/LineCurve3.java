@@ -45,12 +45,12 @@ public class LineCurve3 extends Curve {
     @Override
     public Vector3 getPoint(final float t) {
         if (t == 0.0F) {
-            return this.v1.clone();
+            return this.v1.copy();
         }
         if (t == 1.0F) {
-            return this.v2.clone();
+            return this.v2.copy();
         }
-        final Vector3 point = this.v2.clone();
+        final Vector3 point = this.v2.copy();
         point.sub(this.v1);
         point.multiply(t);
         point.add(this.v1);
@@ -84,7 +84,7 @@ public class LineCurve3 extends Curve {
 
     @Override
     public LineCurve3 clone() {
-        return new LineCurve3(this.v1.clone(), this.v2.clone());
+        return new LineCurve3(this.v1.copy(), this.v2.copy());
     }
 
     @Override

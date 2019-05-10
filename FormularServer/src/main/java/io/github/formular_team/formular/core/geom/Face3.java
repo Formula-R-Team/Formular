@@ -243,7 +243,7 @@ public class Face3 {
 		face.materialIndex = this.materialIndex;
 
 		for (int i = 0, il = this.vertexNormals.size(); i < il; i++)
-			face.vertexNormals.add(this.vertexNormals.get(i).clone());
+			face.vertexNormals.add(this.vertexNormals.get(i).copy());
 
 		for (int i = 0, il = this.vertexColors.size(); i < il; i++)
 			face.vertexColors.add(this.vertexColors.get(i).copy());

@@ -166,10 +166,10 @@ public class Vector3 extends Vector2 {
         final float x = this.x;
         final float y = this.y;
         final float z = this.z;
-        final Float32Array e = m.getArray();
-        this.x = e.get(0) * x + e.get(3) * y + e.get(6) * z;
-        this.y = e.get(1) * x + e.get(4) * y + e.get(7) * z;
-        this.z = e.get(2) * x + e.get(5) * y + e.get(8) * z;
+        final float[] e = m.getArray();
+        this.x = e[0] * x + e[3] * y + e[6] * z;
+        this.y = e[1] * x + e[4] * y + e[7] * z;
+        this.z = e[2] * x + e[5] * y + e[8] * z;
         return this;
     }
 
@@ -177,10 +177,10 @@ public class Vector3 extends Vector2 {
         final float x = this.x;
         final float y = this.y;
         final float z = this.z;
-        final Float32Array e = m.getArray();
-        this.x = e.get(0) * x + e.get(4) * y + e.get(8) * z + e.get(12);
-        this.y = e.get(1) * x + e.get(5) * y + e.get(9) * z + e.get(13);
-        this.z = e.get(2) * x + e.get(6) * y + e.get(10) * z + e.get(14);
+        final float[] e = m.getArray();
+        this.x = e[0] * x + e[4] * y + e[8] * z + e[12];
+        this.y = e[1] * x + e[5] * y + e[9] * z + e[13];
+        this.z = e[2] * x + e[6] * y + e[10] * z + e[14];
         return this;
     }
 
@@ -206,11 +206,11 @@ public class Vector3 extends Vector2 {
         final float x = this.x;
         final float y = this.y;
         final float z = this.z;
-        final Float32Array e = m.getArray();
-        final float d = 1.0f / (e.get(3) * x + e.get(7) * y + e.get(11) * z + e.get(15));
-        this.x = (e.get(0) * x + e.get(4) * y + e.get(8) * z + e.get(12)) * d;
-        this.y = (e.get(1) * x + e.get(5) * y + e.get(9) * z + e.get(13)) * d;
-        this.z = (e.get(2) * x + e.get(6) * y + e.get(10) * z + e.get(14)) * d;
+        final float[] e = m.getArray();
+        final float d = 1.0f / (e[3] * x + e[7] * y + e[11] * z + e[15]);
+        this.x = (e[0] * x + e[4] * y + e[8] * z + e[12]) * d;
+        this.y = (e[1] * x + e[5] * y + e[9] * z + e[13]) * d;
+        this.z = (e[2] * x + e[6] * y + e[10] * z + e[14]) * d;
         return this;
     }
 
@@ -231,10 +231,10 @@ public class Vector3 extends Vector2 {
         final float x = this.x;
         final float y = this.y;
         final float z = this.z;
-        final Float32Array e = m.getArray();
-        this.x = e.get(0) * x + e.get(4) * y + e.get(8) * z;
-        this.y = e.get(1) * x + e.get(5) * y + e.get(9) * z;
-        this.z = e.get(2) * x + e.get(6) * y + e.get(10) * z;
+        final float[] e = m.getArray();
+        this.x = e[0] * x + e[4] * y + e[8] * z;
+        this.y = e[1] * x + e[5] * y + e[9] * z;
+        this.z = e[2] * x + e[6] * y + e[10] * z;
         this.normalize();
         return this;
     }
@@ -427,17 +427,17 @@ public class Vector3 extends Vector2 {
     }
 
     public Vector3 setFromMatrixPosition(final Matrix4 m) {
-        this.x = m.getArray().get(12);
-        this.y = m.getArray().get(13);
-        this.z = m.getArray().get(14);
+        this.x = m.getArray()[12];
+        this.y = m.getArray()[13];
+        this.z = m.getArray()[14];
         return this;
     }
 
     public Vector3 setFromMatrixScale(final Matrix4 m) {
-        final Float32Array el = m.getArray();
-        final float sx = this.set(el.get(0), el.get(1), el.get(2)).length();
-        final float sy = this.set(el.get(4), el.get(5), el.get(6)).length();
-        final float sz = this.set(el.get(8), el.get(9), el.get(10)).length();
+        final float[] el = m.getArray();
+        final float sx = this.set(el[0], el[1], el[2]).length();
+        final float sy = this.set(el[4], el[5], el[6]).length();
+        final float sz = this.set(el[8], el[9], el[10]).length();
         this.x = sx;
         this.y = sy;
         this.z = sz;
@@ -446,10 +446,10 @@ public class Vector3 extends Vector2 {
 
     public Vector3 setFromMatrixColumn(final int index, final Matrix4 matrix) {
         final int offset = index * 4;
-        final Float32Array me = matrix.getArray();
-        this.x = me.get(offset);
-        this.y = me.get(offset + 1);
-        this.z = me.get(offset + 2);
+        final float[] me = matrix.getArray();
+        this.x = me[offset];
+        this.y = me[offset + 1];
+        this.z = me[offset + 2];
         return this;
     }
 
@@ -473,33 +473,32 @@ public class Vector3 extends Vector2 {
     }
 
     @Override
-    public Vector3 fromArray(final Float32Array array) {
+    public Vector3 fromArray(final float[] array) {
         return this.fromArray(array, 0);
     }
 
     @Override
-    public Vector3 fromArray(final Float32Array array, final int offset) {
-        this.x = array.get(offset);
-        this.y = array.get(offset + 1);
-        this.z = array.get(offset + 2);
+    public Vector3 fromArray(final float[] array, final int offset) {
+        this.x = array[offset];
+        this.y = array[offset + 1];
+        this.z = array[offset + 2];
         return this;
     }
 
     @Override
-    public Float32Array toArray() {
-        return this.toArray(Float32Array.create(3), 0);
+    public float[] toArray() {
+        return this.toArray(new float[3], 0);
     }
 
     @Override
-    public Float32Array toArray(final Float32Array array, final int offset) {
-        array.set(offset, this.x);
-        array.set(offset + 1, this.y);
-        array.set(offset + 2, this.z);
+    public float[] toArray(final float[] array, final int offset) {
+        array[offset] = this.x;
+        array[offset + 1] = this.y;
+        array[offset + 2] = this.z;
         return array;
     }
 
-    @Override
-    public Vector3 clone() {
+    public Vector3 copy() {
         return new Vector3(this.getX(), this.getY(), this.getZ());
     }
 

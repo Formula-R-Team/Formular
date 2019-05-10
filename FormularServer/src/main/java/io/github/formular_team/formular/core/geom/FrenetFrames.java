@@ -59,8 +59,8 @@ public class FrenetFrames {
 
         // compute the slowly-varying normal and binormal vectors for each segment on the path
         for (int i = 1; i <= segments; i++) {
-            this.normals.add(this.normals.get(i - 1).clone());
-            this.binormals.add(this.binormals.get(i - 1).clone());
+            this.normals.add(this.normals.get(i - 1).copy());
+            this.binormals.add(this.binormals.get(i - 1).copy());
             vec.cross(this.tangents.get(i - 1), this.tangents.get(i));
             if (vec.length() > EPSILON) {
                 vec.normalize();

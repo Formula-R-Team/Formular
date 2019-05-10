@@ -1,4 +1,4 @@
-package io.github.formular_team.formular.core.math;/*
+/*
  * Copyright 2012 Alex Usachev, thothbot@gmail.com
  *
  * This file is part of Parallax project.
@@ -15,6 +15,7 @@ package io.github.formular_team.formular.core.math;/*
  * 3.0 Unported License along with Parallax.
  * If not, see http://creativecommons.org/licenses/by/3.0/.
  */
+package io.github.formular_team.formular.core.math;
 
 /**
  * Implementation of Quaternion which provide a convenient mathematical notation 
@@ -291,17 +292,17 @@ public class Quaternion
     public Quaternion setFromRotationMatrix(final Matrix4 m )
     {
 
-        final Float32Array te = m.getArray();
+        final float[] te = m.getArray();
 
-        final float m11 = te.get(0);
-        final float m12 = te.get(4);
-        final float m13 = te.get(8);
-        final float m21 = te.get(1);
-        final float m22 = te.get(5);
-        final float m23 = te.get(9);
-        final float m31 = te.get(2);
-        final float m32 = te.get(6);
-        final float m33 = te.get(10);
+        final float m11 = te[0];
+        final float m12 = te[4];
+        final float m13 = te[8];
+        final float m21 = te[1];
+        final float m22 = te[5];
+        final float m23 = te[9];
+        final float m31 = te[2];
+        final float m32 = te[6];
+        final float m33 = te[10];
 
         final float trace = m11 + m22 + m33;
         final float s;

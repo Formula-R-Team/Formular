@@ -343,13 +343,13 @@ public class Geometry extends AbstractGeometry {
             face = this.faces.get(f);
 
             if (!face.getVertexNormals().isEmpty()) {
-                face.getVertexNormals().set(0, vertices[face.a].clone());
-                face.getVertexNormals().set(1, vertices[face.b].clone());
-                face.getVertexNormals().set(2, vertices[face.c].clone());
+                face.getVertexNormals().set(0, vertices[face.a].copy());
+                face.getVertexNormals().set(1, vertices[face.b].copy());
+                face.getVertexNormals().set(2, vertices[face.c].copy());
             } else {
-                face.getVertexNormals().add(0, vertices[face.a].clone());
-                face.getVertexNormals().add(1, vertices[face.b].clone());
-                face.getVertexNormals().add(2, vertices[face.c].clone());
+                face.getVertexNormals().add(0, vertices[face.a].copy());
+                face.getVertexNormals().add(1, vertices[face.b].copy());
+                face.getVertexNormals().add(2, vertices[face.c].copy());
             }
 
         }
@@ -489,7 +489,7 @@ public class Geometry extends AbstractGeometry {
 
             final Vector3 vertex = vertices2.get(i);
 
-            final Vector3 vertexCopy = vertex.clone();
+            final Vector3 vertexCopy = vertex.copy();
 
             if (matrix != null) {
                 vertexCopy.apply(matrix);
@@ -519,7 +519,7 @@ public class Geometry extends AbstractGeometry {
 
             for (int j = 0, jl = faceVertexNormals.size(); j < jl; j++) {
 
-                final Vector3 normal = faceVertexNormals.get(j).clone();
+                final Vector3 normal = faceVertexNormals.get(j).copy();
 
                 if (normalMatrix != null) {
 
@@ -643,7 +643,7 @@ public class Geometry extends AbstractGeometry {
     public Geometry clone() {
         final Geometry geometry = new Geometry();
         for (int i = 0; i < this.vertices.size(); i++) {
-            geometry.vertices.add(this.vertices.get(i).clone());
+            geometry.vertices.add(this.vertices.get(i).copy());
         }
         for (int i = 0; i < this.faces.size(); i++) {
             geometry.faces.add(this.faces.get(i).clone());

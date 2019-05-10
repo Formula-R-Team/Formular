@@ -348,9 +348,9 @@ public class Vector2 {
 
     public Vector2 apply(final Matrix3 m) {
         final float  x = this.x, y = this.y;
-        final Float32Array e = m.getArray();
-        this.x = e.get(0) * x + e.get(3) * y + e.get(6);
-        this.y = e.get(1) * x + e.get(4) * y + e.get(7);
+        final float[] e = m.getArray();
+        this.x = e[0] * x + e[3] * y + e[6];
+        this.y = e[1] * x + e[4] * y + e[7];
         return this;
     }
 
@@ -384,25 +384,23 @@ public class Vector2 {
         return false;
     }
 
-    public Vector2 fromArray(final Float32Array array) {
+    public Vector2 fromArray(final float[] array) {
         return this.fromArray(array, 0);
     }
 
-    public Vector2 fromArray(final Float32Array array, final int offset) {
-        this.x = array.get(offset);
-        this.y = array.get(offset + 1);
+    public Vector2 fromArray(final float[] array, final int offset) {
+        this.x = array[offset];
+        this.y = array[offset + 1];
         return this;
     }
 
-    public Float32Array toArray() {
-        return this.toArray(Float32Array.create(2), 0);
+    public float[] toArray() {
+        return this.toArray(new float[2], 0);
     }
 
-    public Float32Array toArray(final Float32Array array, final int offset) {
-
-        array.set(offset, this.x);
-        array.set(offset + 1, this.y);
-
+    public float[] toArray(final float[] array, final int offset) {
+        array[offset] = this.x;
+        array[offset + 1] = this.y;
         return array;
     }
 

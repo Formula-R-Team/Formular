@@ -32,8 +32,7 @@ package io.github.formular_team.formular.core.math;/*
  * @author thothbot
  */
 public class Matrix4 {
-
-    private final Float32Array elements;
+    private final float[] elements;
 
     // Temporary variables
     private static final Vector3 _x = new Vector3();
@@ -59,7 +58,7 @@ public class Matrix4 {
      * }</pre>
      */
     public Matrix4() {
-        this.elements = Float32Array.create(16);
+        this.elements = new float[16];
         this.identity();
     }
 
@@ -79,7 +78,7 @@ public class Matrix4 {
                    final float n21, final float n22, final float n23, final float n24,
                    final float n31, final float n32, final float n33, final float n34,
                    final float n41, final float n42, final float n43, final float n44) {
-        this.elements = Float32Array.create(16);
+        this.elements = new float[16];
         this.set(
             n11, n12, n13, n14,
             n21, n22, n23, n24,
@@ -102,8 +101,8 @@ public class Matrix4 {
      *
      * @return the Array
      */
-    public Float32Array getArray() {
-        return elements;
+    public float[] getArray() {
+        return this.elements;
     }
 
     /**
@@ -124,25 +123,25 @@ public class Matrix4 {
         final float n21, final float n22, final float n23, final float n24,
         final float n31, final float n32, final float n33, final float n34,
         final float n41, final float n42, final float n43, final float n44) {
-        this.getArray().set(0, n11);
-        this.getArray().set(1, n21);
-        this.getArray().set(2, n31);
-        this.getArray().set(3, n41);
+        this.getArray()[0] = n11;
+        this.getArray()[1] = n21;
+        this.getArray()[2] = n31;
+        this.getArray()[3] = n41;
 
-        this.getArray().set(4, n12);
-        this.getArray().set(5, n22);
-        this.getArray().set(6, n32);
-        this.getArray().set(7, n42);
+        this.getArray()[4] = n12;
+        this.getArray()[5] = n22;
+        this.getArray()[6] = n32;
+        this.getArray()[7] = n42;
 
-        this.getArray().set(8, n13);
-        this.getArray().set(9, n23);
-        this.getArray().set(10, n33);
-        this.getArray().set(11, n43);
+        this.getArray()[8] = n13;
+        this.getArray()[9] = n23;
+        this.getArray()[10] = n33;
+        this.getArray()[11] = n43;
 
-        this.getArray().set(12, n14);
-        this.getArray().set(13, n24);
-        this.getArray().set(14, n34);
-        this.getArray().set(15, n44);
+        this.getArray()[12] = n14;
+        this.getArray()[13] = n24;
+        this.getArray()[14] = n34;
+        this.getArray()[15] = n44;
 
         return this;
     }
@@ -175,23 +174,23 @@ public class Matrix4 {
      * @return the current matrix
      */
     public Matrix4 copy(final Matrix4 m) {
-        final Float32Array me = m.getArray();
+        final float[] me = m.getArray();
         return this.set(
-            me.get(0), me.get(4), me.get(8), me.get(12),
-            me.get(1), me.get(5), me.get(9), me.get(13),
-            me.get(2), me.get(6), me.get(10), me.get(14),
-            me.get(3), me.get(7), me.get(11), me.get(15)
+            me[0], me[4], me[8], me[12],
+            me[1], me[5], me[9], me[13],
+            me[2], me[6], me[10], me[14],
+            me[3], me[7], me[11], me[15]
         );
     }
 
     public Matrix4 copyPosition(final Matrix4 m) {
 
-        final Float32Array te = this.getArray();
-        final Float32Array me = m.getArray();
+        final float[] te = this.getArray();
+        final float[] me = m.getArray();
 
-        te.set(12, me.get(12));
-        te.set(13, me.get(13));
-        te.set(14, me.get(14));
+        te[12] = me[12];
+        te[13] = me[13];
+        te[14] = me[14];
 
         return this;
     }
@@ -203,32 +202,32 @@ public class Matrix4 {
      * @param m the input matrix
      */
     public Matrix4 extractRotation(final Matrix4 m) {
-        final Float32Array me = m.getArray();
+        final float[] me = m.getArray();
 
         final Vector3 v1 = new Vector3();
 
-        final float scaleX = 1.0F / v1.set(me.get(0), me.get(1), me.get(2)).length();
-        final float scaleY = 1.0F / v1.set(me.get(4), me.get(5), me.get(6)).length();
-        final float scaleZ = 1.0F / v1.set(me.get(8), me.get(9), me.get(10)).length();
+        final float scaleX = 1.0F / v1.set(me[0], me[1], me[2]).length();
+        final float scaleY = 1.0F / v1.set(me[4], me[5], me[6]).length();
+        final float scaleZ = 1.0F / v1.set(me[8], me[9], me[10]).length();
 
-        this.getArray().set(0, me.get(0) * scaleX);
-        this.getArray().set(1, me.get(1) * scaleX);
-        this.getArray().set(2, me.get(2) * scaleX);
+        this.getArray()[0] = me[0] * scaleX;
+        this.getArray()[1] = me[1] * scaleX;
+        this.getArray()[2] = me[2] * scaleX;
 
-        this.getArray().set(4, me.get(4) * scaleY);
-        this.getArray().set(5, me.get(5) * scaleY);
-        this.getArray().set(6, me.get(6) * scaleY);
+        this.getArray()[4] = me[4] * scaleY;
+        this.getArray()[5] = me[5] * scaleY;
+        this.getArray()[6] = me[6] * scaleY;
 
-        this.getArray().set(8, me.get(8) * scaleZ);
-        this.getArray().set(9, me.get(9) * scaleZ);
-        this.getArray().set(10, me.get(10) * scaleZ);
+        this.getArray()[8] = me[8] * scaleZ;
+        this.getArray()[9] = me[9] * scaleZ;
+        this.getArray()[10] = me[10] * scaleZ;
 
         return this;
     }
 
 //    public Matrix4 makeRotationFromEuler( Euler euler ) {
 //
-//        Float32Array te = this.getArray();
+//        float[] te = this.getArray();
 //
 //        float x = euler.getX(), y = euler.getY(), z = euler.getZ();
 //        float a = Math.cos( x ), b = Math.sin( x );
@@ -239,150 +238,140 @@ public class Matrix4 {
 //
 //            float ae = a * e, af = a * f, be = b * e, bf = b * f;
 //
-//            te.set(0, c * e);
-//            te.set(4, - c * f);
-//            te.set(8, d);
+//            te[0] = c * e);
+//            te[4] = - c * f);
+//            te[8] = d);
 //
-//            te.set(1, af + be * d);
-//            te.set(5, ae - bf * d);
-//            te.set(9, - b * c);
+//            te[1] = af + be * d);
+//            te[5] = ae - bf * d);
+//            te[9] = - b * c);
 //
-//            te.set(2, bf - ae * d);
-//            te.set(6, be + af * d);
-//            te.set(10, a * c);
+//            te[2] = bf - ae * d);
+//            te[6] = be + af * d);
+//            te[10] = a * c);
 //
 //        } else if ( euler.getOrder().equals("YXZ") ) {
 //
 //            float ce = c * e, cf = c * f, de = d * e, df = d * f;
 //
-//            te.set(0, ce + df * b);
-//            te.set(4, de * b - cf);
-//            te.set(8, a * d);
+//            te[0] = ce + df * b);
+//            te[4] = de * b - cf);
+//            te[8] = a * d);
 //
-//            te.set(1, a * f);
-//            te.set(5, a * e);
-//            te.set(9, - b);
+//            te[1] = a * f);
+//            te[5] = a * e);
+//            te[9] = - b);
 //
-//            te.set(2, cf * b - de);
-//            te.set(6, df + ce * b);
-//            te.set(10, a * c);
+//            te[2] = cf * b - de);
+//            te[6] = df + ce * b);
+//            te[10] = a * c);
 //
 //        } else if ( euler.getOrder().equals("ZXY") ) {
 //
 //            float ce = c * e, cf = c * f, de = d * e, df = d * f;
 //
-//            te.set(0, ce - df * b);
-//            te.set(4, - a * f);
-//            te.set(8, de + cf * b);
+//            te[0] = ce - df * b);
+//            te[4] = - a * f);
+//            te[8] = de + cf * b);
 //
-//            te.set(1, cf + de * b);
-//            te.set(5, a * e);
-//            te.set(9, df - ce * b);
+//            te[1] = cf + de * b);
+//            te[5] = a * e);
+//            te[9] = df - ce * b);
 //
-//            te.set(2, - a * d);
-//            te.set(6, b);
-//            te.set(10, a * c);
+//            te[2] = - a * d);
+//            te[6] = b);
+//            te[10] = a * c);
 //
 //        } else if ( euler.getOrder().equals("ZYX") ) {
 //
 //            float ae = a * e, af = a * f, be = b * e, bf = b * f;
 //
-//            te.set(0, c * e);
-//            te.set(4, be * d - af);
-//            te.set(8, ae * d + bf);
+//            te[0] = c * e);
+//            te[4] = be * d - af);
+//            te[8] = ae * d + bf);
 //
-//            te.set(1, c * f);
-//            te.set(5, bf * d + ae);
-//            te.set(9, af * d - be);
+//            te[1] = c * f);
+//            te[5] = bf * d + ae);
+//            te[9] = af * d - be);
 //
-//            te.set(2, - d);
-//            te.set(6, b * c);
-//            te.set(10, a * c);
+//            te[2] = - d);
+//            te[6] = b * c);
+//            te[10] = a * c);
 //
 //        } else if ( euler.getOrder().equals("YZX") ) {
 //
 //            float ac = a * c, ad = a * d, bc = b * c, bd = b * d;
 //
-//            te.set(0, c * e);
-//            te.set(4, bd - ac * f);
-//            te.set(8, bc * f + ad);
+//            te[0] = c * e);
+//            te[4] = bd - ac * f);
+//            te[8] = bc * f + ad);
 //
-//            te.set(1, f);
-//            te.set(5, a * e);
-//            te.set(9, - b * e);
+//            te[1] = f);
+//            te[5] = a * e);
+//            te[9] = - b * e);
 //
-//            te.set(2, - d * e);
-//            te.set(6, ad * f + bc);
-//            te.set(10, ac - bd * f);
+//            te[2] = - d * e);
+//            te[6] = ad * f + bc);
+//            te[10] = ac - bd * f);
 //
 //        } else if ( euler.getOrder().equals("XZY") ) {
 //
 //            float ac = a * c, ad = a * d, bc = b * c, bd = b * d;
 //
-//            te.set(0, c * e);
-//            te.set(4, - f);
-//            te.set(8, d * e);
+//            te[0] = c * e);
+//            te[4] = - f);
+//            te[8] = d * e);
 //
-//            te.set(1, ac * f + bd);
-//            te.set(5, a * e);
-//            te.set(9, ad * f - bc);
+//            te[1] = ac * f + bd);
+//            te[5] = a * e);
+//            te[9] = ad * f - bc);
 //
-//            te.set(2, bc * f - ad);
-//            te.set(6, b * e);
-//            te.set(10, bd * f + ac);
+//            te[2] = bc * f - ad);
+//            te[6] = b * e);
+//            te[10] = bd * f + ac);
 //
 //        }
 //
 //        // last column
-//        te.set(3, 0);
-//        te.set(7, 0);
-//        te.set(11, 0);
+//        te[3] = 0);
+//        te[7] = 0);
+//        te[11] = 0);
 //
 //        // bottom row
-//        te.set(12, 0);
-//        te.set(13, 0);
-//        te.set(14, 0);
-//        te.set(15, 1.0);
+//        te[12] = 0);
+//        te[13] = 0);
+//        te[14] = 0);
+//        te[15] = 1.0);
 //
 //        return this;
 //    }
 //
-//    public Matrix4 makeRotationFromQuaternion( Quaternion q ) {
-//
-//        Float32Array te = this.elements;
-//
-//        float x = q.getX(), y = q.getY(), z = q.getZ(), w = q.getW();
-//        float x2 = x + x, y2 = y + y, z2 = z + z;
-//        float xx = x * x2, xy = x * y2, xz = x * z2;
-//        float yy = y * y2, yz = y * z2, zz = z * z2;
-//        float wx = w * x2, wy = w * y2, wz = w * z2;
-//
-//        te.set(0, 1.0 - ( yy + zz ));
-//        te.set(4, xy - wz);
-//        te.set(8, xz + wy);
-//
-//        te.set(1, xy + wz);
-//        te.set(5, 1.0 - ( xx + zz ));
-//        te.set(9, yz - wx);
-//
-//        te.set(2, xz - wy);
-//        te.set(6, yz + wx);
-//        te.set(10, 1.0 - ( xx + yy ));
-//
-//        // last column
-//        te.set(3, 0);
-//        te.set(7, 0);
-//        te.set(11, 0);
-//
-//        // bottom row
-//        te.set(12, 0);
-//        te.set(13, 0);
-//        te.set(14, 0);
-//        te.set(15, 1.0);
-//
-//        return this;
-//
-//    }
+    public Matrix4 makeRotationFromQuaternion(final Quaternion q) {
+        final float[] te = this.elements;
+        final float x = q.getX(), y = q.getY(), z = q.getZ(), w = q.getW();
+        final float x2 = x + x, y2 = y + y, z2 = z + z;
+        final float xx = x * x2, xy = x * y2, xz = x * z2;
+        final float yy = y * y2, yz = y * z2, zz = z * z2;
+        final float wx = w * x2, wy = w * y2, wz = w * z2;
+        te[0] = 1.0F - (yy + zz);
+        te[4] = xy - wz;
+        te[8] = xz + wy;
+        te[1] = xy + wz;
+        te[5] = 1.0F - (xx + zz);
+        te[9] = yz - wx;
+        te[2] = xz - wy;
+        te[6] = yz + wx;
+        te[10] = 1.0F - ( xx + yy );
+        te[3] = 0.0F;
+        te[7] = 0.0F;
+        te[11] = 0.0F;
+        te[12] = 0.0F;
+        te[13] = 0.0F;
+        te[14] = 0.0F;
+        te[15] = 1.0F;
+        return this;
+
+    }
 
     /**
      * Modifies the current matrix by looking at target on defined eye.
@@ -393,7 +382,7 @@ public class Matrix4 {
      * @return the current matrix
      */
     public Matrix4 lookAt(final Vector3 eye, final Vector3 target, final Vector3 up) {
-        final Float32Array te = this.elements;
+        final float[] te = this.elements;
 
         _z.sub(eye, target).normalize();
 
@@ -415,15 +404,15 @@ public class Matrix4 {
         _y.cross(_z, _x);
 
 
-        te.set(0, _x.getX());
-        te.set(4, _y.getX());
-        te.set(8, _z.getX());
-        te.set(1, _x.getY());
-        te.set(5, _y.getY());
-        te.set(9, _z.getY());
-        te.set(2, _x.getZ());
-        te.set(6, _y.getZ());
-        te.set(10, _z.getZ());
+        te[0] = _x.getX();
+        te[4] = _y.getX();
+        te[8] = _z.getX();
+        te[1] = _x.getY();
+        te[5] = _y.getY();
+        te[9] = _z.getY();
+        te[2] = _x.getZ();
+        te[6] = _y.getZ();
+        te[10] = _z.getZ();
 
         return this;
 
@@ -438,62 +427,62 @@ public class Matrix4 {
      * @return the current matrix
      */
     public Matrix4 multiply(final Matrix4 m1, final Matrix4 m2) {
-        final Float32Array ae = m1.getArray();
-        final Float32Array be = m2.getArray();
+        final float[] ae = m1.getArray();
+        final float[] be = m2.getArray();
 
-        final float a11 = ae.get(0);
-        final float a12 = ae.get(4);
-        final float a13 = ae.get(8);
-        final float a14 = ae.get(12);
-        final float a21 = ae.get(1);
-        final float a22 = ae.get(5);
-        final float a23 = ae.get(9);
-        final float a24 = ae.get(13);
-        final float a31 = ae.get(2);
-        final float a32 = ae.get(6);
-        final float a33 = ae.get(10);
-        final float a34 = ae.get(14);
-        final float a41 = ae.get(3);
-        final float a42 = ae.get(7);
-        final float a43 = ae.get(11);
-        final float a44 = ae.get(15);
+        final float a11 = ae[0];
+        final float a12 = ae[4];
+        final float a13 = ae[8];
+        final float a14 = ae[12];
+        final float a21 = ae[1];
+        final float a22 = ae[5];
+        final float a23 = ae[9];
+        final float a24 = ae[13];
+        final float a31 = ae[2];
+        final float a32 = ae[6];
+        final float a33 = ae[10];
+        final float a34 = ae[14];
+        final float a41 = ae[3];
+        final float a42 = ae[7];
+        final float a43 = ae[11];
+        final float a44 = ae[15];
 
-        final float b11 = be.get(0);
-        final float b12 = be.get(4);
-        final float b13 = be.get(8);
-        final float b14 = be.get(12);
-        final float b21 = be.get(1);
-        final float b22 = be.get(5);
-        final float b23 = be.get(9);
-        final float b24 = be.get(13);
-        final float b31 = be.get(2);
-        final float b32 = be.get(6);
-        final float b33 = be.get(10);
-        final float b34 = be.get(14);
-        final float b41 = be.get(3);
-        final float b42 = be.get(7);
-        final float b43 = be.get(11);
-        final float b44 = be.get(15);
+        final float b11 = be[0];
+        final float b12 = be[4];
+        final float b13 = be[8];
+        final float b14 = be[12];
+        final float b21 = be[1];
+        final float b22 = be[5];
+        final float b23 = be[9];
+        final float b24 = be[13];
+        final float b31 = be[2];
+        final float b32 = be[6];
+        final float b33 = be[10];
+        final float b34 = be[14];
+        final float b41 = be[3];
+        final float b42 = be[7];
+        final float b43 = be[11];
+        final float b44 = be[15];
 
-        this.getArray().set(0, (a11 * b11 + a12 * b21 + a13 * b31 + a14 * b41));
-        this.getArray().set(4, (a11 * b12 + a12 * b22 + a13 * b32 + a14 * b42));
-        this.getArray().set(8, (a11 * b13 + a12 * b23 + a13 * b33 + a14 * b43));
-        this.getArray().set(12, (a11 * b14 + a12 * b24 + a13 * b34 + a14 * b44));
+        this.getArray()[0] = (a11 * b11 + a12 * b21 + a13 * b31 + a14 * b41);
+        this.getArray()[4] = (a11 * b12 + a12 * b22 + a13 * b32 + a14 * b42);
+        this.getArray()[8] = (a11 * b13 + a12 * b23 + a13 * b33 + a14 * b43);
+        this.getArray()[12] = (a11 * b14 + a12 * b24 + a13 * b34 + a14 * b44);
 
-        this.getArray().set(1, (a21 * b11 + a22 * b21 + a23 * b31 + a24 * b41));
-        this.getArray().set(5, (a21 * b12 + a22 * b22 + a23 * b32 + a24 * b42));
-        this.getArray().set(9, (a21 * b13 + a22 * b23 + a23 * b33 + a24 * b43));
-        this.getArray().set(13, (a21 * b14 + a22 * b24 + a23 * b34 + a24 * b44));
+        this.getArray()[1] = (a21 * b11 + a22 * b21 + a23 * b31 + a24 * b41);
+        this.getArray()[5] = (a21 * b12 + a22 * b22 + a23 * b32 + a24 * b42);
+        this.getArray()[9] = (a21 * b13 + a22 * b23 + a23 * b33 + a24 * b43);
+        this.getArray()[13] = (a21 * b14 + a22 * b24 + a23 * b34 + a24 * b44);
 
-        this.getArray().set(2, (a31 * b11 + a32 * b21 + a33 * b31 + a34 * b41));
-        this.getArray().set(6, (a31 * b12 + a32 * b22 + a33 * b32 + a34 * b42));
-        this.getArray().set(10, (a31 * b13 + a32 * b23 + a33 * b33 + a34 * b43));
-        this.getArray().set(14, (a31 * b14 + a32 * b24 + a33 * b34 + a34 * b44));
+        this.getArray()[2] = (a31 * b11 + a32 * b21 + a33 * b31 + a34 * b41);
+        this.getArray()[6] = (a31 * b12 + a32 * b22 + a33 * b32 + a34 * b42);
+        this.getArray()[10] = (a31 * b13 + a32 * b23 + a33 * b33 + a34 * b43);
+        this.getArray()[14] = (a31 * b14 + a32 * b24 + a33 * b34 + a34 * b44);
 
-        this.getArray().set(3, (a41 * b11 + a42 * b21 + a43 * b31 + a44 * b41));
-        this.getArray().set(7, (a41 * b12 + a42 * b22 + a43 * b32 + a44 * b42));
-        this.getArray().set(11, (a41 * b13 + a42 * b23 + a43 * b33 + a44 * b43));
-        this.getArray().set(15, (a41 * b14 + a42 * b24 + a43 * b34 + a44 * b44));
+        this.getArray()[3] = (a41 * b11 + a42 * b21 + a43 * b31 + a44 * b41);
+        this.getArray()[7] = (a41 * b12 + a42 * b22 + a43 * b32 + a44 * b42);
+        this.getArray()[11] = (a41 * b13 + a42 * b23 + a43 * b33 + a44 * b43);
+        this.getArray()[15] = (a41 * b14 + a42 * b24 + a43 * b34 + a44 * b44);
 
         return this;
     }
@@ -518,45 +507,40 @@ public class Matrix4 {
      * @return the current matrix
      */
     public Matrix4 multiply(final float s) {
-        this.getArray().set(0, (this.getArray().get(0) * s));
-        this.getArray().set(4, (this.getArray().get(4) * s));
-        this.getArray().set(8, (this.getArray().get(8) * s));
-        this.getArray().set(12, (this.getArray().get(12) * s));
-        this.getArray().set(1, (this.getArray().get(1) * s));
-        this.getArray().set(5, (this.getArray().get(5) * s));
-        this.getArray().set(9, (this.getArray().get(9) * s));
-        this.getArray().set(13, (this.getArray().get(13) * s));
-        this.getArray().set(2, (this.getArray().get(2) * s));
-        this.getArray().set(6, (this.getArray().get(6) * s));
-        this.getArray().set(10, (this.getArray().get(10) * s));
-        this.getArray().set(14, (this.getArray().get(14) * s));
-        this.getArray().set(3, (this.getArray().get(3) * s));
-        this.getArray().set(7, (this.getArray().get(7) * s));
-        this.getArray().set(11, (this.getArray().get(11) * s));
-        this.getArray().set(15, (this.getArray().get(15) * s));
+        this.getArray()[0] = (this.getArray()[0] * s);
+        this.getArray()[4] = (this.getArray()[4] * s);
+        this.getArray()[8] = (this.getArray()[8] * s);
+        this.getArray()[12] = (this.getArray()[12] * s);
+        this.getArray()[1] = (this.getArray()[1] * s);
+        this.getArray()[5] = (this.getArray()[5] * s);
+        this.getArray()[9] = (this.getArray()[9] * s);
+        this.getArray()[13] = (this.getArray()[13] * s);
+        this.getArray()[2] = (this.getArray()[2] * s);
+        this.getArray()[6] = (this.getArray()[6] * s);
+        this.getArray()[10] = (this.getArray()[10] * s);
+        this.getArray()[14] = (this.getArray()[14] * s);
+        this.getArray()[3] = (this.getArray()[3] * s);
+        this.getArray()[7] = (this.getArray()[7] * s);
+        this.getArray()[11] = (this.getArray()[11] * s);
+        this.getArray()[15] = (this.getArray()[15] * s);
 
         return this;
     }
 
-    public Float32Array applyToVector3Array(final Float32Array array) {
-        return this.applyToVector3Array(array, 0, array.getLength());
+    public float[] applyToVector3Array(final float[] array) {
+        return this.applyToVector3Array(array, 0, array.length);
     }
 
-    public Float32Array applyToVector3Array(final Float32Array array, final int offset, final int length) {
+    public float[] applyToVector3Array(final float[] array, final int offset, final int length) {
         for (int i = 0, j = offset; i < length; i += 3, j += 3) {
-
-            _v1.x = array.get(j);
-            _v1.y = array.get(j + 1);
-            _v1.z = array.get(j + 2);
-
+            _v1.x = array[j];
+            _v1.y = array[j + 1];
+            _v1.z = array[j + 2];
             _v1.apply(this);
-
-            array.set(j, _v1.x);
-            array.set(j + 1, _v1.y);
-            array.set(j + 2, _v1.z);
-
+            array[j] = _v1.x;
+            array[j + 1] = _v1.y;
+            array[j + 2] = _v1.z;
         }
-
         return array;
     }
 
@@ -566,22 +550,22 @@ public class Matrix4 {
      * @return the matrix determinant
      */
     public float determinant() {
-        final float n11 = this.getArray().get(0);
-        final float n12 = this.getArray().get(4);
-        final float n13 = this.getArray().get(8);
-        final float n14 = this.getArray().get(12);
-        final float n21 = this.getArray().get(1);
-        final float n22 = this.getArray().get(5);
-        final float n23 = this.getArray().get(9);
-        final float n24 = this.getArray().get(13);
-        final float n31 = this.getArray().get(2);
-        final float n32 = this.getArray().get(6);
-        final float n33 = this.getArray().get(10);
-        final float n34 = this.getArray().get(14);
-        final float n41 = this.getArray().get(3);
-        final float n42 = this.getArray().get(7);
-        final float n43 = this.getArray().get(11);
-        final float n44 = this.getArray().get(15);
+        final float n11 = this.getArray()[0];
+        final float n12 = this.getArray()[4];
+        final float n13 = this.getArray()[8];
+        final float n14 = this.getArray()[12];
+        final float n21 = this.getArray()[1];
+        final float n22 = this.getArray()[5];
+        final float n23 = this.getArray()[9];
+        final float n24 = this.getArray()[13];
+        final float n31 = this.getArray()[2];
+        final float n32 = this.getArray()[6];
+        final float n33 = this.getArray()[10];
+        final float n34 = this.getArray()[14];
+        final float n41 = this.getArray()[3];
+        final float n42 = this.getArray()[7];
+        final float n43 = this.getArray()[11];
+        final float n44 = this.getArray()[15];
 
         //( based on http://www.euclideanspace.com/maths/algebra/matrix/functions/inverse/fourD/index.htm )
 
@@ -629,29 +613,26 @@ public class Matrix4 {
      * @return the current matrix
      */
     public Matrix4 transpose() {
-        final Float32Array te = this.getArray();
+        final float[] te = this.getArray();
         float tmp;
-
-        tmp = te.get(1);
-        te.set(1, te.get(4));
-        te.set(4, tmp);
-        tmp = te.get(2);
-        te.set(2, te.get(8));
-        te.set(8, tmp);
-        tmp = te.get(6);
-        te.set(6, te.get(9));
-        te.set(9, tmp);
-
-        tmp = te.get(3);
-        te.set(3, te.get(12));
-        te.set(12, tmp);
-        tmp = te.get(7);
-        te.set(7, te.get(13));
-        te.set(13, tmp);
-        tmp = te.get(11);
-        te.set(11, te.get(14));
-        te.set(14, tmp);
-
+        tmp = te[1];
+        te[1] = te[4];
+        te[4] = tmp;
+        tmp = te[2];
+        te[2] = te[8];
+        te[8] = tmp;
+        tmp = te[6];
+        te[6] = te[9];
+        te[9] = tmp;
+        tmp = te[3];
+        te[3] = te[12];
+        te[12] = tmp;
+        tmp = te[7];
+        te[7] = te[13];
+        te[13] = tmp;
+        tmp = te[11];
+        te[11] = te[14];
+        te[14] = tmp;
         return this;
     }
 
@@ -669,7 +650,7 @@ public class Matrix4 {
      * @param flat the array for storing matrix values
      * @return the modified input vector
      */
-    public Float32Array flattenToArrayOffset(final Float32Array flat) {
+    public float[] flattenToArrayOffset(final float[] flat) {
         return this.flattenToArrayOffset(flat, 0);
     }
 
@@ -688,27 +669,8 @@ public class Matrix4 {
      * @param offset the offset value
      * @return the modified input vector
      */
-    public Float32Array flattenToArrayOffset(final Float32Array flat, final int offset) {
-        flat.set(offset, this.getArray().get(0));
-        flat.set(offset + 1, this.getArray().get(1));
-        flat.set(offset + 2, this.getArray().get(2));
-        flat.set(offset + 3, this.getArray().get(3));
-
-        flat.set(offset + 4, this.getArray().get(4));
-        flat.set(offset + 5, this.getArray().get(5));
-        flat.set(offset + 6, this.getArray().get(6));
-        flat.set(offset + 7, this.getArray().get(7));
-
-        flat.set(offset + 8, this.getArray().get(8));
-        flat.set(offset + 9, this.getArray().get(9));
-        flat.set(offset + 10, this.getArray().get(10));
-        flat.set(offset + 11, this.getArray().get(11));
-
-        flat.set(offset + 12, this.getArray().get(12));
-        flat.set(offset + 13, this.getArray().get(13));
-        flat.set(offset + 14, this.getArray().get(14));
-        flat.set(offset + 15, this.getArray().get(15));
-
+    public float[] flattenToArrayOffset(final float[] flat, final int offset) {
+        System.arraycopy(this.getArray(), 0, flat, offset, this.getArray().length);
         return flat;
     }
 
@@ -720,10 +682,9 @@ public class Matrix4 {
      * @return the current matrix
      */
     public Matrix4 setPosition(final Vector3 v) {
-        this.getArray().set(12, v.getX());
-        this.getArray().set(13, v.getY());
-        this.getArray().set(14, v.getZ());
-
+        this.getArray()[12] = v.getX();
+        this.getArray()[13] = v.getY();
+        this.getArray()[14] = v.getZ();
         return this;
     }
 
@@ -736,56 +697,48 @@ public class Matrix4 {
      * @param m the matrix to be inverted
      */
     public Matrix4 getInverse(final Matrix4 m) {
-        final Float32Array te = this.getArray();
-        final Float32Array me = m.getArray();
+        final float[] te = this.getArray();
+        final float[] me = m.getArray();
 
-        final float n11 = me.get(0);
-        final float n12 = me.get(4);
-        final float n13 = me.get(8);
-        final float n14 = me.get(12);
-        final float n21 = me.get(1);
-        final float n22 = me.get(5);
-        final float n23 = me.get(9);
-        final float n24 = me.get(13);
-        final float n31 = me.get(2);
-        final float n32 = me.get(6);
-        final float n33 = me.get(10);
-        final float n34 = me.get(14);
-        final float n41 = me.get(3);
-        final float n42 = me.get(7);
-        final float n43 = me.get(11);
-        final float n44 = me.get(15);
-
-        te.set(0, n23 * n34 * n42 - n24 * n33 * n42 + n24 * n32 * n43 - n22 * n34 * n43 - n23 * n32 * n44 + n22 * n33 * n44);
-        te.set(4, n14 * n33 * n42 - n13 * n34 * n42 - n14 * n32 * n43 + n12 * n34 * n43 + n13 * n32 * n44 - n12 * n33 * n44);
-        te.set(8, n13 * n24 * n42 - n14 * n23 * n42 + n14 * n22 * n43 - n12 * n24 * n43 - n13 * n22 * n44 + n12 * n23 * n44);
-        te.set(12, n14 * n23 * n32 - n13 * n24 * n32 - n14 * n22 * n33 + n12 * n24 * n33 + n13 * n22 * n34 - n12 * n23 * n34);
-        te.set(1, n24 * n33 * n41 - n23 * n34 * n41 - n24 * n31 * n43 + n21 * n34 * n43 + n23 * n31 * n44 - n21 * n33 * n44);
-        te.set(5, n13 * n34 * n41 - n14 * n33 * n41 + n14 * n31 * n43 - n11 * n34 * n43 - n13 * n31 * n44 + n11 * n33 * n44);
-        te.set(9, n14 * n23 * n41 - n13 * n24 * n41 - n14 * n21 * n43 + n11 * n24 * n43 + n13 * n21 * n44 - n11 * n23 * n44);
-        te.set(13, n13 * n24 * n31 - n14 * n23 * n31 + n14 * n21 * n33 - n11 * n24 * n33 - n13 * n21 * n34 + n11 * n23 * n34);
-        te.set(2, n22 * n34 * n41 - n24 * n32 * n41 + n24 * n31 * n42 - n21 * n34 * n42 - n22 * n31 * n44 + n21 * n32 * n44);
-        te.set(6, n14 * n32 * n41 - n12 * n34 * n41 - n14 * n31 * n42 + n11 * n34 * n42 + n12 * n31 * n44 - n11 * n32 * n44);
-        te.set(10, n12 * n24 * n41 - n14 * n22 * n41 + n14 * n21 * n42 - n11 * n24 * n42 - n12 * n21 * n44 + n11 * n22 * n44);
-        te.set(14, n14 * n22 * n31 - n12 * n24 * n31 - n14 * n21 * n32 + n11 * n24 * n32 + n12 * n21 * n34 - n11 * n22 * n34);
-        te.set(3, n23 * n32 * n41 - n22 * n33 * n41 - n23 * n31 * n42 + n21 * n33 * n42 + n22 * n31 * n43 - n21 * n32 * n43);
-        te.set(7, n12 * n33 * n41 - n13 * n32 * n41 + n13 * n31 * n42 - n11 * n33 * n42 - n12 * n31 * n43 + n11 * n32 * n43);
-        te.set(11, n13 * n22 * n41 - n12 * n23 * n41 - n13 * n21 * n42 + n11 * n23 * n42 + n12 * n21 * n43 - n11 * n22 * n43);
-        te.set(15, n12 * n23 * n31 - n13 * n22 * n31 + n13 * n21 * n32 - n11 * n23 * n32 - n12 * n21 * n33 + n11 * n22 * n33);
-
-        final float det = n11 * te.get(0) + n21 * te.get(4) + n31 * te.get(8) + n41 * te.get(12);
-
+        final float n11 = me[0];
+        final float n12 = me[4];
+        final float n13 = me[8];
+        final float n14 = me[12];
+        final float n21 = me[1];
+        final float n22 = me[5];
+        final float n23 = me[9];
+        final float n24 = me[13];
+        final float n31 = me[2];
+        final float n32 = me[6];
+        final float n33 = me[10];
+        final float n34 = me[14];
+        final float n41 = me[3];
+        final float n42 = me[7];
+        final float n43 = me[11];
+        final float n44 = me[15];
+        te[0] = n23 * n34 * n42 - n24 * n33 * n42 + n24 * n32 * n43 - n22 * n34 * n43 - n23 * n32 * n44 + n22 * n33 * n44;
+        te[4] = n14 * n33 * n42 - n13 * n34 * n42 - n14 * n32 * n43 + n12 * n34 * n43 + n13 * n32 * n44 - n12 * n33 * n44;
+        te[8] = n13 * n24 * n42 - n14 * n23 * n42 + n14 * n22 * n43 - n12 * n24 * n43 - n13 * n22 * n44 + n12 * n23 * n44;
+        te[12] = n14 * n23 * n32 - n13 * n24 * n32 - n14 * n22 * n33 + n12 * n24 * n33 + n13 * n22 * n34 - n12 * n23 * n34;
+        te[1] = n24 * n33 * n41 - n23 * n34 * n41 - n24 * n31 * n43 + n21 * n34 * n43 + n23 * n31 * n44 - n21 * n33 * n44;
+        te[5] = n13 * n34 * n41 - n14 * n33 * n41 + n14 * n31 * n43 - n11 * n34 * n43 - n13 * n31 * n44 + n11 * n33 * n44;
+        te[9] = n14 * n23 * n41 - n13 * n24 * n41 - n14 * n21 * n43 + n11 * n24 * n43 + n13 * n21 * n44 - n11 * n23 * n44;
+        te[13] = n13 * n24 * n31 - n14 * n23 * n31 + n14 * n21 * n33 - n11 * n24 * n33 - n13 * n21 * n34 + n11 * n23 * n34;
+        te[2] = n22 * n34 * n41 - n24 * n32 * n41 + n24 * n31 * n42 - n21 * n34 * n42 - n22 * n31 * n44 + n21 * n32 * n44;
+        te[6] = n14 * n32 * n41 - n12 * n34 * n41 - n14 * n31 * n42 + n11 * n34 * n42 + n12 * n31 * n44 - n11 * n32 * n44;
+        te[10] = n12 * n24 * n41 - n14 * n22 * n41 + n14 * n21 * n42 - n11 * n24 * n42 - n12 * n21 * n44 + n11 * n22 * n44;
+        te[14] = n14 * n22 * n31 - n12 * n24 * n31 - n14 * n21 * n32 + n11 * n24 * n32 + n12 * n21 * n34 - n11 * n22 * n34;
+        te[3] = n23 * n32 * n41 - n22 * n33 * n41 - n23 * n31 * n42 + n21 * n33 * n42 + n22 * n31 * n43 - n21 * n32 * n43;
+        te[7] = n12 * n33 * n41 - n13 * n32 * n41 + n13 * n31 * n42 - n11 * n33 * n42 - n12 * n31 * n43 + n11 * n32 * n43;
+        te[11] = n13 * n22 * n41 - n12 * n23 * n41 - n13 * n21 * n42 + n11 * n23 * n42 + n12 * n21 * n43 - n11 * n22 * n43;
+        te[15] = n12 * n23 * n31 - n13 * n22 * n31 + n13 * n21 * n32 - n11 * n23 * n32 - n12 * n21 * n33 + n11 * n22 * n33;
+        final float det = n11 * te[0] + n21 * te[4] + n31 * te[8] + n41 * te[12];
         if (det == 0) {
-
-//            Log.error("Matrix4.getInverse(): can't invert matrix, determinant is 0");
-
             this.identity();
             return this;
 
         }
-
         this.multiply(1.0F / det);
-
         return this;
 
     }
@@ -800,26 +753,26 @@ public class Matrix4 {
         final float y = v.y;
         final float z = v.z;
 
-        this.getArray().set(0, (this.getArray().get(0) * x));
-        this.getArray().set(1, (this.getArray().get(1) * x));
-        this.getArray().set(2, (this.getArray().get(2) * x));
-        this.getArray().set(3, (this.getArray().get(3) * x));
+        this.getArray()[0] = (this.getArray()[0] * x);
+        this.getArray()[1] = (this.getArray()[1] * x);
+        this.getArray()[2] = (this.getArray()[2] * x);
+        this.getArray()[3] = (this.getArray()[3] * x);
 
-        this.getArray().set(4, (this.getArray().get(4) * y));
-        this.getArray().set(5, (this.getArray().get(5) * y));
-        this.getArray().set(6, (this.getArray().get(6) * y));
-        this.getArray().set(7, (this.getArray().get(7) * y));
+        this.getArray()[4] = (this.getArray()[4] * y);
+        this.getArray()[5] = (this.getArray()[5] * y);
+        this.getArray()[6] = (this.getArray()[6] * y);
+        this.getArray()[7] = (this.getArray()[7] * y);
 
-        this.getArray().set(8, (this.getArray().get(8) * z));
-        this.getArray().set(9, (this.getArray().get(9) * z));
-        this.getArray().set(10, (this.getArray().get(10) * z));
-        this.getArray().set(11, (this.getArray().get(11) * z));
+        this.getArray()[8] = (this.getArray()[8] * z);
+        this.getArray()[9] = (this.getArray()[9] * z);
+        this.getArray()[10] = (this.getArray()[10] * z);
+        this.getArray()[11] = (this.getArray()[11] * z);
     }
 
     public float getMaxScaleOnAxis() {
-        final float scaleXSq = this.getArray().get(0) * this.getArray().get(0) + this.getArray().get(1) * this.getArray().get(1) + this.getArray().get(2) * this.getArray().get(2);
-        final float scaleYSq = this.getArray().get(4) * this.getArray().get(4) + this.getArray().get(5) * this.getArray().get(5) + this.getArray().get(6) * this.getArray().get(6);
-        final float scaleZSq = this.getArray().get(8) * this.getArray().get(8) + this.getArray().get(9) * this.getArray().get(9) + this.getArray().get(10) * this.getArray().get(10);
+        final float scaleXSq = this.getArray()[0] * this.getArray()[0] + this.getArray()[1] * this.getArray()[1] + this.getArray()[2] * this.getArray()[2];
+        final float scaleYSq = this.getArray()[4] * this.getArray()[4] + this.getArray()[5] * this.getArray()[5] + this.getArray()[6] * this.getArray()[6];
+        final float scaleZSq = this.getArray()[8] * this.getArray()[8] + this.getArray()[9] * this.getArray()[9] + this.getArray()[10] * this.getArray()[10];
 
         return Mth.sqrt(Math.max(scaleXSq, Math.max(scaleYSq, scaleZSq)));
     }
@@ -949,21 +902,19 @@ public class Matrix4 {
         );
     }
 
-//    public Matrix4 compose(Vector3 position, Quaternion quaternion, Vector3 scale)
-//    {
-//        this.makeRotationFromQuaternion( quaternion );
-//        this.scale( scale );
-//        this.setPosition( position );
-//
-//        return this;
-//    }
+    public Matrix4 compose(final Vector3 position, final Quaternion quaternion, final Vector3 scale) {
+        this.makeRotationFromQuaternion(quaternion);
+        this.scale( scale );
+        this.setPosition( position );
+        return this;
+    }
 
     public Matrix4 decompose(final Vector3 position, final Quaternion quaternion, final Vector3 scale) {
-        final Float32Array te = this.elements;
+        final float[] te = this.elements;
 
-        float sx = _vector.set(te.get(0), te.get(1), te.get(2)).length();
-        final float sy = _vector.set(te.get(4), te.get(5), te.get(6)).length();
-        final float sz = _vector.set(te.get(8), te.get(9), te.get(10)).length();
+        float sx = _vector.set(te[0], te[1], te[2]).length();
+        final float sy = _vector.set(te[4], te[5], te[6]).length();
+        final float sz = _vector.set(te[8], te[9], te[10]).length();
 
         // if determine is negative, we need to invert one scale
         final float det = this.determinant();
@@ -971,29 +922,30 @@ public class Matrix4 {
             sx = -sx;
         }
 
-        position.x = te.get(12);
-        position.y = te.get(13);
-        position.z = te.get(14);
+        position.x = te[12];
+        position.y = te[13];
+        position.z = te[14];
 
         // scale the rotation part
 
-        _matrix.elements.set(this.elements); // at this point matrix is incomplete so we can't use .copy()
+        // at this point matrix is incomplete so we can't use .copy()
+        System.arraycopy(this.elements, 0, _matrix.elements, 0, this.elements.length);
 
         final float invSX = 1.0F / sx;
         final float invSY = 1.0F / sy;
         final float invSZ = 1.0F / sz;
 
-        _matrix.elements.set(0, _matrix.elements.get(0) * invSX);
-        _matrix.elements.set(1, _matrix.elements.get(1) * invSX);
-        _matrix.elements.set(2, _matrix.elements.get(2) * invSX);
+        _matrix.elements[0] = _matrix.elements[0] * invSX;
+        _matrix.elements[1] = _matrix.elements[1] * invSX;
+        _matrix.elements[2] = _matrix.elements[2] * invSX;
 
-        _matrix.elements.set(4, _matrix.elements.get(4) * invSY);
-        _matrix.elements.set(5, _matrix.elements.get(5) * invSY);
-        _matrix.elements.set(6, _matrix.elements.get(6) * invSY);
+        _matrix.elements[4] = _matrix.elements[4] * invSY;
+        _matrix.elements[5] = _matrix.elements[5] * invSY;
+        _matrix.elements[6] = _matrix.elements[6] * invSY;
 
-        _matrix.elements.set(8, _matrix.elements.get(8) * invSZ);
-        _matrix.elements.set(9, _matrix.elements.get(9) * invSZ);
-        _matrix.elements.set(10, _matrix.elements.get(10) * invSZ);
+        _matrix.elements[8] = _matrix.elements[8] * invSZ;
+        _matrix.elements[9] = _matrix.elements[9] * invSZ;
+        _matrix.elements[10] = _matrix.elements[10] * invSZ;
 
         quaternion.setFromRotationMatrix(_matrix);
 
@@ -1008,32 +960,29 @@ public class Matrix4 {
      * Creates a frustum matrix.
      */
     public Matrix4 makeFrustum(final float left, final float right, final float bottom, final float top, final float near, final float far) {
-        final Float32Array te = this.getArray();
+        final float[] te = this.getArray();
         final float x = 2.0F * near / (right - left);
         final float y = 2.0F * near / (top - bottom);
-
         final float a = (right + left) / (right - left);
         final float b = (top + bottom) / (top - bottom);
         final float c = -(far + near) / (far - near);
         final float d = -2.0F * far * near / (far - near);
-
-        te.set(0, x);
-        te.set(4, 0);
-        te.set(8, a);
-        te.set(12, 0);
-        te.set(1, 0);
-        te.set(5, y);
-        te.set(9, b);
-        te.set(13, 0);
-        te.set(2, 0);
-        te.set(6, 0);
-        te.set(10, c);
-        te.set(14, d);
-        te.set(3, 0);
-        te.set(7, 0);
-        te.set(11, -1);
-        te.set(15, 0);
-
+        te[0] = x;
+        te[4] = 0;
+        te[8] = a;
+        te[12] = 0;
+        te[1] = 0;
+        te[5] = y;
+        te[9] = b;
+        te[13] = 0;
+        te[2] = 0;
+        te[6] = 0;
+        te[10] = c;
+        te[14] = d;
+        te[3] = 0;
+        te[7] = 0;
+        te[11] = -1;
+        te[15] = 0;
         return this;
     }
 
@@ -1061,32 +1010,29 @@ public class Matrix4 {
      * @return the current Projection Matrix
      */
     public Matrix4 makeOrthographic(final float left, final float right, final float top, final float bottom, final float near, final float far) {
-        final Float32Array te = this.elements;
+        final float[] te = this.elements;
         final float w = right - left;
         final float h = top - bottom;
         final float p = far - near;
-
         final float x = (right + left) / w;
         final float y = (top + bottom) / h;
         final float z = (far + near) / p;
-
-        te.set(0, 2.0F / w);
-        te.set(4, 0.0F);
-        te.set(8, 0.0F);
-        te.set(12, -x);
-        te.set(1, 0.0F);
-        te.set(5, 2.0F / h);
-        te.set(9, 0.0F);
-        te.set(13, -y);
-        te.set(2, 0.0F);
-        te.set(6, 0.0F);
-        te.set(10, -2.0F / p);
-        te.set(14, -z);
-        te.set(3, 0.0F);
-        te.set(7, 0.0F);
-        te.set(11, 0.0F);
-        te.set(15, 1.0F);
-
+        te[0] = 2.0F / w;
+        te[4] = 0.0F;
+        te[8] = 0.0F;
+        te[12] = -x;
+        te[1] = 0.0F;
+        te[5] = 2.0F / h;
+        te[9] = 0.0F;
+        te[13] = -y;
+        te[2] = 0.0F;
+        te[6] = 0.0F;
+        te[10] = -2.0F / p;
+        te[14] = -z;
+        te[3] = 0.0F;
+        te[7] = 0.0F;
+        te[11] = 0.0F;
+        te[15] = 1.0F;
         return this;
     }
 
@@ -1096,14 +1042,13 @@ public class Matrix4 {
      *
      * @return the new instance of matrix
      */
-    public Matrix4 clone() {
-        final Float32Array te = this.getArray();
-
+    public Matrix4 copy() {
+        final float[] te = this.getArray();
         return new Matrix4(
-            te.get(0), te.get(4), te.get(8), te.get(12),
-            te.get(1), te.get(5), te.get(9), te.get(13),
-            te.get(2), te.get(6), te.get(10), te.get(14),
-            te.get(3), te.get(7), te.get(11), te.get(15)
+            te[0], te[4], te[8], te[12],
+            te[1], te[5], te[9], te[13],
+            te[2], te[6], te[10], te[14],
+            te[3], te[7], te[11], te[15]
         );
 
     }
@@ -1113,8 +1058,8 @@ public class Matrix4 {
      */
     public String toString() {
         final StringBuilder retval = new StringBuilder("[");
-        for (int i = 0; i < this.getArray().getLength(); i++) {
-            retval.append(this.getArray().get(i)).append(", ");
+        for (int i = 0; i < this.getArray().length; i++) {
+            retval.append(this.getArray()[i]).append(", ");
         }
         return retval + "]";
     }

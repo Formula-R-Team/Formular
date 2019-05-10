@@ -47,10 +47,10 @@ public class CubicBezierCurve3 extends Curve {
     @Override
     public Vector3 getPoint(final float t) {
         if (t == 0.0F) {
-            return this.v0.clone();
+            return this.v0.copy();
         }
         if (t == 1.0F) {
-            return this.v3.clone();
+            return this.v3.copy();
         }
         final float tx = ShapeUtils.b3(t, this.v0.getX(), this.v1.getX(), this.v2.getX(), this.v3.getX());
         final float ty = ShapeUtils.b3(t, this.v0.getY(), this.v1.getY(), this.v2.getY(), this.v3.getY());
@@ -70,7 +70,7 @@ public class CubicBezierCurve3 extends Curve {
 
     @Override
     public CubicBezierCurve3 clone() {
-        return new CubicBezierCurve3(this.v0.clone(), this.v1.clone(), this.v2.clone(), this.v3.clone());
+        return new CubicBezierCurve3(this.v0.copy(), this.v1.copy(), this.v2.copy(), this.v3.copy());
     }
 
     @Override
