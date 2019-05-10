@@ -6,10 +6,13 @@ import android.content.SharedPreferences;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.StringRes;
 import android.support.v7.app.AlertDialog;
 import android.text.format.Formatter;
 import android.util.Log;
 import android.view.View;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -48,7 +51,7 @@ import io.github.formular_team.formular.core.server.Server;
 import io.github.formular_team.formular.core.server.SimpleClient;
 import io.github.formular_team.formular.core.server.SimpleServer;
 
-public class SandboxActivity extends FormularActivity {
+public class SandboxActivity extends FormularActivity implements OverlayView {
     private static final String TAG = "SandboxActivity";
 
     public static final String EXTRA_HOST = "host";
@@ -227,5 +230,38 @@ public class SandboxActivity extends FormularActivity {
         if (this.serverController != null) {
             this.serverController.stop();
         }
+    }
+
+    @Override
+    public void setCount(int resID) {
+        this.runOnUiThread(() -> {
+            TextView countText = findViewById(R.id.count);
+            countText.setText(resID);
+            final Animation anim = new AlphaAnimation(1.0F, 0.0F);
+            anim.setDuration(1000);
+            anim.setFillEnabled(true);
+            anim.setFillAfter(true);
+            countText.startAnimation(anim);
+        });
+    }
+
+    @Override
+    public void setPosition(int resID) {
+
+        this.runOnUiThread(() -> {
+            TextView posText = findViewById(R.id.position);
+            posText.setText(resID);
+        });
+
+    }
+
+    @Override
+    public void setLap(@StringRes int resID)
+    {
+        this.runOnUiThread(() -> {
+            TextView lapText = findViewById(R.id.lap);
+            lapText.setText(resID);
+        });
+
     }
 }
