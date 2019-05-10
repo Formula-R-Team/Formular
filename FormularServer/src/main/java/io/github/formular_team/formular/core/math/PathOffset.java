@@ -1,6 +1,7 @@
 package io.github.formular_team.formular.core.math;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.Function;
@@ -35,6 +36,9 @@ public final class PathOffset {
     }
 
     public static List<Frame> createFrames(final Curve path, final float start, final int steps, final float width) {
+        if (steps == 0) {
+            return Collections.emptyList();
+        }
         final List<Frame> frames = new ArrayList<>(steps);
         final Frame head = frame(path, start, width);
         frames.add(head);

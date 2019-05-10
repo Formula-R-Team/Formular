@@ -14,7 +14,7 @@ public class PathFinder {
         this.follower = follower;
     }
 
-    public Path find(final ImageMap image) {
+    public void find(final ImageMap image, final ResultConsumer consumer) {
         final TransformMapper map = new TransformMapper(
             new BilinearMapper(new ImageLineMap(image)),
             0.5F * image.width(),
@@ -24,7 +24,29 @@ public class PathFinder {
         final Vector2 start = this.locator.locate(map);
         map.offset(start.getX(), start.getY());
         final Path path = new Path();
-        this.follower.trace(map, new TransformingPathVisitor(path, map.getMatrix()));
-        return path;
+        this.follower.trace(map, new TransformingPathVisitor(path, map.getMatrix()), new PathTracer.ResultConsumer() {
+            @Override
+            public void onClosed() {
+                consumer.onClosed(path);
+            }
+
+            @Override
+            public void onUnclosed() {
+                consumer.onUnclosed(path);
+            }
+
+            @Override
+            public void onFail() {
+                consumer.onFail();
+            }
+        });
+    }
+
+    public interface ResultConsumer {
+        void onClosed(final Path path);
+
+        void onUnclosed(final Path path);
+
+        void onFail();
     }
 }

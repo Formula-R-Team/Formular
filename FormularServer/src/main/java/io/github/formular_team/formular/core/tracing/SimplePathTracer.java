@@ -14,24 +14,27 @@ public class SimplePathTracer implements PathTracer {
 	}
 
 	@Override
-	public boolean trace(final Mapper map, final PathVisitor visitor) {
+	public void trace(final Mapper map, final PathVisitor visitor, final ResultConsumer consumer) {
 		final Vector2 pos = new Vector2(0.0F, 0.0F);
 		float rotation = 0.0F;
 		final TransformMapper view = new TransformMapper(map, pos.getX(), pos.getY(), rotation);
 		visitor.moveTo(pos.getX(), pos.getY());
 		for (int stepNo = 0;; stepNo++) {
 			if (stepNo >= 128) {
-				break; // too long
+				consumer.onFail();
+				break;
 			}
             final float o = this.orientFunc.orient(view);
             if (!Float.isFinite(o)) {
-                break; // no orientation
+                consumer.onUnclosed();
+				break;
             }
 			rotation += o;
 			view.setRotation(rotation);
 			final Vector2 step = view.transformVec(this.stepFunc.step(view));
 			if (step.length() == 0.0F) {
-				break; // dead end
+				consumer.onUnclosed();
+				break;
 			}
 			pos.add(step);
 			view.setTranslation(pos.getX(), pos.getY());
@@ -40,10 +43,10 @@ public class SimplePathTracer implements PathTracer {
 					visitor.lineTo(pos.getX(), pos.getY());
 				}
 				visitor.closePath();
+				consumer.onClosed();
 				break;
 			}
 			visitor.lineTo(pos.getX(), pos.getY());
 		}
-		return true;
 	}
 }

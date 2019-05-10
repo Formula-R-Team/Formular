@@ -33,6 +33,9 @@ public final class OrientFunction implements ToFloatMapFunction {
 				}
 			}
 		}
+		if (n == 0) {
+			return Float.NaN;
+		}
 		final float a = cov(this.bufX, this.bufX, this.bufW, n);
 		final float b = cov(this.bufX, this.bufY, this.bufW, n);
 		final float d = cov(this.bufY, this.bufY, this.bufW, n);

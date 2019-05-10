@@ -5,6 +5,9 @@ import io.github.formular_team.formular.core.math.Path;
 public class FinishLineOptimizer {
     public float get(final Path path) {
         final int curvatureCount = (int) (path.getLength() * 2.0F);
+        if (curvatureCount < 2) {
+            return 0.0F;
+        }
         final float[] curve = new float[curvatureCount];
         for (int i = 0; i < curvatureCount; i++) {
             curve[i] = Math.abs(path.getCurvature(i / (float) curvatureCount));

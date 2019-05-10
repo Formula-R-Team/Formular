@@ -13,10 +13,8 @@ import android.util.Log;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ListView;
 import android.widget.TextView;
 
 import com.google.ar.core.Frame;
@@ -31,15 +29,15 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 import io.github.formular_team.formular.ar.ArGameView;
 import io.github.formular_team.formular.ar.Rectifier;
 import io.github.formular_team.formular.core.Capture;
 import io.github.formular_team.formular.core.Course;
+import io.github.formular_team.formular.core.CourseMetadata;
 import io.github.formular_team.formular.core.CourseReader;
 import io.github.formular_team.formular.core.Kart;
-import io.github.formular_team.formular.core.RaceFinishEntry;
 import io.github.formular_team.formular.core.SimpleControlState;
 import io.github.formular_team.formular.core.SimpleGameModel;
 import io.github.formular_team.formular.core.User;
@@ -101,16 +99,18 @@ public class SandboxActivity extends FormularActivity implements OverlayView {
                     } catch (final NotYetAvailableException e) {
                         throw new RuntimeException(e);
                     }
-                    final CourseReader reader = new CourseReader(this.user);
-                    reader.read(capture, new CourseReader.Callback() {
-                        @Override
-                        public void success(final Course course) {
-                            SandboxActivity.this.startRace(SandboxActivity.this.createAnchor(result), RaceConfiguration.builder().build(), course);
-                        }
+                    final CourseReader reader = new CourseReader();
+                    reader.read(capture,
+                        CourseMetadata.create(this.user, TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()), "My Circuit"),
+                        new CourseReader.ResultConsumer() {
+                            @Override
+                            public void onSuccess(final Course course) {
+                                SandboxActivity.this.startRace(SandboxActivity.this.createAnchor(result), RaceConfiguration.builder().build(), course);
+                            }
 
-                        @Override
-                        public void fail() {}
-                    });
+                            @Override
+                            public void onFail() {}
+                        });
                 } else {
                     this.promptConnect(this.createAnchor(result));
                 }

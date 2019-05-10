@@ -14,7 +14,7 @@ public final class BilinearMapper implements Mapper {
 		final float fx = x - ix;
 		final float fy = y - iy;
 		final float v00 = this.image.get(ix, iy);
-		if (fx == 0.0D && fy == 0.0D) {
+		if (fx == 0.0F && fy == 0.0F) {
 			return v00;
 		}
 		final float v10 = this.image.get(ix + 1, iy);

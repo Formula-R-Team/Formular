@@ -149,6 +149,25 @@ public class RaceActivity extends FormularActivity {
         final float courseToSceneScale = 0.05F / courseRoadWidth;
         final float courseCaptureSize = captureRange / courseToSceneScale;
         final Path linePath = new Path();
+        class Result implements PathFinder.ResultConsumer {
+            private Path path;
+
+            @Override
+            public void onClosed(final Path path) {
+                this.path = path;
+            }
+
+            @Override
+            public void onUnclosed(final Path path) {
+                this.path = path;
+            }
+
+            @Override
+            public void onFail() {
+
+            }
+        }
+        final Result r = new Result();
         new PathFinder(
                 new CirclePathLocator(25),
                 new SimplePathTracer(
@@ -156,12 +175,24 @@ public class RaceActivity extends FormularActivity {
                     new OrientFunction(3)
                 )
             )
-            .find(new BitmapImageMap(rectifiedCapture))
-            .visit(new TransformingPathVisitor(linePath, new Matrix3()
-                .scale(2.0F / captureSize)
-                .translate(-1.0F, -1.0F)
-                .scale(courseCaptureSize, -courseCaptureSize)
-            ));
+            .find(new BitmapImageMap(rectifiedCapture), r);
+        if (r.path == null) {
+            Log.v(TAG, "Curve fail");
+            this.countView.setText("!");
+            final Animation anim = new AlphaAnimation(1.0F, 0.0F);
+            anim.setStartOffset(1500);
+            anim.setDuration(1000);
+            anim.setFillEnabled(true);
+            anim.setFillBefore(true);
+            anim.setFillAfter(true);
+            this.countView.startAnimation(anim);
+            return;
+        }
+        r.path.visit(new TransformingPathVisitor(linePath, new Matrix3()
+            .scale(2.0F / captureSize)
+            .translate(-1.0F, -1.0F)
+            .scale(courseCaptureSize, -courseCaptureSize)
+        ));
         final Path path = Bezier.fitCurve(linePath, 0.175F);
         if (path.getLength() == 0.0F || !path.isClosed()) {
             Log.v(TAG, "Curve not continuous");
