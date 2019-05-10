@@ -24,8 +24,6 @@ import com.google.ar.sceneform.rendering.ModelRenderable;
 import java.lang.ref.WeakReference;
 import java.util.concurrent.CompletableFuture;
 
-import io.github.formular_team.formular.RaceActivity;
-
 /**
  * Model loader class to avoid memory leaks from the activity. Activity and Fragment controller
  * classes have a lifecycle that is controlled by the UI thread. When a reference to one of these
@@ -51,8 +49,8 @@ public class ModelLoader {
 
     /**
      * Starts loading the model specified. The result of the loading is returned asynchronously via
-     * {@link RaceActivity#setRenderable(int, ModelRenderable)} or {@link
-     * RaceActivity#onException(int, Throwable)}.
+     * {@link Listener#setRenderable(int, ModelRenderable)} or {@link
+     * Listener#onException(int, Throwable)}.
      *
      * <p>Multiple models can be loaded at a time by specifying separate ids to differentiate the
      * result on callback.

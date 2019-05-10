@@ -122,11 +122,11 @@ public final class SimpleGameModel implements GameModel {
         }
         this.stepPhysics(delta);
         // TODO: good collision
-        for (final KartModel kart : this.karts) {
+        /*for (final KartModel kart : this.karts) {
             for (final LineCurve wall : this.walls) {
                 kart.collide(wall, delta);
             }
-        }
+        }*/
         // TODO: optimized onPoseChange
         for (final KartModel kart : this.karts) {
             for (final OnPoseChangeListener listener : this.changeListeners) {

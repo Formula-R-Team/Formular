@@ -14,12 +14,9 @@ public final class KartController implements View.OnTouchListener {
 
     private final Consumer<Kart.ControlState> listener;
 
-    private final View wheel;
-
-    public KartController(final Kart.ControlState state, final Consumer<Kart.ControlState> listener, final View wheel) {
+    public KartController(final Kart.ControlState state, final Consumer<Kart.ControlState> listener) {
         this.state = state;
         this.listener = listener;
-        this.wheel = wheel;
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -36,7 +33,7 @@ public final class KartController implements View.OnTouchListener {
                 this.state.setThrottle(-y * 7.5F);
                 this.state.setBrake(0.0F);
                 this.listener.accept(this.state);
-                this.wheel.setRotation(-Mth.toDegrees(angle));
+                ((SteeringWheelView) v).setAngle(-Mth.toDegrees(angle));
                 return true;
             case MotionEvent.ACTION_UP:
                 this.state.setThrottle(0.0F);

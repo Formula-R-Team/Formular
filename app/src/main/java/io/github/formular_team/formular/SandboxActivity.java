@@ -58,7 +58,7 @@ public class SandboxActivity extends FormularActivity implements OverlayView {
 
     private boolean host;
 
-    private View pad, wheel;
+    private View steeringWheel;
 
     private ArFragment arFragment;
 
@@ -83,8 +83,7 @@ public class SandboxActivity extends FormularActivity implements OverlayView {
         if (intent != null) {
             this.host = intent.getBooleanExtra(EXTRA_HOST, true);
         }
-        this.pad = this.findViewById(R.id.pad);
-        this.wheel = this.findViewById(R.id.wheel);
+        this.steeringWheel = this.findViewById(R.id.steering_wheel);
         this.arFragment = (ArFragment) this.getSupportFragmentManager().findFragmentById(R.id.ar);
         if (this.arFragment == null) {
             throw new RuntimeException("Missing ar fragment");
@@ -116,7 +115,7 @@ public class SandboxActivity extends FormularActivity implements OverlayView {
                 }
             }
         });
-        this.pad.setOnTouchListener(new KartController(new SimpleControlState(), state -> {
+        this.steeringWheel.setOnTouchListener(new KartController(new SimpleControlState(), state -> {
             if (this.clientController != null) {
                 final Kart.ControlState copy = new SimpleControlState().copy(state);
                 this.clientController.submitJob(Endpoint.Job.of(c -> {
@@ -124,7 +123,7 @@ public class SandboxActivity extends FormularActivity implements OverlayView {
                     c.getGame().getControlState().copy(copy);
                 }));
             }
-        }, this.wheel));
+        }));
         final WeakOptional<SandboxActivity> act = WeakOptional.of(this);
         SimpleKartNodeFactory.create(this, R.raw.kart_body, R.raw.kart_wheel_front, R.raw.kart_wheel_rear)
             .thenAccept(factory -> act.ifPresent(activity -> activity.factory = factory));
@@ -147,7 +146,7 @@ public class SandboxActivity extends FormularActivity implements OverlayView {
     }
 
     private void enterInGame() {
-        this.pad.setVisibility(View.VISIBLE);
+        this.steeringWheel.setVisibility(View.VISIBLE);
         this.arFragment.getArSceneView().getPlaneRenderer().setVisible(false);
     }
 
