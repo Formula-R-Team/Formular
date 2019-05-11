@@ -18,8 +18,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import io.github.formular_team.formular.core.Course;
-import io.github.formular_team.formular.core.GameView;
+import io.github.formular_team.formular.core.course.Course;
+import io.github.formular_team.formular.core.game.GameView;
 import io.github.formular_team.formular.core.User;
 import io.github.formular_team.formular.core.race.RaceConfiguration;
 import io.github.formular_team.formular.core.server.net.ClientContext;

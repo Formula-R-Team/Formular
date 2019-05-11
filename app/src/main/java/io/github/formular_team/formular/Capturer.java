@@ -6,7 +6,7 @@ import com.google.ar.sceneform.math.Matrix;
 import java.io.Closeable;
 
 import io.github.formular_team.formular.ar.Rectifier;
-import io.github.formular_team.formular.core.Capture;
+import io.github.formular_team.formular.core.course.Capture;
 
 public final class Capturer implements Closeable {
     private final Rectifier rectifier;

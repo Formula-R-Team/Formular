@@ -6,6 +6,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.function.Function;
 
+import io.github.formular_team.formular.core.math.curve.Curve;
+
 public final class PathOffset {
     public static final class Frame {
         private final float t;

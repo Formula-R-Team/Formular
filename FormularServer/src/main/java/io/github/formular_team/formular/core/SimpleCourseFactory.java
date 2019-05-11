@@ -2,7 +2,11 @@ package io.github.formular_team.formular.core;
 
 import java.util.Objects;
 
-import io.github.formular_team.formular.core.math.Path;
+import io.github.formular_team.formular.core.course.Course;
+import io.github.formular_team.formular.core.course.CourseFactory;
+import io.github.formular_team.formular.core.course.CourseMetadata;
+import io.github.formular_team.formular.core.course.track.TrackFactory;
+import io.github.formular_team.formular.core.math.curve.Path;
 
 public final class SimpleCourseFactory implements CourseFactory {
     private final TrackFactory trackFactory;

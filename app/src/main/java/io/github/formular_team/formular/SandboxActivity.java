@@ -33,11 +33,11 @@ import java.util.concurrent.TimeUnit;
 
 import io.github.formular_team.formular.ar.ArGameView;
 import io.github.formular_team.formular.ar.Rectifier;
-import io.github.formular_team.formular.core.Capture;
-import io.github.formular_team.formular.core.Course;
-import io.github.formular_team.formular.core.CourseMetadata;
-import io.github.formular_team.formular.core.CourseReader;
-import io.github.formular_team.formular.core.Kart;
+import io.github.formular_team.formular.core.course.Capture;
+import io.github.formular_team.formular.core.course.Course;
+import io.github.formular_team.formular.core.course.CourseMetadata;
+import io.github.formular_team.formular.core.course.CourseReader;
+import io.github.formular_team.formular.core.kart.Kart;
 import io.github.formular_team.formular.core.SimpleControlState;
 import io.github.formular_team.formular.core.SimpleGameModel;
 import io.github.formular_team.formular.core.User;

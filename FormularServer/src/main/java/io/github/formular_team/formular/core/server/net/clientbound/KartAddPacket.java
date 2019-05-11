@@ -3,8 +3,8 @@ package io.github.formular_team.formular.core.server.net.clientbound;
 import java.nio.ByteBuffer;
 import java.util.function.Function;
 
-import io.github.formular_team.formular.core.GameView;
-import io.github.formular_team.formular.core.Kart;
+import io.github.formular_team.formular.core.game.GameView;
+import io.github.formular_team.formular.core.kart.Kart;
 import io.github.formular_team.formular.core.color.Color;
 import io.github.formular_team.formular.core.math.Vector2;
 import io.github.formular_team.formular.core.server.net.ByteBuffers;

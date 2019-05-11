@@ -1,5 +1,7 @@
 package io.github.formular_team.formular.core;
 
+import io.github.formular_team.formular.core.kart.Kart;
+
 public final class SimpleControlState implements Kart.ControlState {
     private float throttle;
 

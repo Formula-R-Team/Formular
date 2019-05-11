@@ -21,7 +21,7 @@ package io.github.formular_team.formular.core.geom;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.github.formular_team.formular.core.math.Curve;
+import io.github.formular_team.formular.core.math.curve.Curve;
 import io.github.formular_team.formular.core.math.Matrix4;
 import io.github.formular_team.formular.core.math.Mth;
 import io.github.formular_team.formular.core.math.Vector3;

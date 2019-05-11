@@ -7,7 +7,7 @@ import com.google.ar.sceneform.math.Vector3;
 import com.google.ar.sceneform.rendering.Color;
 import com.google.ar.sceneform.rendering.ModelRenderable;
 
-import io.github.formular_team.formular.core.KartView;
+import io.github.formular_team.formular.core.kart.KartView;
 import io.github.formular_team.formular.core.math.Mth;
 
 public class KartNode extends Node {

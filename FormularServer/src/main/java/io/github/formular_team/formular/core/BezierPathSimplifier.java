@@ -1,7 +1,8 @@
 package io.github.formular_team.formular.core;
 
+import io.github.formular_team.formular.core.course.track.PathSimplifier;
 import io.github.formular_team.formular.core.math.Bezier;
-import io.github.formular_team.formular.core.math.Path;
+import io.github.formular_team.formular.core.math.curve.Path;
 
 public final class BezierPathSimplifier implements PathSimplifier {
     private final float error;

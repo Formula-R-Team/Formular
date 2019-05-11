@@ -4,8 +4,8 @@ import java.nio.ByteBuffer;
 import java.util.function.Function;
 
 import io.github.formular_team.formular.core.Driver;
-import io.github.formular_team.formular.core.GameModel;
-import io.github.formular_team.formular.core.KartModel;
+import io.github.formular_team.formular.core.game.GameModel;
+import io.github.formular_team.formular.core.kart.KartModel;
 import io.github.formular_team.formular.core.SimpleDriver;
 import io.github.formular_team.formular.core.race.Race;
 import io.github.formular_team.formular.core.server.net.Connection;

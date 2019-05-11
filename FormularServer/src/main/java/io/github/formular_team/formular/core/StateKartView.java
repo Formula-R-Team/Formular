@@ -1,6 +1,8 @@
 package io.github.formular_team.formular.core;
 
 import io.github.formular_team.formular.core.color.Color;
+import io.github.formular_team.formular.core.kart.KartDefinition;
+import io.github.formular_team.formular.core.kart.KartView;
 import io.github.formular_team.formular.core.math.Vector2;
 
 public class StateKartView implements KartView {

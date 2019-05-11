@@ -3,7 +3,7 @@ package io.github.formular_team.formular.core.server.net.serverbound;
 import java.nio.ByteBuffer;
 import java.util.function.Function;
 
-import io.github.formular_team.formular.core.GameModel;
+import io.github.formular_team.formular.core.game.GameModel;
 import io.github.formular_team.formular.core.race.Race;
 import io.github.formular_team.formular.core.server.net.Context;
 import io.github.formular_team.formular.core.server.net.Packet;

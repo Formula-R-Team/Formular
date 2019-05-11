@@ -1,7 +1,6 @@
 package io.github.formular_team.formular.ar;
 
 import android.app.Activity;
-import android.content.Context;
 import android.preference.PreferenceManager;
 import android.support.annotation.StringRes;
 import android.util.SparseArray;
@@ -23,15 +22,14 @@ import io.github.formular_team.formular.AppPreferences;
 import io.github.formular_team.formular.FinishEntryListAdapter;
 import io.github.formular_team.formular.KartNodeFactory;
 import io.github.formular_team.formular.R;
-import io.github.formular_team.formular.core.Course;
-import io.github.formular_team.formular.core.GameView;
-import io.github.formular_team.formular.core.Kart;
-import io.github.formular_team.formular.core.KartDefinition;
-import io.github.formular_team.formular.core.KartView;
+import io.github.formular_team.formular.core.game.GameView;
+import io.github.formular_team.formular.core.kart.Kart;
+import io.github.formular_team.formular.core.kart.KartDefinition;
+import io.github.formular_team.formular.core.kart.KartView;
 import io.github.formular_team.formular.core.RaceFinishEntry;
-import io.github.formular_team.formular.core.RacerStatus;
 import io.github.formular_team.formular.core.SimpleControlState;
 import io.github.formular_team.formular.core.StateKartView;
+import io.github.formular_team.formular.core.course.Course;
 import io.github.formular_team.formular.core.math.Vector2;
 
 public class ArGameView implements GameView {
@@ -62,11 +60,6 @@ public class ArGameView implements GameView {
         this.karts = karts;
         this.finishPositions = finishPositions;
 
-    }
-
-    @Override
-    public RacerStatus getStatus() {
-        return new RacerStatus();
     }
 
     @Override

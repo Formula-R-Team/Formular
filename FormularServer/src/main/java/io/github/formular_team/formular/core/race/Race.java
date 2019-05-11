@@ -7,9 +7,9 @@ import java.util.List;
 import java.util.ListIterator;
 
 import io.github.formular_team.formular.core.Checkpoint;
-import io.github.formular_team.formular.core.Course;
+import io.github.formular_team.formular.core.course.Course;
 import io.github.formular_team.formular.core.Driver;
-import io.github.formular_team.formular.core.GameModel;
+import io.github.formular_team.formular.core.game.GameModel;
 import io.github.formular_team.formular.core.Pose;
 import io.github.formular_team.formular.core.RaceFinishEntry;
 import io.github.formular_team.formular.core.User;

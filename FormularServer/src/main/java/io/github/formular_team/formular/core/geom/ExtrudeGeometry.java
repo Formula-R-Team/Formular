@@ -26,11 +26,11 @@ import java.util.Objects;
 import java.util.function.UnaryOperator;
 
 import io.github.formular_team.formular.core.color.Color;
-import io.github.formular_team.formular.core.math.Curve;
+import io.github.formular_team.formular.core.math.curve.Curve;
 import io.github.formular_team.formular.core.math.Matrix4;
 import io.github.formular_team.formular.core.math.Mth;
-import io.github.formular_team.formular.core.math.Shape;
-import io.github.formular_team.formular.core.math.ShapeUtils;
+import io.github.formular_team.formular.core.math.curve.Shape;
+import io.github.formular_team.formular.core.math.curve.ShapeUtils;
 import io.github.formular_team.formular.core.math.Vector2;
 import io.github.formular_team.formular.core.math.Vector3;
 

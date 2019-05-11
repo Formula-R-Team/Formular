@@ -1,4 +1,4 @@
-package io.github.formular_team.formular.core.math;/*
+/*
  * Copyright 2012 Alex Usachev, thothbot@gmail.com
  *
  * This file is part of Parallax project.
@@ -15,6 +15,7 @@ package io.github.formular_team.formular.core.math;/*
  * 3.0 Unported License along with Parallax.
  * If not, see http://creativecommons.org/licenses/by/3.0/.
  */
+package io.github.formular_team.formular.core.math;
 
 import java.util.List;
 

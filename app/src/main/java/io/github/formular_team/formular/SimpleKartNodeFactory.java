@@ -9,7 +9,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 import io.github.formular_team.formular.ar.KartNode;
-import io.github.formular_team.formular.core.KartView;
+import io.github.formular_team.formular.core.kart.KartView;
 
 public class SimpleKartNodeFactory implements KartNodeFactory {
     private final ModelRenderable body;

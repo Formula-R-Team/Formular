@@ -1,6 +1,6 @@
 package io.github.formular_team.formular.core.tracing;
 
-import io.github.formular_team.formular.core.math.Path;
+import io.github.formular_team.formular.core.math.curve.Path;
 import io.github.formular_team.formular.core.math.TransformingPathVisitor;
 import io.github.formular_team.formular.core.math.Vector2;
 

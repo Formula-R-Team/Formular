@@ -4,7 +4,11 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import io.github.formular_team.formular.core.math.LineCurve;
+import io.github.formular_team.formular.core.course.Course;
+import io.github.formular_team.formular.core.game.GameModel;
+import io.github.formular_team.formular.core.kart.KartDefinition;
+import io.github.formular_team.formular.core.kart.KartModel;
+import io.github.formular_team.formular.core.math.curve.LineCurve;
 import io.github.formular_team.formular.core.math.Vector2;
 import io.github.formular_team.formular.core.race.Race;
 import io.github.formular_team.formular.core.race.RaceConfiguration;

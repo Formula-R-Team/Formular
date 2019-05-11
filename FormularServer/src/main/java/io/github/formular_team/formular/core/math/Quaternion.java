@@ -18,7 +18,7 @@
 package io.github.formular_team.formular.core.math;
 
 /**
- * Implementation of Quaternion which provide a convenient mathematical notation 
+ * Implementation of Quaternion which provide a convenient mathematical notation
  * for representing orientations and rotations of objects in three dimensions.
  * <p>
  * Quaternion represented by four coordinates: X, Y, Z, W
@@ -32,13 +32,11 @@ package io.github.formular_team.formular.core.math;
  * q.multiplyVector3( v );
  * }
  * </pre>
- * @author thothbot
  *
+ * @author thothbot
  */
-public class Quaternion
-{
-    public static interface QuaternionChangeHandler
-    {
+public class Quaternion {
+    public interface QuaternionChangeHandler {
         void onChange(Quaternion quaternion);
     }
 
@@ -65,13 +63,12 @@ public class Quaternion
     private QuaternionChangeHandler handler;
 
     // Temporary variables
-    static Vector3 _v1  = new Vector3();
+    static Vector3 _v1 = new Vector3();
 
     /**
      * Default constructor will make Quaternion (0.0, 0.0, 0.0, 1.0)
      */
-    public Quaternion()
-    {
+    public Quaternion() {
         this.x = 0.0F;
         this.y = 0.0F;
         this.z = 0.0F;
@@ -81,7 +78,7 @@ public class Quaternion
     /**
      * Constructs and initializes a Quaternion from the specified X, Y, Z, W
      * coordinates.
-     *
+     * <p>
      * Will make Quaternion (X, Y, Z, W)
      *
      * @param x the X coordinate
@@ -89,8 +86,7 @@ public class Quaternion
      * @param z the Z coordinate
      * @param w the W coordinate
      */
-    public Quaternion(final float x, final float y, final float z, final float w)
-    {
+    public Quaternion(final float x, final float y, final float z, final float w) {
         this.x = x;
         this.y = y;
         this.z = z;
@@ -105,23 +101,21 @@ public class Quaternion
      * @param y the y coordinate
      * @param z the z coordinate
      */
-    public Quaternion(final float x, final float y, final float z)
-    {
+    public Quaternion(final float x, final float y, final float z) {
         this();
         this.x = x;
         this.y = y;
         this.z = z;
     }
 
-    public void setHandler(final QuaternionChangeHandler handler)
-    {
+    public void setHandler(final QuaternionChangeHandler handler) {
         this.handler = handler;
     }
 
-    private void onChange()
-    {
-        if(this.handler != null)
+    private void onChange() {
+        if (this.handler != null) {
             this.handler.onChange(Quaternion.this);
+        }
     }
 
     /**
@@ -129,8 +123,7 @@ public class Quaternion
      *
      * @return a X coordinate
      */
-    public float getX()
-    {
+    public float getX() {
         return this.x;
     }
 
@@ -139,8 +132,7 @@ public class Quaternion
      *
      * @return a Y coordinate
      */
-    public float getY()
-    {
+    public float getY() {
         return this.y;
     }
 
@@ -149,8 +141,7 @@ public class Quaternion
      *
      * @return a Z coordinate
      */
-    public float getZ()
-    {
+    public float getZ() {
         return this.z;
     }
 
@@ -159,13 +150,11 @@ public class Quaternion
      *
      * @return a W coordinate
      */
-    public float getW()
-    {
+    public float getW() {
         return this.w;
     }
 
-    public Quaternion set(final float x, final float y, final float z, final float w)
-    {
+    public Quaternion set(final float x, final float y, final float z, final float w) {
         this.x = x;
         this.y = y;
         this.z = z;
@@ -181,8 +170,7 @@ public class Quaternion
      *
      * @param c1 the input Quaternion
      */
-    public Quaternion copy(final Quaternion c1)
-    {
+    public Quaternion copy(final Quaternion c1) {
         this.x = c1.x;
         this.y = c1.y;
         this.z = c1.z;
@@ -264,11 +252,11 @@ public class Quaternion
     /**
      * from
      * <a href="http://www.euclideanspace.com/maths/geometry/rotations/conversions/angleToQuaternion/index.htm">www.euclideanspace.com</a>
-     * @param axis the axis have to be normalized
+     *
+     * @param axis  the axis have to be normalized
      * @param angle the angle
      */
-    public Quaternion setFromAxisAngle(final Vector3 axis, final float angle)
-    {
+    public Quaternion setFromAxisAngle(final Vector3 axis, final float angle) {
         final float halfAngle = angle / 2.0F;
         final float s = Mth.sin(halfAngle);
 
@@ -289,8 +277,7 @@ public class Quaternion
      * @param m
      * @return
      */
-    public Quaternion setFromRotationMatrix(final Matrix4 m )
-    {
+    public Quaternion setFromRotationMatrix(final Matrix4 m) {
 
         final float[] te = m.getArray();
 
@@ -307,40 +294,40 @@ public class Quaternion
         final float trace = m11 + m22 + m33;
         final float s;
 
-        if ( trace > 0 ) {
+        if (trace > 0) {
 
-            s = 0.5F / Mth.sqrt( trace + 1.0F );
+            s = 0.5F / Mth.sqrt(trace + 1.0F);
 
             this.w = 0.25F / s;
-            this.x = ( m32 - m23 ) * s;
-            this.y = ( m13 - m31 ) * s;
-            this.z = ( m21 - m12 ) * s;
+            this.x = (m32 - m23) * s;
+            this.y = (m13 - m31) * s;
+            this.z = (m21 - m12) * s;
 
-        } else if ( m11 > m22 && m11 > m33 ) {
+        } else if (m11 > m22 && m11 > m33) {
 
-            s = 2.0F * Mth.sqrt( 1.0F + m11 - m22 - m33 );
+            s = 2.0F * Mth.sqrt(1.0F + m11 - m22 - m33);
 
-            this.w = ( m32 - m23 ) / s;
+            this.w = (m32 - m23) / s;
             this.x = 0.25F * s;
-            this.y = ( m12 + m21 ) / s;
-            this.z = ( m13 + m31 ) / s;
+            this.y = (m12 + m21) / s;
+            this.z = (m13 + m31) / s;
 
-        } else if ( m22 > m33 ) {
+        } else if (m22 > m33) {
 
-            s = 2.0F * Mth.sqrt( 1.0F + m22 - m11 - m33 );
+            s = 2.0F * Mth.sqrt(1.0F + m22 - m11 - m33);
 
-            this.w = ( m13 - m31 ) / s;
-            this.x = ( m12 + m21 ) / s;
+            this.w = (m13 - m31) / s;
+            this.x = (m12 + m21) / s;
             this.y = 0.25F * s;
-            this.z = ( m23 + m32 ) / s;
+            this.z = (m23 + m32) / s;
 
         } else {
 
-            s = 2.0F * Mth.sqrt( 1.0F + m33 - m11 - m22 );
+            s = 2.0F * Mth.sqrt(1.0F + m33 - m11 - m22);
 
-            this.w = ( m21 - m12 ) / s;
-            this.x = ( m13 + m31 ) / s;
-            this.y = ( m23 + m32 ) / s;
+            this.w = (m21 - m12) / s;
+            this.x = (m13 + m31) / s;
+            this.y = (m23 + m32) / s;
             this.z = 0.25F * s;
 
         }
@@ -359,29 +346,28 @@ public class Quaternion
      * @param vTo
      * @return
      */
-    public Quaternion setFromUnitVectors(final Vector3 vFrom, final Vector3 vTo )
-    {
+    public Quaternion setFromUnitVectors(final Vector3 vFrom, final Vector3 vTo) {
         final float EPS = 0.000001F;
 
-        float r = vFrom.dot( vTo ) + 1;
+        float r = vFrom.dot(vTo) + 1;
 
-        if ( r < EPS ) {
+        if (r < EPS) {
 
             r = 0;
 
-            if ( Math.abs( vFrom.x ) > Math.abs( vFrom.z ) ) {
+            if (Math.abs(vFrom.x) > Math.abs(vFrom.z)) {
 
-                _v1.set( - vFrom.y, vFrom.x, 0 );
+                _v1.set(-vFrom.y, vFrom.x, 0);
 
             } else {
 
-                _v1.set( 0, - vFrom.z, vFrom.y );
+                _v1.set(0, -vFrom.z, vFrom.y);
 
             }
 
         } else {
 
-            _v1.cross( vFrom, vTo );
+            _v1.cross(vFrom, vTo);
 
         }
 
@@ -400,15 +386,13 @@ public class Quaternion
     /**
      * Negates the value of this Quaternion in place.
      */
-    public Quaternion inverse()
-    {
+    public Quaternion inverse() {
         this.conjugate().normalize();
 
         return this;
     }
 
-    public Quaternion conjugate()
-    {
+    public Quaternion conjugate() {
         this.x *= -1;
         this.y *= -1;
         this.z *= -1;
@@ -418,29 +402,25 @@ public class Quaternion
         return this;
     }
 
-    public float dot(final Quaternion v )
-    {
+    public float dot(final Quaternion v) {
         return this.x * v.x + this.y * v.y + this.z * v.z + this.w * v.w;
     }
 
-    public float lengthSq()
-    {
+    public float lengthSq() {
         return this.x * this.x + this.y * this.y + this.z * this.z + this.w * this.w;
     }
 
-    public float length()
-    {
+    public float length() {
         return Mth.sqrt(this.x * this.x + this.y * this.y + this.z * this.z + this.w * this.w);
     }
 
     /**
      * Normalize the current Quaternion
      */
-    public Quaternion normalize()
-    {
+    public Quaternion normalize() {
         float l = this.length();
 
-        if ( l == 0 ) {
+        if (l == 0) {
 
             this.x = 0;
             this.y = 0;
@@ -466,15 +446,13 @@ public class Quaternion
     /**
      * Sets the value of this Quaternion to the vector multiplication of Quaternion a and
      * Quaternion v2.
-     *
+     * <p>
      * Based on <a href="http://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/code/index.htm">http://www.euclideanspace.com</a>
      *
      * @param a the first Quaternion
      * @param b the second Quaternion
-     *
      */
-    public Quaternion multiply(final Quaternion a, final Quaternion b)
-    {
+    public Quaternion multiply(final Quaternion a, final Quaternion b) {
         final float qax = a.x;
         final float qay = a.y;
         final float qaz = a.z;
@@ -500,11 +478,9 @@ public class Quaternion
      * (this = this * b)
      *
      * @param b the other Quaternion
-     *
      */
-    public Quaternion multiply(final Quaternion b)
-    {
-        return this.multiply( this, b );
+    public Quaternion multiply(final Quaternion b) {
+        return this.multiply(this, b);
     }
 
     /**
@@ -512,28 +488,28 @@ public class Quaternion
      * the current Quaternion.
      *
      * @param vector the input vector
-     *
      * @return the modified input vector
      */
-    public Vector3 multiplyVector3(final Vector3 vector)
-    {
-        return vector.apply( this );
+    public Vector3 multiplyVector3(final Vector3 vector) {
+        return vector.apply(this);
     }
 
     /**
      * Quaternion Interpolation
-     *
+     * <p>
      * Based on <a href="http://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/slerp/">http://www.euclideanspace.com</a>
      *
-     * @param qb  the quaternion a (first quaternion to be interpolated between)
-     * @param t   a scalar between 0.0 (at qa) and 1.0 (at qb)
-     *
+     * @param qb the quaternion a (first quaternion to be interpolated between)
+     * @param t  a scalar between 0.0 (at qa) and 1.0 (at qb)
      * @return the interpolated quaternion
      */
-    public Quaternion slerp(final Quaternion qb, final float t)
-    {
-        if ( t == 0 ) return this;
-        if ( t == 1 ) return this.copy( qb );
+    public Quaternion slerp(final Quaternion qb, final float t) {
+        if (t == 0) {
+            return this;
+        }
+        if (t == 1) {
+            return this.copy(qb);
+        }
 
         final float x = this.x;
         final float y = this.y;
@@ -544,22 +520,22 @@ public class Quaternion
 
         float cosHalfTheta = w * qb.w + x * qb.x + y * qb.y + z * qb.z;
 
-        if ( cosHalfTheta < 0 ) {
+        if (cosHalfTheta < 0) {
 
-            this.w = - qb.w;
-            this.x = - qb.x;
-            this.y = - qb.y;
-            this.z = - qb.z;
+            this.w = -qb.w;
+            this.x = -qb.x;
+            this.y = -qb.y;
+            this.z = -qb.z;
 
-            cosHalfTheta = - cosHalfTheta;
+            cosHalfTheta = -cosHalfTheta;
 
         } else {
 
-            this.copy( qb );
+            this.copy(qb);
 
         }
 
-        if ( cosHalfTheta >= 1.0 ) {
+        if (cosHalfTheta >= 1.0) {
 
             this.w = w;
             this.x = x;
@@ -570,41 +546,39 @@ public class Quaternion
 
         }
 
-        final float halfTheta = Mth.acos( cosHalfTheta );
-        final float sinHalfTheta = Mth.sqrt( 1.0F - cosHalfTheta * cosHalfTheta );
+        final float halfTheta = Mth.acos(cosHalfTheta);
+        final float sinHalfTheta = Mth.sqrt(1.0F - cosHalfTheta * cosHalfTheta);
 
-        if ( Math.abs( sinHalfTheta ) < 0.001F ) {
+        if (Math.abs(sinHalfTheta) < 0.001F) {
 
-            this.w = 0.5F * ( w + this.w );
-            this.x = 0.5F * ( x + this.x );
-            this.y = 0.5F * ( y + this.y );
-            this.z = 0.5F * ( z + this.z );
+            this.w = 0.5F * (w + this.w);
+            this.x = 0.5F * (x + this.x);
+            this.y = 0.5F * (y + this.y);
+            this.z = 0.5F * (z + this.z);
 
             return this;
 
         }
 
-        final float ratioA = Mth.sin( ( 1 - t ) * halfTheta ) / sinHalfTheta;
-        final float ratioB = Mth.sin( t * halfTheta ) / sinHalfTheta;
+        final float ratioA = Mth.sin((1 - t) * halfTheta) / sinHalfTheta;
+        final float ratioB = Mth.sin(t * halfTheta) / sinHalfTheta;
 
-        this.w = ( w * ratioA + this.w * ratioB );
-        this.x = ( x * ratioA + this.x * ratioB );
-        this.y = ( y * ratioA + this.y * ratioB );
-        this.z = ( z * ratioA + this.z * ratioB );
+        this.w = (w * ratioA + this.w * ratioB);
+        this.x = (x * ratioA + this.x * ratioB);
+        this.y = (y * ratioA + this.y * ratioB);
+        this.z = (z * ratioA + this.z * ratioB);
 
         this.onChange();
 
         return this;
     }
 
-    public static Quaternion slerp(final Quaternion qa, final Quaternion qb, final Quaternion qm, final float t )
-    {
-        return qm.copy( qa ).slerp( qb, t );
+    public static Quaternion slerp(final Quaternion qa, final Quaternion qb, final Quaternion qm, final float t) {
+        return qm.copy(qa).slerp(qb, t);
     }
 
-    public boolean equals(final Quaternion quaternion )
-    {
-        return ( quaternion.x == this.x ) && ( quaternion.y == this.y ) && ( quaternion.z == this.z ) && ( quaternion.w == this.w );
+    public boolean equals(final Quaternion quaternion) {
+        return (quaternion.x == this.x) && (quaternion.y == this.y) && (quaternion.z == this.z) && (quaternion.w == this.w);
     }
 
     /**
@@ -613,14 +587,12 @@ public class Quaternion
      *
      * @return the new instance of Quaternion
      */
-    public Quaternion clone()
-    {
-        return new Quaternion( this.x, this.y, this.z, this.w );
+    public Quaternion clone() {
+        return new Quaternion(this.x, this.y, this.z, this.w);
     }
 
     @Override
-    public String toString()
-    {
-        return "(" + this.x + ", " + this.y + ", " + this.z +  ", " + this.w + ")";
+    public String toString() {
+        return "(" + this.x + ", " + this.y + ", " + this.z + ", " + this.w + ")";
     }
 }

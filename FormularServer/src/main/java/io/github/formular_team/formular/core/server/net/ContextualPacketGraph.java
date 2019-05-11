@@ -31,8 +31,8 @@ public final class ContextualPacketGraph {
         return new ContextHolder<>(context, this.get(context));
     }
 
+    @SuppressWarnings("unchecked")
     private <T extends Context> Node<T> get(final T context) {
-        //noinspection unchecked
         return (Node<T>) this.entries.get(context.getClass());
     }
 

@@ -5,8 +5,8 @@ import java.util.Objects;
 import java.util.function.Function;
 
 import io.github.formular_team.formular.core.Driver;
-import io.github.formular_team.formular.core.GameModel;
-import io.github.formular_team.formular.core.KartModel;
+import io.github.formular_team.formular.core.game.GameModel;
+import io.github.formular_team.formular.core.kart.KartModel;
 import io.github.formular_team.formular.core.SimpleDriver;
 import io.github.formular_team.formular.core.color.Color;
 import io.github.formular_team.formular.core.math.Vector2;

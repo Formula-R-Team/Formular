@@ -1,5 +1,7 @@
 package io.github.formular_team.formular.core;
 
+import io.github.formular_team.formular.core.kart.KartModel;
+
 public final class CpuDriver implements Driver {
     private final User user;
 

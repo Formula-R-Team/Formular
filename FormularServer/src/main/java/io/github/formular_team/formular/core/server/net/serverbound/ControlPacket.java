@@ -4,7 +4,7 @@ import java.nio.ByteBuffer;
 import java.util.Objects;
 import java.util.function.Function;
 
-import io.github.formular_team.formular.core.Kart;
+import io.github.formular_team.formular.core.kart.Kart;
 import io.github.formular_team.formular.core.SimpleControlState;
 import io.github.formular_team.formular.core.server.net.KartContext;
 import io.github.formular_team.formular.core.server.net.Packet;

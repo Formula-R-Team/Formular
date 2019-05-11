@@ -1,5 +1,7 @@
 package io.github.formular_team.formular.core;
 
+import io.github.formular_team.formular.core.kart.KartModel;
+
 public final class SimpleDriver implements Driver {
     private final User user;
 

@@ -5,8 +5,8 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.logging.Logger;
 
-import io.github.formular_team.formular.core.GameModel;
-import io.github.formular_team.formular.core.KartModel;
+import io.github.formular_team.formular.core.game.GameModel;
+import io.github.formular_team.formular.core.kart.KartModel;
 import io.github.formular_team.formular.core.User;
 import io.github.formular_team.formular.core.race.Race;
 import io.github.formular_team.formular.core.server.net.ByteBuffers;

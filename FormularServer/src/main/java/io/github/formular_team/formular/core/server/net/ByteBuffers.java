@@ -7,14 +7,14 @@ import java.util.List;
 import java.util.UUID;
 
 import io.github.formular_team.formular.core.Checkpoint;
-import io.github.formular_team.formular.core.Course;
-import io.github.formular_team.formular.core.CourseMetadata;
-import io.github.formular_team.formular.core.Track;
+import io.github.formular_team.formular.core.course.Course;
+import io.github.formular_team.formular.core.course.CourseMetadata;
+import io.github.formular_team.formular.core.course.track.Track;
 import io.github.formular_team.formular.core.User;
 import io.github.formular_team.formular.core.color.Color;
-import io.github.formular_team.formular.core.math.Path;
+import io.github.formular_team.formular.core.math.curve.Path;
 import io.github.formular_team.formular.core.math.PathVisitor;
-import io.github.formular_team.formular.core.math.Shape;
+import io.github.formular_team.formular.core.math.curve.Shape;
 import io.github.formular_team.formular.core.math.Vector2;
 import io.github.formular_team.formular.core.race.RaceConfiguration;
 

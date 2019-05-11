@@ -3,9 +3,12 @@ package io.github.formular_team.formular.core;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.github.formular_team.formular.core.math.Path;
+import io.github.formular_team.formular.core.course.track.FinishLineOptimizer;
+import io.github.formular_team.formular.core.course.track.Track;
+import io.github.formular_team.formular.core.course.track.TrackFactory;
 import io.github.formular_team.formular.core.math.PathOffset;
-import io.github.formular_team.formular.core.math.Shape;
+import io.github.formular_team.formular.core.math.curve.Path;
+import io.github.formular_team.formular.core.math.curve.Shape;
 
 public class SimpleTrackFactory implements TrackFactory {
     private final float width;

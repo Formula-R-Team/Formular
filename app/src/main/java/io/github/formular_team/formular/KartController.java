@@ -6,7 +6,7 @@ import android.view.View;
 
 import java.util.function.Consumer;
 
-import io.github.formular_team.formular.core.Kart;
+import io.github.formular_team.formular.core.kart.Kart;
 import io.github.formular_team.formular.core.math.Mth;
 
 public final class KartController implements View.OnTouchListener {

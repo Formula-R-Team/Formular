@@ -21,8 +21,8 @@ import org.hsluv.HUSLColorConverter;
 
 import io.github.formular_team.formular.ar.KartNode;
 import io.github.formular_team.formular.core.DirectKartView;
-import io.github.formular_team.formular.core.KartDefinition;
-import io.github.formular_team.formular.core.KartModel;
+import io.github.formular_team.formular.core.kart.KartDefinition;
+import io.github.formular_team.formular.core.kart.KartModel;
 import io.github.formular_team.formular.core.math.Mth;
 
 public final class ShopActivity extends FormularActivity {

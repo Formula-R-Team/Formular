@@ -2,6 +2,8 @@ package io.github.formular_team.formular.core.math;
 
 import java.util.List;
 
+import io.github.formular_team.formular.core.math.curve.Path;
+
 /**
  * An Algorithm for Automatically Fitting Digitized Curves
  * by Philip J. Schneider
