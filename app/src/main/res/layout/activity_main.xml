@@ -30,7 +30,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.6" >
         <Button
-            android:id="@+id/btnHostRace"
+            android:id="@+id/button_host"
             android:layout_width="match_parent"
             android:layout_height="70dp"
             android:layout_marginBottom="8dp"
@@ -38,7 +38,7 @@
             android:textSize="24sp"
             android:textStyle="normal" />
         <Button
-            android:id="@+id/btnJoinRace"
+            android:id="@+id/button_join"
             android:layout_width="match_parent"
             android:layout_height="70dp"
             android:layout_marginBottom="8dp"
@@ -46,7 +46,7 @@
             android:textSize="24sp"
             android:textStyle="normal" />
         <Button
-            android:id="@+id/btnCustomize"
+            android:id="@+id/button_customize"
             android:layout_width="match_parent"
             android:layout_height="70dp"
             android:text="@string/customize"

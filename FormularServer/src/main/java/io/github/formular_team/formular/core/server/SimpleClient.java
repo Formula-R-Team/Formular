@@ -5,9 +5,7 @@ import java.net.InetSocketAddress;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Future;
@@ -18,9 +16,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import io.github.formular_team.formular.core.User;
 import io.github.formular_team.formular.core.course.Course;
 import io.github.formular_team.formular.core.game.GameView;
-import io.github.formular_team.formular.core.User;
 import io.github.formular_team.formular.core.race.RaceConfiguration;
 import io.github.formular_team.formular.core.server.net.ClientContext;
 import io.github.formular_team.formular.core.server.net.Context;
@@ -108,7 +106,7 @@ public final class SimpleClient implements Client {
         return this.queue.poll(timeout, TimeUnit.MILLISECONDS);
     }
 
-    List<Packet> q = new ArrayList<>();
+    private State state = new WaitingConnect();
 
     @Override
     public void run() {
@@ -121,17 +119,12 @@ public final class SimpleClient implements Client {
         } catch (final IOException e) {
             throw new RuntimeException(e);
         }
-        final RunnableFuture<?> STEP_PILL = new FutureTask<>(() -> null);
         final long timeout = 1000 / this.ups;
         for (long past = this.currentTimeMillis(), present; this.running; past = present) {
             present = this.currentTimeMillis();
             final long duration = present - past;
             final long deadline = present + timeout;
-            this.addJob(STEP_PILL);
-//            this.game.step(duration / 1000.0F);
-            // FIXME
-            this.send(new ControlPacket(this.game.getControlState()));
-            for (RunnableFuture<?> job; (job = this.pollJob()) != null && job != STEP_PILL; job.run());
+            this.state.update(duration / 1000.0F);
             try {
                 for (long now; (now = this.currentTimeMillis()) < deadline; ) {
                     this.selector.select(deadline - now);
@@ -163,38 +156,64 @@ public final class SimpleClient implements Client {
         } catch (final IOException ignored) {}
     }
 
-    @Override
-    public void send(final Packet packet) {
-        if (!this.connected) {
-            this.q.add(packet);
-            return;
-        }
-        for (final SelectionKey key : this.selector.keys()) {
-            final Object att = key.attachment();
-            if (att instanceof SimpleConnection) {
-                ((SimpleConnection) att).send(packet);
-            }
+    abstract class State {
+        abstract void send(final Packet packet);
 
+        abstract void update(float delta);
+    }
+
+    class WaitingConnect extends State {
+        @Override
+        void send(final Packet packet) {
+            throw new IllegalStateException("Cannot send " + packet.getClass().getName());
+        }
+
+        @Override
+        void update(final float delta) {}
+    }
+
+    class Connected extends State {
+        final SimpleConnection connection;
+
+        final RunnableFuture<?> pill = new FutureTask<>(() -> null);
+
+        Connected(final SimpleConnection connection) {
+            this.connection = connection;
+        }
+
+        SimpleClient client() {
+            return SimpleClient.this;
+        }
+
+        @Override
+        void send(final Packet packet) {
+            this.connection.send(packet);
+        }
+
+        @Override
+        void update(final float delta) {
+            this.client().send(new ControlPacket(this.client().game.getControlState()));
+            this.client().addJob(this.pill);
+            for (RunnableFuture<?> job; (job = this.client().pollJob()) != null && job != this.pill; job.run());
         }
     }
 
-    boolean connected = false;
+    @Override
+    public void send(final Packet packet) {
+        this.state.send(packet);
+    }
 
     private void connect(final Selector selector, final SocketChannel socket, final SelectionKey key) throws IOException {
         if (!socket.finishConnect()) {
             throw new AssertionError();
         }
-        this.connected = true;
         key.interestOps(SelectionKey.OP_READ);
         final SimpleConnection connection = new SimpleConnection(key, this.factory.create());
         connection.setContext(this.factory.create(new ClientContext(new Context(connection), this)));
         key.attach(connection);
         LOGGER.info("Connection established");
+        this.state = new Connected(connection);
         this.send(new NewUserPacket(this.user));
-        for (final Packet p : this.q) {
-            this.send(p);
-        }
-        this.q.clear();
     }
 
     private void read(final SelectionKey key) throws IOException {

@@ -22,9 +22,8 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
-        <activity android:name=".CustomizeActivity" />
         <activity
-            android:name=".ShopActivity"
+            android:name=".CustomizeActivity"
             android:configChanges="orientation|screenSize" />
         <activity
             android:name=".ArActivity"

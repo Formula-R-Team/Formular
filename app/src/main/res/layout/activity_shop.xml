@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ShopActivity">
+    tools:context=".CustomizeActivity">
     <com.google.ar.sceneform.SceneView
         android:id="@+id/ar_scene"
         android:layout_width="match_parent"
