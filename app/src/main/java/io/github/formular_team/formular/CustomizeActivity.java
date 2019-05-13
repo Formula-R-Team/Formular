@@ -21,6 +21,7 @@ import org.hsluv.HUSLColorConverter;
 
 import io.github.formular_team.formular.ar.KartNode;
 import io.github.formular_team.formular.core.DirectKartView;
+import io.github.formular_team.formular.core.SimpleControlState;
 import io.github.formular_team.formular.core.kart.KartDefinition;
 import io.github.formular_team.formular.core.kart.KartModel;
 import io.github.formular_team.formular.core.math.Mth;
@@ -112,7 +113,7 @@ public final class CustomizeActivity extends FormularActivity {
                 }).orElse(null))
             .thenCombine(SimpleKartNodeFactory.create(this, R.raw.kart_body, R.raw.kart_wheel_front, R.raw.kart_wheel_rear), (platter, factory) -> {
                 act.ifPresent(activity -> {
-                    final KartNode kart = factory.create(new DirectKartView(new KartModel(0, KartDefinition.createKart2())));
+                    final KartNode kart = factory.create(new DirectKartView(new KartModel(0, KartDefinition.createKart2(), new SimpleControlState())));
                     final SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(CustomizeActivity.this);
                     final int argb = settings.getInt("user.color", 0);
                     kart.setColor(new Color(argb));

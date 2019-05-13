@@ -9,6 +9,10 @@ abstract class RaceState {
         this.race = race;
     }
 
+    public boolean isRacing() {
+        return false;
+    }
+
     RaceState step(final float delta) {
         this.race.stepRacers(delta);
         return this;
@@ -49,6 +53,11 @@ abstract class RaceState {
     static class Racing extends RaceState {
         Racing(final Race race) {
             super(race);
+        }
+
+        @Override
+        public boolean isRacing() {
+            return true;
         }
     }
 

@@ -38,7 +38,7 @@ public class DriverRaceListener implements RaceListener {
     }
 
     @Override
-    public void onEnd(final Driver driver) {
+    public void onFinish(final Driver driver) {
         if (this.driver.equals(driver)) {
             this.conn.send(new RaceFinishPacket());
         }

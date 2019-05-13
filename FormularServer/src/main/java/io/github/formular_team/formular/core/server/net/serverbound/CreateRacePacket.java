@@ -52,7 +52,7 @@ public class CreateRacePacket implements Packet {
         public Context apply(final UserContext context, final CreateRacePacket packet) {
             final GameModel game = context.getServer().getGame();
             final Race race = game.createRace(context.getUser(), packet.configuration, packet.course);
-            final KartModel kart = game.createKart();
+            final KartModel kart = race.createKart();
             kart.setColor(context.getUser().getColor());
             game.addKart(kart);
             final Driver userDriver = SimpleDriver.create(context.getUser(), kart);

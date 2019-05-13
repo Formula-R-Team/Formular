@@ -21,6 +21,8 @@ public interface GameModel extends Game {
 
     KartModel createKart();
 
+    KartModel createKart(final Kart.ControlState state);
+
     void addDriver(final Driver driver);
 
     void addKart(final KartModel kart);

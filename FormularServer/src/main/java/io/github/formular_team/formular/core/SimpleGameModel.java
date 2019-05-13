@@ -6,6 +6,7 @@ import java.util.List;
 
 import io.github.formular_team.formular.core.course.Course;
 import io.github.formular_team.formular.core.game.GameModel;
+import io.github.formular_team.formular.core.kart.Kart;
 import io.github.formular_team.formular.core.kart.KartDefinition;
 import io.github.formular_team.formular.core.kart.KartModel;
 import io.github.formular_team.formular.core.math.curve.LineCurve;
@@ -54,9 +55,18 @@ public final class SimpleGameModel implements GameModel {
 
     public void stop() {}
 
+    public int createKartId() {
+        return this.nextKartId++;
+    }
+
     @Override
     public KartModel createKart() {
-        return new KartModel(this.nextKartId++, KartDefinition.createKart2());
+        return this.createKart(new SimpleControlState());
+    }
+
+    @Override
+    public KartModel createKart(final Kart.ControlState state) {
+        return new KartModel(this.nextKartId++, KartDefinition.createKart2(), state);
     }
 
     @Override

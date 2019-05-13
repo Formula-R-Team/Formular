@@ -7,12 +7,13 @@ import java.util.List;
 import java.util.ListIterator;
 
 import io.github.formular_team.formular.core.Checkpoint;
-import io.github.formular_team.formular.core.course.Course;
 import io.github.formular_team.formular.core.Driver;
-import io.github.formular_team.formular.core.game.GameModel;
 import io.github.formular_team.formular.core.Pose;
 import io.github.formular_team.formular.core.RaceFinishEntry;
 import io.github.formular_team.formular.core.User;
+import io.github.formular_team.formular.core.course.Course;
+import io.github.formular_team.formular.core.game.GameModel;
+import io.github.formular_team.formular.core.kart.KartModel;
 import io.github.formular_team.formular.core.math.Mth;
 import io.github.formular_team.formular.core.math.Vector2;
 
@@ -48,6 +49,12 @@ public final class Race {
         this.finishline = this.checkpoints[0].cp.getPosition();
         this.length = course.getTrack().getRoadPath().getLength();
         this.state = new RaceState.Start(this);
+    }
+
+    public KartModel createKart() {
+        // this.state.isRacing()
+        // TODO: kart with race control state
+        return this.game.createKart();
     }
 
     public RaceConfiguration getConfiguration() {
@@ -155,7 +162,7 @@ public final class Race {
 
     void onEnd(final Driver driver) {
         for (final RaceListener listener : this.listeners) {
-            listener.onEnd(driver);
+            listener.onFinish(driver);
         }
     }
 

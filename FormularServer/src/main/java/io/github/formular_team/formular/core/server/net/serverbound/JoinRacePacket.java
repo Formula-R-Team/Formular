@@ -36,7 +36,7 @@ public class JoinRacePacket implements Packet {
             final GameModel game = context.getServer().getGame();
             final Race race = game.getRace();
             if (race != null) {
-                final KartModel kart = game.createKart();
+                final KartModel kart = race.createKart();
                 kart.setColor(context.getUser().getColor());
                 game.addKart(kart);
                 final Driver userDriver = SimpleDriver.create(context.getUser(), kart);

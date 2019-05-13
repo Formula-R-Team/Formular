@@ -1,11 +1,16 @@
 package io.github.formular_team.formular.core.race;
 
+import java.util.List;
+
 import io.github.formular_team.formular.core.Driver;
+import io.github.formular_team.formular.core.RaceFinishEntry;
 
 public interface RaceListener {
     default void onBegin() {}
 
-    default void onEnd(final Driver driver) {}
+    default void onFinish(final Driver driver) {}
+
+    default void onEnd(final List<RaceFinishEntry> entries) {}
 
     default void onCountDown(final int count) {}
 

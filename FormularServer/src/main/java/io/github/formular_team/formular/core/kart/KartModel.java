@@ -29,15 +29,16 @@ public class KartModel implements Kart {
 
     private float angularVelocity;
 
-    private final ControlState state = new SimpleControlState();
+    private final ControlState state;
 
     private float wheelAngularVelocity;
 
     private Color color = Color.color(0.5F, 0.5F, 0.5F);
 
-    public KartModel(final int uniqueId, final KartDefinition type) {
+    public KartModel(final int uniqueId, final KartDefinition type, final ControlState state) {
         this.uniqueId = uniqueId;
         this.definition = type;
+        this.state = state;
     }
 
     @Override
