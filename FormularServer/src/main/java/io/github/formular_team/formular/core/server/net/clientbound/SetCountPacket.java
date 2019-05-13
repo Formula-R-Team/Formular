@@ -32,7 +32,7 @@ public class SetCountPacket implements Packet {
         ByteBuffers.putUnsigned(buf, this.count);
     }
 
-    public static final class Handler implements PacketHandler<ClientContext, SetCountPacket> {
+    public static final class Handler implements PacketHandler<ClientContext, Context, SetCountPacket> {
         @Override
         public Context apply(final ClientContext context, final SetCountPacket packet) {
             context.getClient().getGame().setCount(packet.count);

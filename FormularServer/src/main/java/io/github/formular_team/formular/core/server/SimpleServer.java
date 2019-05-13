@@ -23,7 +23,7 @@ import io.github.formular_team.formular.core.server.net.Packet;
 import io.github.formular_team.formular.core.server.net.Protocol;
 import io.github.formular_team.formular.core.server.net.ServerContext;
 import io.github.formular_team.formular.core.server.net.SimpleConnection;
-import io.github.formular_team.formular.core.server.net.ContextualPacketGraph;
+import io.github.formular_team.formular.core.server.net.PacketGraph;
 import io.github.formular_team.formular.core.server.net.clientbound.KartAddPacket;
 import io.github.formular_team.formular.core.server.net.clientbound.RaceAddPacket;
 import io.github.formular_team.formular.core.server.net.clientbound.SetPosePacket;
@@ -35,7 +35,7 @@ public final class SimpleServer implements Server {
 
     private final InetSocketAddress address;
 
-    private final ContextualPacketGraph factory;
+    private final PacketGraph<Context> factory;
 
     private final GameModel game;
 
@@ -45,7 +45,7 @@ public final class SimpleServer implements Server {
 
     private boolean running = true;
 
-    private SimpleServer(final Selector selector, final InetSocketAddress address, final ContextualPacketGraph factory, final GameModel game, final BlockingQueue<RunnableFuture<?>> queue, final long ups) {
+    private SimpleServer(final Selector selector, final InetSocketAddress address, final PacketGraph<Context> factory, final GameModel game, final BlockingQueue<RunnableFuture<?>> queue, final long ups) {
         this.selector = selector;
         this.address = address;
         this.factory = factory;

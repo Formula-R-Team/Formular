@@ -80,6 +80,21 @@ public final class ByteBuffers {
         throw new RuntimeException("Bad ordinal");
     }
 
+    public static ByteBuffer putChars(final ByteBuffer buf, final String value) {
+        for (int i = 0; i < value.length(); i++) {
+            buf.putChar(value.charAt(i));
+        }
+        return buf;
+    }
+
+    public static String getChars(final ByteBuffer buf, final int length) {
+        final char[] chars = new char[length];
+        for (int i = 0; i < length; i++) {
+            chars[i] = buf.getChar();
+        }
+        return new String(chars);
+    }
+
     public static ByteBuffer putString(final ByteBuffer buf, final String value) {
         final byte[] bytes = value.getBytes(StandardCharsets.UTF_8);
         return putByteArray(buf, bytes);

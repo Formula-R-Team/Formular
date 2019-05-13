@@ -6,6 +6,7 @@ import java.util.function.Function;
 
 import io.github.formular_team.formular.core.kart.Kart;
 import io.github.formular_team.formular.core.SimpleControlState;
+import io.github.formular_team.formular.core.server.net.Context;
 import io.github.formular_team.formular.core.server.net.KartContext;
 import io.github.formular_team.formular.core.server.net.Packet;
 import io.github.formular_team.formular.core.server.net.PacketHandler;
@@ -38,7 +39,7 @@ public class ControlPacket implements Packet {
         buf.putFloat(this.state.getSteeringAngle());
     }
 
-    public static class Handler implements PacketHandler<KartContext, ControlPacket> {
+    public static class Handler implements PacketHandler<KartContext, Context, ControlPacket> {
         @Override
         public KartContext apply(final KartContext context, final ControlPacket packet) {
             final Kart kart = context.getKart();

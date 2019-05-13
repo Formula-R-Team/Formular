@@ -47,7 +47,7 @@ public class CreateRacePacket implements Packet {
         ByteBuffers.putCourse(buf, this.course);
     }
 
-    public static class Handler implements PacketHandler<UserContext, CreateRacePacket> {
+    public static class Handler implements PacketHandler<UserContext, Context, CreateRacePacket> {
         @Override
         public Context apply(final UserContext context, final CreateRacePacket packet) {
             final GameModel game = context.getServer().getGame();

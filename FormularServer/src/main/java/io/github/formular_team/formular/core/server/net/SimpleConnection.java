@@ -26,20 +26,20 @@ public class SimpleConnection implements Connection {
 
     private final SelectionKey key;
 
-    private ContextualPacketGraph.ContextHolder<?> context;
+    private PacketGraph<?>.ContextHolder<?> context;
 
     private ReadState readState;
 
     private final Deque<Packet> backlog = new ArrayDeque<>();
 
-    public SimpleConnection(final SelectionKey key, final ContextualPacketGraph.ContextHolder<?> context) {
+    public SimpleConnection(final SelectionKey key, final PacketGraph<?>.ContextHolder<?> context) {
         this.key = key;
         this.context = context;
         this.writeBuf.position(this.writeBuf.limit());
         this.readState(new HeaderReadState());
     }
 
-    public void setContext(final ContextualPacketGraph.ContextHolder<?> context) {
+    public void setContext(final PacketGraph<?>.ContextHolder<?> context) {
         this.context = context;
     }
 
@@ -163,9 +163,9 @@ public class SimpleConnection implements Connection {
     }
 
     private final class PayloadReadState extends ReadState {
-        final ContextualPacketGraph.Header header;
+        final PacketGraph<?>.Header<?> header;
 
-        PayloadReadState(final ContextualPacketGraph.Header header) {
+        PayloadReadState(final PacketGraph<?>.Header<?> header) {
             super(header.getLength());
             this.header = header;
         }

@@ -10,6 +10,7 @@ import io.github.formular_team.formular.core.kart.KartModel;
 import io.github.formular_team.formular.core.User;
 import io.github.formular_team.formular.core.race.Race;
 import io.github.formular_team.formular.core.server.net.ByteBuffers;
+import io.github.formular_team.formular.core.server.net.Context;
 import io.github.formular_team.formular.core.server.net.Packet;
 import io.github.formular_team.formular.core.server.net.PacketHandler;
 import io.github.formular_team.formular.core.server.net.ServerContext;
@@ -43,7 +44,7 @@ public class NewUserPacket implements Packet {
 
     private static final Logger LOGGER = Logger.getLogger("NewUserPacket");
 
-    public static class Handler implements PacketHandler<ServerContext, NewUserPacket> {
+    public static class Handler implements PacketHandler<ServerContext, Context, NewUserPacket> {
         @Override
         public UserContext apply(final ServerContext context, final NewUserPacket packet) {
             LOGGER.info("" + packet.user);

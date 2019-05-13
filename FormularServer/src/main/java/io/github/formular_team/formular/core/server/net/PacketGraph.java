@@ -9,12 +9,12 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public final class ContextualPacketGraph {
-    private final Map<Class<? extends Context>, NodeEntry<?>> entries;
+public final class PacketGraph<S> {
+    private final Map<Class<? extends S>, NodeEntry<?, S>> entries;
 
     private final Map<Function<? super ByteBuffer, ?>, Integer> ids;
 
-    private ContextualPacketGraph(final Builder builder) {
+    private PacketGraph(final Builder<S> builder) {
         this.entries = Collections.unmodifiableMap(builder.entries);
         this.ids = Collections.unmodifiableMap(builder.ids);
     }
@@ -23,97 +23,98 @@ public final class ContextualPacketGraph {
         return new ContextHolder<>(null, new RootNode<>());
     }
 
-    public ContextHolder<?> create(final Context context) {
+    public ContextHolder<?> create(final S context) {
         return this.createState(context);
     }
 
-    private <T extends Context> ContextHolder<T> createState(final T context) {
+    private <T extends S> ContextHolder<T> createState(final T context) {
         return new ContextHolder<>(context, this.get(context));
     }
 
     @SuppressWarnings("unchecked")
-    private <T extends Context> Node<T> get(final T context) {
-        return (Node<T>) this.entries.get(context.getClass());
+    private <T extends S> Node<T, S> get(final T context) {
+        //noinspection SuspiciousMethodCalls
+        return (Node<T, S>) this.entries.get(context.getClass());
     }
 
-    public static Builder builder() {
-        return new Builder();
+    public static <S> Builder<S> builder(final Class<S> type) {
+        return new Builder<>(type);
     }
 
-    private interface Entry<T extends Context> {
-        Function<T, Context> read(final ByteBuffer buf);
+    private interface Entry<T extends S, S> {
+        Function<T, S> read(final ByteBuffer buf);
     }
 
-    private static class PacketEntry<T extends Context, U extends Packet> implements Entry<T> {
+    private static class PacketEntry<T extends S, S, U extends Packet> implements Entry<T, S> {
         final Function<? super ByteBuffer, U> packet;
 
-        final PacketHandler<? super T, ? super U> handler;
+        final PacketHandler<? super T, S, ? super U> handler;
 
-        PacketEntry(final Function<? super ByteBuffer, U> packet, final PacketHandler<? super T, ? super U> handler) {
+        PacketEntry(final Function<? super ByteBuffer, U> packet, final PacketHandler<? super T, S, ? super U> handler) {
             this.packet = packet;
             this.handler = handler;
         }
 
         @Override
-        public Function<T, Context> read(final ByteBuffer buf) {
+        public Function<T, S> read(final ByteBuffer buf) {
             final U u = this.packet.apply(buf);
             return t -> this.handler.apply(t, u);
         }
     }
 
-    public interface NodeBuilder<T extends Context> {
-        <U extends Packet> NodeBuilder<T> accept(final Function<? super ByteBuffer, U> packet, final PacketHandler<T, ? super U> handler);
+    public interface NodeBuilder<T extends S, S> {
+        <U extends Packet> NodeBuilder<T, S> accept(final Function<? super ByteBuffer, U> packet, final PacketHandler<T, S, ? super U> handler);
 
-        <S extends T> NodeBuilder<T> when(final Class<S> type, final Consumer<NodeBuilder<S>> consumer);
+        <E extends T> NodeBuilder<T, S> when(final Class<E> type, final Consumer<NodeBuilder<E, S>> consumer);
     }
 
-    private static abstract class BaseBuilder<T extends Context> implements NodeBuilder<T> {
+    private static abstract class BaseBuilder<T extends S, S> implements NodeBuilder<T, S> {
         final Class<T> type;
 
-        final Map<Integer, Entry<T>> packets = new HashMap<>();
+        final Map<Integer, Entry<T, S>> packets = new HashMap<>();
 
-        final List<ChildBuilder<? extends T>> children = new ArrayList<>();
+        final List<ChildBuilder<? extends T, S>> children = new ArrayList<>();
 
         private BaseBuilder(final Class<T> type) {
             this.type = type;
         }
 
         @Override
-        public <U extends Packet> BaseBuilder<T> accept(final Function<? super ByteBuffer, U> packet, final PacketHandler<T, ? super U> handler) {
+        public <U extends Packet> BaseBuilder<T, S> accept(final Function<? super ByteBuffer, U> packet, final PacketHandler<T, S, ? super U> handler) {
             this.packets.put(this.assignId(packet), new PacketEntry<>(packet, handler));
             return this;
         }
 
         @Override
-        public <S extends T> NodeBuilder<T> when(final Class<S> type, final Consumer<NodeBuilder<S>> consumer) {
-            final ChildBuilder<S> child = new ChildBuilder<>(this, type);
+        public <E extends T> NodeBuilder<T, S> when(final Class<E> type, final Consumer<NodeBuilder<E, S>> consumer) {
+            final ChildBuilder<E, S> child = new ChildBuilder<>(this, type);
             this.children.add(child);
             consumer.accept(child);
             return this;
         }
 
-        abstract <E extends NodeEntry<?>> E add(final E node);
+        abstract <E extends NodeEntry<?, S>> E add(final E node);
 
         abstract int assignId(final Function<? super ByteBuffer, ?> packet);
 
-        NodeEntry<T> build(final Node<? super T> parent) {
-            final NodeEntry<T> entry = new NodeEntry<>(parent, this.type, this.packets);
-            for (final ChildBuilder<? extends T> child : this.children) {
+        NodeEntry<T, S> build(final Node<? super T, S> parent) {
+            final NodeEntry<T, S> entry = new NodeEntry<>(parent, this.type, this.packets);
+            for (final ChildBuilder<? extends T, S> child : this.children) {
                 this.add(child.build(entry));
             }
             return entry;
         }
     }
 
-    public static class Builder extends BaseBuilder<Context> {
-        private final Map<Class<? extends Context>, NodeEntry<?>> entries = new HashMap<>();
+    public static class Builder<S> extends BaseBuilder<S, S> {
+        private final Map<Class<? extends S>, NodeEntry<?, S>> entries = new HashMap<>();
 
         private final Map<Function<? super ByteBuffer, ?>, Integer> ids = new HashMap<>();
 
         private int nextId;
 
-        private Builder() {
-            super(Context.class);
+        private Builder(final Class<S> type) {
+            super(type);
         }
 
         @Override
@@ -124,33 +125,33 @@ public final class ContextualPacketGraph {
         }
 
         @Override
-        <E extends NodeEntry<?>> E add(final E node) {
+        <E extends NodeEntry<?, S>> E add(final E node) {
             this.entries.put(node.type, node);
             return node;
         }
 
         @Override
-        public <U extends Packet> Builder accept(final Function<? super ByteBuffer, U> packet, final PacketHandler<Context, ? super U> handler) {
+        public <U extends Packet> Builder<S> accept(final Function<? super ByteBuffer, U> packet, final PacketHandler<S, S, ? super U> handler) {
             super.accept(packet, handler);
             return this;
         }
 
         @Override
-        public <SUB extends Context> Builder when(final Class<SUB> type, final Consumer<NodeBuilder<SUB>> consumer) {
+        public <E extends S> Builder<S> when(final Class<E> type, final Consumer<NodeBuilder<E, S>> consumer) {
             super.when(type, consumer);
             return this;
         }
 
-        public ContextualPacketGraph build() {
+        public PacketGraph<S> build() {
             this.add(this.build(new RootNode<>()));
-            return new ContextualPacketGraph(this);
+            return new PacketGraph<>(this);
         }
     }
 
-    private static final class ChildBuilder<T extends Context> extends BaseBuilder<T> {
-        final BaseBuilder<?> parent;
+    private static final class ChildBuilder<T extends S, S> extends BaseBuilder<T, S> {
+        final BaseBuilder<?, S> parent;
 
-        private ChildBuilder(final BaseBuilder<?> parent, final Class<T> type) {
+        private ChildBuilder(final BaseBuilder<?, S> parent, final Class<T> type) {
             super(type);
             this.parent = parent;
         }
@@ -161,54 +162,54 @@ public final class ContextualPacketGraph {
         }
 
         @Override
-        <E extends NodeEntry<?>> E add(final E node) {
+        <E extends NodeEntry<?, S>> E add(final E node) {
             return this.parent.add(node);
         }
     }
 
-    private interface Node<T extends Context> {
-        Entry<? super T> get(final int id);
+    private interface Node<T extends S, S> {
+        Entry<? super T, S> get(final int id);
     }
 
-    private static final class RootNode<T extends Context> implements Node<T> {
+    private static final class RootNode<T extends S, S> implements Node<T, S> {
         @Override
-        public Entry<? super T> get(final int id) {
+        public Entry<? super T, S> get(final int id) {
             return b -> t -> t;
         }
     }
 
-    private static final class NodeEntry<T extends Context> implements Node<T> {
-        final Node<? super T> parent;
+    private static final class NodeEntry<T extends S, S> implements Node<T, S> {
+        final Node<? super T, S> parent;
 
         final Class<T> type;
 
-        final Map<Integer, Entry<T>> packets;
+        final Map<Integer, Entry<T, S>> packets;
 
-        NodeEntry(final Node<? super T> parent, final Class<T> type, final Map<Integer, Entry<T>> packets) {
+        NodeEntry(final Node<? super T, S> parent, final Class<T> type, final Map<Integer, Entry<T, S>> packets) {
             this.parent = parent;
             this.type = type;
             this.packets = packets;
         }
 
         @Override
-        public Entry<? super T> get(final int id) {
-            final Entry<T> entry = this.packets.get(id);
+        public Entry<? super T, S> get(final int id) {
+            final Entry<T, S> entry = this.packets.get(id);
             return entry == null ? this.parent.get(id) : entry;
         }
     }
 
-    public final class ContextHolder<T extends Context> {
+    public final class ContextHolder<T extends S> {
         private final T context;
 
-        private final Node<T> node;
+        private final Node<T, S> node;
 
-        ContextHolder(final T context, final Node<T> node) {
+        ContextHolder(final T context, final Node<T, S> node) {
             this.context = context;
             this.node = node;
         }
 
         public void write(final ByteBuffer buf, final Packet packet) {
-            final Integer type = ContextualPacketGraph.this.ids.get(packet.creator());
+            final Integer type = PacketGraph.this.ids.get(packet.creator());
             if (type == null) {
                 throw new RuntimeException("Undefined packet " + packet.getClass().getName());
             }
@@ -233,14 +234,14 @@ public final class ContextualPacketGraph {
         }
     }
 
-    public final class Header<T extends Context> {
+    public final class Header<T extends S> {
         private final T context;
 
-        private final Entry<? super T> type;
+        private final Entry<? super T, S> type;
 
         private final int length;
 
-        private Header(final T context, final Entry<? super T> type, final int length) {
+        private Header(final T context, final Entry<? super T, S> type, final int length) {
             this.context = context;
             this.type = type;
             this.length = length;
@@ -250,8 +251,8 @@ public final class ContextualPacketGraph {
             return this.length;
         }
 
-        public ContextHolder<?> readBody(final ByteBuffer buf) {
-            return ContextualPacketGraph.this.createState(this.type.read(buf).apply(this.context));
+        public PacketGraph<S>.ContextHolder<?> readBody(final ByteBuffer buf) {
+            return PacketGraph.this.createState(this.type.read(buf).apply(this.context));
         }
     }
 }

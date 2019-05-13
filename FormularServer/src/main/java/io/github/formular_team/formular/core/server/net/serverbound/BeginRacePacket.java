@@ -25,7 +25,7 @@ public class BeginRacePacket implements Packet {
     @Override
     public void write(final ByteBuffer buf) {}
 
-    public static class Handler implements PacketHandler<UserContext, BeginRacePacket> {
+    public static class Handler implements PacketHandler<UserContext, Context, BeginRacePacket> {
         @Override
         public Context apply(final UserContext context, final BeginRacePacket packet) {
             final GameModel game = context.getServer().getGame();

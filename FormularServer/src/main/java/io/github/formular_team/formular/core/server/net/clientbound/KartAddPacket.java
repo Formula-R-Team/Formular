@@ -3,12 +3,13 @@ package io.github.formular_team.formular.core.server.net.clientbound;
 import java.nio.ByteBuffer;
 import java.util.function.Function;
 
+import io.github.formular_team.formular.core.color.Color;
 import io.github.formular_team.formular.core.game.GameView;
 import io.github.formular_team.formular.core.kart.Kart;
-import io.github.formular_team.formular.core.color.Color;
 import io.github.formular_team.formular.core.math.Vector2;
 import io.github.formular_team.formular.core.server.net.ByteBuffers;
 import io.github.formular_team.formular.core.server.net.ClientContext;
+import io.github.formular_team.formular.core.server.net.Context;
 import io.github.formular_team.formular.core.server.net.Packet;
 import io.github.formular_team.formular.core.server.net.PacketHandler;
 
@@ -50,7 +51,7 @@ public class KartAddPacket implements Packet {
         buf.putFloat(this.rotation);
     }
 
-    public static class Handler implements PacketHandler<ClientContext, KartAddPacket> {
+    public static class Handler implements PacketHandler<ClientContext, Context, KartAddPacket> {
         @Override
         public ClientContext apply(final ClientContext context, final KartAddPacket packet) {
             final GameView game = context.getClient().getGame();

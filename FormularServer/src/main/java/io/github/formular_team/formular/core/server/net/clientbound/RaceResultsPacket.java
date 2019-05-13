@@ -47,7 +47,7 @@ public class RaceResultsPacket implements Packet {
         }
     }
 
-    public static final class Handler implements PacketHandler<ClientContext, RaceResultsPacket> {
+    public static final class Handler implements PacketHandler<ClientContext, Context, RaceResultsPacket> {
         @Override
         public Context apply(final ClientContext context, final RaceResultsPacket packet) {
             return context;

@@ -8,6 +8,7 @@ import io.github.formular_team.formular.core.kart.Kart;
 import io.github.formular_team.formular.core.math.Vector2;
 import io.github.formular_team.formular.core.server.net.ByteBuffers;
 import io.github.formular_team.formular.core.server.net.ClientContext;
+import io.github.formular_team.formular.core.server.net.Context;
 import io.github.formular_team.formular.core.server.net.Packet;
 import io.github.formular_team.formular.core.server.net.PacketHandler;
 
@@ -44,7 +45,7 @@ public class SetPosePacket implements Packet {
         buf.putFloat(this.rotation);
     }
 
-    public static class Handler implements PacketHandler<ClientContext, SetPosePacket> {
+    public static class Handler implements PacketHandler<ClientContext, Context, SetPosePacket> {
         @Override
         public ClientContext apply(final ClientContext context, final SetPosePacket packet) {
             final GameView game = context.getClient().getGame();

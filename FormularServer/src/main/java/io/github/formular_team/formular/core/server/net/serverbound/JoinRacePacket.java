@@ -30,7 +30,7 @@ public class JoinRacePacket implements Packet {
     @Override
     public void write(final ByteBuffer buf) {}
 
-    public static class Handler implements PacketHandler<UserContext, JoinRacePacket> {
+    public static class Handler implements PacketHandler<UserContext, Context, JoinRacePacket> {
         @Override
         public Context apply(final UserContext context, final JoinRacePacket packet) {
             final GameModel game = context.getServer().getGame();

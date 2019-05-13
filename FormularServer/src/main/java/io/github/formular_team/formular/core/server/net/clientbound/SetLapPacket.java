@@ -32,7 +32,7 @@ public class SetLapPacket implements Packet {
         ByteBuffers.putUnsigned(buf, this.lap);
     }
 
-    public static final class Handler implements PacketHandler<ClientContext, SetLapPacket> {
+    public static final class Handler implements PacketHandler<ClientContext, Context, SetLapPacket> {
         @Override
         public Context apply(final ClientContext context, final SetLapPacket packet) {
             context.getClient().getGame().setLap(packet.lap);

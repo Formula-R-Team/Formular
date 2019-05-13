@@ -23,7 +23,7 @@ public class RaceFinishPacket implements Packet {
     @Override
     public void write(final ByteBuffer buf) {}
 
-    public static final class Handler implements PacketHandler<ClientContext, RaceFinishPacket> {
+    public static final class Handler implements PacketHandler<ClientContext, Context, RaceFinishPacket> {
         @Override
         public Context apply(final ClientContext context, final RaceFinishPacket packet) {
             context.getClient().getGame().onFinish();

@@ -22,7 +22,7 @@ import io.github.formular_team.formular.core.game.GameView;
 import io.github.formular_team.formular.core.race.RaceConfiguration;
 import io.github.formular_team.formular.core.server.net.ClientContext;
 import io.github.formular_team.formular.core.server.net.Context;
-import io.github.formular_team.formular.core.server.net.ContextualPacketGraph;
+import io.github.formular_team.formular.core.server.net.PacketGraph;
 import io.github.formular_team.formular.core.server.net.Packet;
 import io.github.formular_team.formular.core.server.net.Protocol;
 import io.github.formular_team.formular.core.server.net.SimpleConnection;
@@ -40,7 +40,7 @@ public final class SimpleClient implements Client {
 
     private final InetSocketAddress remoteAddress;
 
-    private final ContextualPacketGraph factory;
+    private final PacketGraph<Context> factory;
 
     private final User user;
 
@@ -52,7 +52,7 @@ public final class SimpleClient implements Client {
 
     private boolean running = true;
 
-    private SimpleClient(final Selector selector, final InetSocketAddress remoteAddress, final ContextualPacketGraph factory, final User user, final GameView game, final BlockingQueue<RunnableFuture<?>> queue, final long ups) {
+    private SimpleClient(final Selector selector, final InetSocketAddress remoteAddress, final PacketGraph<Context> factory, final User user, final GameView game, final BlockingQueue<RunnableFuture<?>> queue, final long ups) {
         this.selector = selector;
         this.remoteAddress = remoteAddress;
         this.factory = factory;

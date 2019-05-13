@@ -11,6 +11,7 @@ import io.github.formular_team.formular.core.SimpleDriver;
 import io.github.formular_team.formular.core.color.Color;
 import io.github.formular_team.formular.core.math.Vector2;
 import io.github.formular_team.formular.core.server.net.ByteBuffers;
+import io.github.formular_team.formular.core.server.net.Context;
 import io.github.formular_team.formular.core.server.net.KartContext;
 import io.github.formular_team.formular.core.server.net.Packet;
 import io.github.formular_team.formular.core.server.net.PacketHandler;
@@ -44,7 +45,7 @@ public class AddKartPacket implements Packet {
         ByteBuffers.putColor(buf, this.color);
     }
 
-    public static class Handler implements PacketHandler<UserContext, AddKartPacket> {
+    public static class Handler implements PacketHandler<UserContext, Context, AddKartPacket> {
         @Override
         public KartContext apply(final UserContext context, final AddKartPacket packet) {
             final GameModel game = context.getServer().getGame();

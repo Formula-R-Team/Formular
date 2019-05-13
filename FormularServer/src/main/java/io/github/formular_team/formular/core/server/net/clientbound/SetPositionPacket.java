@@ -32,7 +32,7 @@ public class SetPositionPacket implements Packet {
         ByteBuffers.putUnsigned(buf, this.position);
     }
 
-    public static final class Handler implements PacketHandler<ClientContext, SetPositionPacket> {
+    public static final class Handler implements PacketHandler<ClientContext, Context, SetPositionPacket> {
         @Override
         public Context apply(final ClientContext context, final SetPositionPacket packet) {
             context.getClient().getGame().setPosition(packet.position);

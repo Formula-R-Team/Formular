@@ -7,9 +7,10 @@ import java.net.MulticastSocket;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
-import java.nio.charset.StandardCharsets;
+import java.nio.ByteBuffer;
 import java.util.Enumeration;
 
+// https://stackoverflow.com/q/37293456/2782338
 public class LanDiscovery {
     private static final String INTERFACE = "eth0";
 
@@ -43,57 +44,71 @@ public class LanDiscovery {
         key.drop();
     }*/
 
-    public static class ThreadLanServerFind extends Thread
-    {
-        private final InetAddress broadcastAddress;
+    static final String MAGIC = "FORMULAR";
+
+    static PacketGraph<?> protocol() {
+        return PacketGraph.builder(Void.class)
+            /*.accept()*/
+            .build();
+    }
+
+    static class Sender implements Runnable {
+        @Override
+        public void run() {
+
+        }
+    }
+
+    static class Receiver implements Runnable {
+        private static final int HEADER_LEN = 2 * Short.BYTES;
+
+        private static final int PAYLOAD_MAX_LEN = 1 << Short.SIZE;
+
+        private static final int PACKET_LEN = PAYLOAD_MAX_LEN + HEADER_LEN;
+
+        private final InetAddress address;
 
         private final MulticastSocket socket;
 
-        public ThreadLanServerFind() throws IOException
-        {
-            super("LanServerDetector #");
-            this.setDaemon(true);
-            this.socket = new MulticastSocket(4445);
-            this.broadcastAddress = InetAddress.getByName("224.0.2.60");
-            this.socket.setSoTimeout(5000);
-            this.socket.joinGroup(this.broadcastAddress);
+        private PacketGraph<?>.ContextHolder<?> context;
+
+        private Receiver(final InetAddress address, final MulticastSocket socket, final PacketGraph<?>.ContextHolder<?> context) {
+            this.address = address;
+            this.socket = socket;
+            this.context = context;
         }
 
-        public void run()
-        {
-            final byte[] abyte = new byte[1024];
-
-            while (!this.isInterrupted())
-            {
-                final DatagramPacket datagrampacket = new DatagramPacket(abyte, abyte.length);
-
-                try
-                {
-                    this.socket.receive(datagrampacket);
-                }
-                catch (final SocketTimeoutException var5)
-                {
+        @Override
+        public void run() {
+            final byte[] bytes = new byte[PACKET_LEN];
+            final DatagramPacket packet = new DatagramPacket(bytes, bytes.length);
+            final ByteBuffer buf = ByteBuffer.wrap(bytes);
+            while (!Thread.currentThread().isInterrupted()) {
+                try {
+                    this.socket.receive(packet);
+                } catch (final SocketTimeoutException e) {
                     continue;
-                }
-                catch (final IOException ioexception)
-                {
+                } catch (final IOException e) {
                     break;
                 }
-
-                final String s = new String(datagrampacket.getData(), datagrampacket.getOffset(), datagrampacket.getLength(), StandardCharsets.UTF_8);
-                datagrampacket.getAddress();
+                buf.position(packet.getOffset());
+                buf.limit(packet.getOffset() + packet.getLength());
+                if (MAGIC.equals(ByteBuffers.getChars(buf, MAGIC.length()))) {
+                    this.context = this.context.readHeader(buf).readBody(buf);
+                }
             }
-
-            try
-            {
-                this.socket.leaveGroup(this.broadcastAddress);
-            }
-            catch (final IOException var4)
-            {
-                ;
-            }
-
+            try {
+                this.socket.leaveGroup(this.address);
+            } catch (final IOException ignored) {}
             this.socket.close();
+        }
+
+        static Receiver create() throws IOException {
+            final InetAddress address = InetAddress.getByName(HOST);
+            final MulticastSocket socket = new MulticastSocket(PORT);
+            socket.setSoTimeout(5000);
+            socket.joinGroup(address);
+            return new Receiver(address, socket, protocol().create());
         }
     }
 

@@ -15,8 +15,8 @@ import io.github.formular_team.formular.core.server.net.serverbound.JoinRacePack
 import io.github.formular_team.formular.core.server.net.serverbound.NewUserPacket;
 
 public class Protocol {
-    public static ContextualPacketGraph createConnectionFactory() {
-        return ContextualPacketGraph.builder()
+    public static PacketGraph<Context> createConnectionFactory() {
+        return PacketGraph.builder(Context.class)
             .when(ClientContext.class, client -> client
                 .accept(SetPosePacket.CREATOR, new SetPosePacket.Handler())
                 .accept(KartAddPacket.CREATOR, new KartAddPacket.Handler())
