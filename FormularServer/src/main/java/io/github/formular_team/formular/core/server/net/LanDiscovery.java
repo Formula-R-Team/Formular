@@ -9,6 +9,7 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.nio.ByteBuffer;
 import java.util.Enumeration;
+import java.util.function.Function;
 
 // https://stackoverflow.com/q/37293456/2782338
 public class LanDiscovery {
@@ -47,9 +48,33 @@ public class LanDiscovery {
     static final String MAGIC = "FORMULAR";
 
     static PacketGraph<?> protocol() {
-        return PacketGraph.builder(Void.class)
+        return PacketGraph.builder(Context.class)
             /*.accept()*/
             .build();
+    }
+
+    interface Context {}
+
+    interface SenderContext extends Context {}
+
+    interface ReceiverContext extends Context {}
+
+    static class ServerBroadcastPacket implements Packet {
+        static Function<ByteBuffer, ? extends ServerBroadcastPacket> CREATOR = ServerBroadcastPacket::new;
+
+        ServerBroadcastPacket(final ByteBuffer buf) {
+
+        }
+
+        @Override
+        public Function<ByteBuffer, ? extends Packet> creator() {
+            return CREATOR;
+        }
+
+        @Override
+        public void write(final ByteBuffer buf) {
+
+        }
     }
 
     static class Sender implements Runnable {
