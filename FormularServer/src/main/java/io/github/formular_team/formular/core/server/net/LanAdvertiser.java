@@ -144,16 +144,14 @@ public final class LanAdvertiser {
                 throw new RuntimeException(e);
             }
             final byte[] bytes = new byte[PACKET_LEN];
-            final DatagramPacket packet = new DatagramPacket(bytes, bytes.length, this.address, PORT);
             final ByteBuffer buf = ByteBuffer.wrap(bytes);
             ByteBuffers.putChars(buf, MAGIC);
             this.context.write(buf, new AdvertisePacket(this.advertisement));
             buf.flip();
-            packet.setLength(buf.limit());
             while (true) {
                 try {
                     Logger.getLogger("waldo").info("LAN publisher send");
-                    socket.send(packet);
+                    socket.send(new DatagramPacket(bytes, buf.limit(), this.address, PORT));
                 } catch (final IOException e) {
                     Logger.getLogger("waldo").log(Level.SEVERE, "Send failure", e);
                     break;
