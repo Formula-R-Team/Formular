@@ -19,8 +19,10 @@ import java.util.logging.Logger;
 
 import io.github.formular_team.formular.core.game.GameModel;
 import io.github.formular_team.formular.core.server.net.Context;
+import io.github.formular_team.formular.core.server.net.LanAdvertiser;
 import io.github.formular_team.formular.core.server.net.Packet;
 import io.github.formular_team.formular.core.server.net.Protocol;
+import io.github.formular_team.formular.core.server.net.ServerAdvertisement;
 import io.github.formular_team.formular.core.server.net.ServerContext;
 import io.github.formular_team.formular.core.server.net.SimpleConnection;
 import io.github.formular_team.formular.core.server.net.PacketGraph;
@@ -45,13 +47,16 @@ public final class SimpleServer implements Server {
 
     private boolean running = true;
 
-    private SimpleServer(final Selector selector, final InetSocketAddress address, final PacketGraph<Context> factory, final GameModel game, final BlockingQueue<RunnableFuture<?>> queue, final long ups) {
+    private final Thread lan;
+
+    private SimpleServer(final Selector selector, final InetSocketAddress address, final PacketGraph<Context> factory, final GameModel game, final BlockingQueue<RunnableFuture<?>> queue, final long ups, final Thread lan) {
         this.selector = selector;
         this.address = address;
         this.factory = factory;
         this.game = game;
         this.queue = queue;
         this.ups = ups;
+        this.lan = lan;
     }
 
     @Override
@@ -94,6 +99,7 @@ public final class SimpleServer implements Server {
         } catch (final IOException e) {
             throw new RuntimeException(e);
         }
+        this.lan.start();
         LOGGER.info("Listening on port " + this.address.getPort());
         this.game.addOnKartAddListener(kart -> this.send(new KartAddPacket(kart)));
         this.game.addOnPoseChangeListener(kart -> this.send(new SetPosePacket(kart)));
@@ -107,11 +113,6 @@ public final class SimpleServer implements Server {
             this.addJob(STEP_PILL);
             this.game.step(duration / 1000.0F);
             for (RunnableFuture<?> job; (job = this.pollJob()) != null && job != STEP_PILL; job.run());
-            /*try {
-                for (RunnableFuture<?> job; (present = this.currentTimeMillis()) < deadline && (job = this.pollJob(deadline - present)) != null; job.run());
-            } catch (final InterruptedException e) {
-                break;
-            }*/
             try {
                 for (long now; (now = this.currentTimeMillis()) < deadline; ) {
                     this.selector.select(deadline - now);
@@ -140,6 +141,10 @@ public final class SimpleServer implements Server {
                 this.running = false;
             }
         }
+        this.lan.interrupt();
+        try {
+            this.lan.join();
+        } catch (final InterruptedException ignored) {}
         try {
             socket.close();
         } catch (final IOException ignored) {}
@@ -185,6 +190,18 @@ public final class SimpleServer implements Server {
     }
 
     public static SimpleServer open(final InetSocketAddress address, final GameModel game, final long ups) throws IOException {
-        return new SimpleServer(Selector.open(), address, Protocol.createConnectionFactory(), game, new LinkedBlockingDeque<>(), ups);
+        return new SimpleServer(
+            Selector.open(),
+            address,
+            Protocol.createConnectionFactory(),
+            game,
+            new LinkedBlockingDeque<>(),
+            ups,
+            new Thread(LanAdvertiser.createPublisher(
+                ServerAdvertisement.builder()
+                    .setAddress(address)
+                    .build()
+            ))
+        );
     }
 }

@@ -208,6 +208,10 @@ public final class PacketGraph<S> {
             this.node = node;
         }
 
+        public PacketGraph<S>.ContextHolder<?> create(final S context) {
+            return PacketGraph.this.create(context);
+        }
+
         public void write(final ByteBuffer buf, final Packet packet) {
             final Integer type = PacketGraph.this.ids.get(packet.creator());
             if (type == null) {

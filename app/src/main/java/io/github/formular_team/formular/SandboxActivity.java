@@ -9,18 +9,15 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.StringRes;
 import android.support.v7.app.AlertDialog;
-import android.text.Layout;
 import android.text.format.Formatter;
 import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.ar.core.Frame;
 import com.google.ar.core.HitResult;
@@ -38,14 +35,14 @@ import java.util.concurrent.TimeUnit;
 
 import io.github.formular_team.formular.ar.ArGameView;
 import io.github.formular_team.formular.ar.Rectifier;
+import io.github.formular_team.formular.core.SimpleControlState;
+import io.github.formular_team.formular.core.SimpleGameModel;
+import io.github.formular_team.formular.core.User;
 import io.github.formular_team.formular.core.course.Capture;
 import io.github.formular_team.formular.core.course.Course;
 import io.github.formular_team.formular.core.course.CourseMetadata;
 import io.github.formular_team.formular.core.course.CourseReader;
 import io.github.formular_team.formular.core.kart.Kart;
-import io.github.formular_team.formular.core.SimpleControlState;
-import io.github.formular_team.formular.core.SimpleGameModel;
-import io.github.formular_team.formular.core.User;
 import io.github.formular_team.formular.core.race.RaceConfiguration;
 import io.github.formular_team.formular.core.server.Client;
 import io.github.formular_team.formular.core.server.Endpoint;
@@ -53,6 +50,7 @@ import io.github.formular_team.formular.core.server.EndpointController;
 import io.github.formular_team.formular.core.server.Server;
 import io.github.formular_team.formular.core.server.SimpleClient;
 import io.github.formular_team.formular.core.server.SimpleServer;
+import io.github.formular_team.formular.core.server.net.LanAdvertiser;
 
 public class SandboxActivity extends FormularActivity implements OverlayView {
     private static final String TAG = "SandboxActivity";
@@ -147,9 +145,15 @@ public class SandboxActivity extends FormularActivity implements OverlayView {
         final WeakOptional<SandboxActivity> act = WeakOptional.of(this);
         SimpleKartNodeFactory.create(this, R.raw.kart_body, R.raw.kart_wheel_front, R.raw.kart_wheel_rear)
             .thenAccept(factory -> act.ifPresent(activity -> activity.factory = factory));
-
-
+        if (!this.host) {
+            this.lan = new Thread(LanAdvertiser.createSubscriber(ad -> {
+                new AlertDialog.Builder(this).setMessage("" + ad.getAddress()).show();
+            }));
+            this.lan.start();
+        }
     }
+
+    private Thread lan;
 
     private void startRace(final Node surface, final RaceConfiguration config, final Course course) {
         this.startServer();
