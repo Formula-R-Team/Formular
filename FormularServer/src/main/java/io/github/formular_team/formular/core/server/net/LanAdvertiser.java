@@ -12,7 +12,6 @@ import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 // https://stackoverflow.com/q/37293456/2782338
@@ -150,10 +149,8 @@ public final class LanAdvertiser {
             buf.flip();
             while (true) {
                 try {
-                    Logger.getLogger("waldo").info("LAN publisher send");
                     socket.send(new DatagramPacket(bytes, buf.limit(), this.address, PORT));
                 } catch (final IOException e) {
-                    Logger.getLogger("waldo").log(Level.SEVERE, "Send failure", e);
                     break;
                 }
                 try {
@@ -162,7 +159,6 @@ public final class LanAdvertiser {
                     break;
                 }
             }
-            Logger.getLogger("waldo").info("LAN publisher stopped");
             socket.close();
         }
     }
@@ -196,14 +192,10 @@ public final class LanAdvertiser {
                 buf.position(packet.getOffset());
                 buf.limit(packet.getOffset() + packet.getLength());
                 if (MAGIC.equals(ByteBuffers.getChars(buf, MAGIC.length()))) {
-                    Logger.getLogger("waldo").info("LAN publisher receive");
                     this.context = this.context.create(new ReceiveContext(packet.getAddress()));
                     this.context = this.context.readHeader(buf).readBody(buf);
-                } else {
-                    Logger.getLogger("waldo").info("LAN publisher received magic mismatch");
                 }
             }
-            Logger.getLogger("waldo").info("LAN subscriber stopped");
             try {
                 socket.leaveGroup(this.address);
             } catch (final IOException ignored) {}

@@ -87,7 +87,7 @@ class Racer {
             this.race.onProgress(this.driver, this.progress);
             // FIXME
             if (this.time != -1.0F && this.getLapProgress() >= this.race.getConfiguration().getLapCount()) {
-                this.race.onEnd(this.driver);
+                this.race.onFinish(this.driver);
                 this.time = -1.0F;
             }
             return Mth.deltaMod(this.progress, lastProgress, 1.0F);

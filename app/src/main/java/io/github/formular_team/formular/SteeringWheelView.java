@@ -6,7 +6,13 @@ import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
+import android.view.MotionEvent;
 import android.view.View;
+
+import io.github.formular_team.formular.core.SimpleControlState;
+import io.github.formular_team.formular.core.kart.Kart;
+import io.github.formular_team.formular.core.kart.KartModel;
+import io.github.formular_team.formular.core.math.Mth;
 
 public class SteeringWheelView extends View {
     private Drawable wheel;
@@ -18,6 +24,10 @@ public class SteeringWheelView extends View {
     private boolean sizeChanged = true;
 
     private float angle = 0.0F;
+
+    private SteerListener listener;
+
+    private Kart.ControlState state = new SimpleControlState();
 
     public SteeringWheelView(final Context context) {
         this(context, null);
@@ -56,6 +66,41 @@ public class SteeringWheelView extends View {
 
     public float getAngle() {
         return this.angle;
+    }
+
+    public void setSteerListener(final SteerListener listener) {
+        this.listener = listener;
+    }
+
+    @Override
+    public boolean onTouchEvent(final MotionEvent event) {
+        switch (event.getAction()) {
+        case MotionEvent.ACTION_DOWN:
+        case MotionEvent.ACTION_MOVE:
+            final float x = Mth.clamp(event.getX() / this.getWidth() * 2.0F - 1.0F, -1.0F, 1.0F);
+            final float y = Mth.clamp(event.getY() / this.getHeight() * 2.0F - 1.0F, -1.0F, 1.0F);
+            final float angle = -Mth.PI / 4.0F * x;
+            this.state.setSteeringAngle(angle);
+            this.state.setThrottle(-y * 7.5F);
+            this.state.setBrake(0.0F);
+            if (this.listener != null) {
+                this.listener.onSteer(this.state);
+            }
+            this.setAngle(-Mth.toDegrees(angle));
+            return true;
+        case MotionEvent.ACTION_UP:
+            this.state.setThrottle(0.0F);
+            this.state.setBrake(10.0F);
+            if (this.listener != null) {
+                this.listener.onSteer(this.state);
+            }
+            return true;
+        }
+        return false;
+    }
+
+    public interface SteerListener {
+        void onSteer(final KartModel.ControlState state);
     }
 
     @Override

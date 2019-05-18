@@ -3,18 +3,15 @@ package io.github.formular_team.formular;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.res.Configuration;
+import android.content.pm.ActivityInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.annotation.StringRes;
 import android.support.v7.app.AlertDialog;
 import android.text.format.Formatter;
-import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.OrientationEventListener;
 import android.view.View;
-import android.view.animation.AlphaAnimation;
-import android.view.animation.Animation;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -43,6 +40,7 @@ import io.github.formular_team.formular.core.course.Course;
 import io.github.formular_team.formular.core.course.CourseMetadata;
 import io.github.formular_team.formular.core.course.CourseReader;
 import io.github.formular_team.formular.core.kart.Kart;
+import io.github.formular_team.formular.core.kart.KartModel;
 import io.github.formular_team.formular.core.race.RaceConfiguration;
 import io.github.formular_team.formular.core.server.Client;
 import io.github.formular_team.formular.core.server.Endpoint;
@@ -52,7 +50,7 @@ import io.github.formular_team.formular.core.server.SimpleClient;
 import io.github.formular_team.formular.core.server.SimpleServer;
 import io.github.formular_team.formular.core.server.net.LanAdvertiser;
 
-public class SandboxActivity extends FormularActivity implements OverlayView {
+public class SandboxActivity extends FormularActivity implements ArInterfaceFragment.ArInterfaceListener {
     private static final String TAG = "SandboxActivity";
 
     public static final String EXTRA_HOST = "host";
@@ -61,21 +59,15 @@ public class SandboxActivity extends FormularActivity implements OverlayView {
 
     private boolean host;
 
-    private View steeringWheel;
-
     private ArFragment arFragment;
+
+    private ArInterfaceFragment interfaceFragment;
 
     private KartNodeFactory factory;
 
     private EndpointController<Client> clientController;
 
     private EndpointController<Server> serverController;
-
-    private int screenHeight;
-
-    private int screenWidth;
-
-    private boolean startsInPortrait = true;
 
     private Node createAnchor(final HitResult result) {
         final AnchorNode anchor = new AnchorNode(result.createAnchor());
@@ -87,24 +79,18 @@ public class SandboxActivity extends FormularActivity implements OverlayView {
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.setContentView(R.layout.activity_sandbox);
-
         this.user = AppPreferences.getUser(PreferenceManager.getDefaultSharedPreferences(this));
         final Intent intent = this.getIntent();
         if (intent != null) {
             this.host = intent.getBooleanExtra(EXTRA_HOST, true);
         }
-        this.steeringWheel = this.findViewById(R.id.steering_wheel);
-
-        DisplayMetrics displayMetrics = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-        screenHeight = displayMetrics.heightPixels;
-        screenWidth = displayMetrics.widthPixels;
-        if(screenHeight < screenWidth){
-            startsInPortrait = false;
-        }
         this.arFragment = (ArFragment) this.getSupportFragmentManager().findFragmentById(R.id.ar);
         if (this.arFragment == null) {
             throw new RuntimeException("Missing ar fragment");
+        }
+        this.interfaceFragment = (ArInterfaceFragment) this.getSupportFragmentManager().findFragmentById(R.id.ar_interface);
+        if (this.interfaceFragment == null) {
+            throw new RuntimeException("Missing interface fragment");
         }
         this.arFragment.setOnTapArPlaneListener((result, plane, event) -> {
             final Frame frame = this.arFragment.getArSceneView().getArFrame();
@@ -133,15 +119,6 @@ public class SandboxActivity extends FormularActivity implements OverlayView {
                 }
             }
         });
-        this.steeringWheel.setOnTouchListener(new KartController(new SimpleControlState(), state -> {
-            if (this.clientController != null) {
-                final Kart.ControlState copy = new SimpleControlState().copy(state);
-                this.clientController.submitJob(Endpoint.Job.of(c -> {
-                    // TODO: better client state management
-                    c.getGame().getControlState().copy(copy);
-                }));
-            }
-        }));
         final WeakOptional<SandboxActivity> act = WeakOptional.of(this);
         SimpleKartNodeFactory.create(this, R.raw.kart_body, R.raw.kart_wheel_front, R.raw.kart_wheel_rear)
             .thenAccept(factory -> act.ifPresent(activity -> activity.factory = factory));
@@ -150,6 +127,39 @@ public class SandboxActivity extends FormularActivity implements OverlayView {
                 new AlertDialog.Builder(this).setMessage("" + ad.getAddress()).show();
             }));
             this.lan.start();
+        }
+        final OrientationEventListener listener = new OrientationEventListener(this) {
+            private final int[] orientations = {
+                ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE,
+                ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT,
+                ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE,
+                ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+            };
+
+            private int orientation = -1;
+
+            @Override
+            public void onOrientationChanged(final int orientation) {
+                final int o = this.orientations[(orientation + 360 - 45) / 90 % 4];
+                if (this.orientation != o) {
+                    SandboxActivity.this.setRequestedOrientation(o);
+                    this.orientation = o;
+                }
+            }
+        };
+        if (listener.canDetectOrientation()) {
+            listener.enable();
+        }
+    }
+
+    @Override
+    public void onSteer(final KartModel.ControlState state) {
+        if (this.clientController != null) {
+            final Kart.ControlState copy = new SimpleControlState().copy(state);
+            this.clientController.submitJob(Endpoint.Job.of(c -> {
+                // TODO: better client state management
+                c.getGame().getControlState().copy(copy);
+            }));
         }
     }
 
@@ -170,7 +180,7 @@ public class SandboxActivity extends FormularActivity implements OverlayView {
     }
 
     private void enterInGame() {
-        this.steeringWheel.setVisibility(View.VISIBLE);
+        this.findViewById(R.id.steering_wheel).setVisibility(View.VISIBLE);
         this.arFragment.getArSceneView().getPlaneRenderer().setVisible(false);
     }
 
@@ -223,7 +233,7 @@ public class SandboxActivity extends FormularActivity implements OverlayView {
 
     private void startClient(final Node surface, final InetSocketAddress address) {
         try {
-            this.clientController = EndpointController.create(SimpleClient.open(address, this.user, ArGameView.create(this, this.findViewById(R.id.count), this.findViewById(R.id.position), this.findViewById(R.id.lap) , this.arFragment.getArSceneView().getScene(), surface, this.factory, this.findViewById(R.id.race_finish_positions)), 30));
+            this.clientController = EndpointController.create(SimpleClient.open(address, this.user, ArGameView.create(this, this.interfaceFragment, this.arFragment.getArSceneView().getScene(), surface, this.factory), 30));
             this.clientController.start();
         } catch (final IOException e) {
             Log.e(TAG, "Error creating client", e);
@@ -252,69 +262,6 @@ public class SandboxActivity extends FormularActivity implements OverlayView {
         }
         if (this.serverController != null) {
             this.serverController.stop();
-        }
-    }
-
-    @Override
-    public void setCount(int resID) {
-        this.runOnUiThread(() -> {
-            TextView countText = findViewById(R.id.count);
-            countText.setText(resID);
-            final Animation anim = new AlphaAnimation(1.0F, 0.0F);
-            anim.setDuration(1000);
-            anim.setFillEnabled(true);
-            anim.setFillAfter(true);
-            countText.startAnimation(anim);
-        });
-    }
-
-    @Override
-    public void setPosition(int resID) {
-
-        this.runOnUiThread(() -> {
-            TextView posText = findViewById(R.id.position);
-            posText.setText(resID);
-        });
-
-    }
-
-    @Override
-    public void setLap(@StringRes int resID)
-    {
-        this.runOnUiThread(() -> {
-            TextView lapText = findViewById(R.id.lap);
-            lapText.setText(resID);
-        });
-
-    }
-    @Override
-    public void onConfigurationChanged(Configuration newConfig){
-        super.onConfigurationChanged(newConfig);
-        View racePlacements = (View) findViewById(R.id.race_finish_positions);
-        if(startsInPortrait){
-            if(newConfig.orientation==Configuration.ORIENTATION_LANDSCAPE){
-                steeringWheel.setX(screenWidth - steeringWheel.getWidth() / 4);
-                steeringWheel.setY(screenHeight / 2 + steeringWheel.getHeight() / 4);
-                racePlacements.setY(racePlacements.getY() + racePlacements.getY());
-
-            }
-            else if(newConfig.orientation==Configuration.ORIENTATION_PORTRAIT){
-                steeringWheel.setX(screenHeight/2 - steeringWheel.getWidth()/2);
-                steeringWheel.setY(screenWidth - steeringWheel.getHeight());
-                racePlacements.setY(racePlacements.getY() - racePlacements.getHeight()/4);
-            }
-        }
-        else{
-            if(newConfig.orientation==Configuration.ORIENTATION_LANDSCAPE){
-                steeringWheel.setX(screenHeight - steeringWheel.getWidth() );
-                steeringWheel.setY(screenWidth / 2 - steeringWheel.getHeight()/2);
-                racePlacements.setY(racePlacements.getY() - racePlacements.getHeight()/4);
-            }
-            else if(newConfig.orientation==Configuration.ORIENTATION_PORTRAIT){
-                steeringWheel.setX(screenWidth/2 + steeringWheel.getWidth()/4);
-                steeringWheel.setY(screenHeight - steeringWheel.getHeight()/4);
-                racePlacements.setY(racePlacements.getY() + racePlacements.getHeight()/4);
-            }
         }
     }
 }

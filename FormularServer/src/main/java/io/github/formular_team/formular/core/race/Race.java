@@ -160,7 +160,7 @@ public final class Race {
         }
     }
 
-    void onEnd(final Driver driver) {
+    void onFinish(final Driver driver) {
         for (final RaceListener listener : this.listeners) {
             listener.onFinish(driver);
         }
