@@ -4,6 +4,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -264,4 +265,5 @@ public class SandboxActivity extends FormularActivity implements ArInterfaceFrag
             this.serverController.stop();
         }
     }
+
 }
