@@ -14,7 +14,9 @@
         android:layout_height="match_parent" />
     <fragment
         android:id="@+id/ar_interface"
-        android:name="io.github.formular_team.formular.ArInterfaceFragment"
+        android:name="androidx.navigation.fragment.NavHostFragment"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        app:defaultNavHost="true"
+        app:navGraph="@navigation/nav_graph" />
 </android.support.constraint.ConstraintLayout>

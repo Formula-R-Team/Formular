@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/tool_shop"
+        android:icon="@drawable/circle"
+        android:title="Shop" />
+    <item
+        android:id="@+id/tool_create"
+        android:icon="@drawable/circle"
+        android:title="Create" />
+    <item
+        android:id="@+id/tool_join"
+        android:icon="@drawable/circle"
+        android:title="Join" />
+</menu>

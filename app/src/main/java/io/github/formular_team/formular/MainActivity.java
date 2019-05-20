@@ -23,9 +23,7 @@ public class MainActivity extends FormularActivity {
         this.customize = this.findViewById(R.id.button_customize);
         this.customize.setOnClickListener(this.activityChange(CustomizeActivity.class));
         this.host.setOnClickListener(v -> {
-            final Intent intent = new Intent(this, SandboxActivity.class);
-            intent.putExtra(SandboxActivity.EXTRA_HOST, true);
-            this.startActivity(intent);
+            this.startActivity(new Intent(this, SandboxActivity.class));
         });
         /*this.join.setOnClickListener(v -> {
             final Intent intent = new Intent(this, SandboxActivity.class);

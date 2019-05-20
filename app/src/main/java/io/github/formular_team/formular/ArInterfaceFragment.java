@@ -17,10 +17,10 @@ import android.widget.TextView;
 
 import io.github.formular_team.formular.core.kart.KartModel;
 
-public class ArInterfaceFragment extends Fragment implements ArInterfaceView {
+public class ArInterfaceFragment extends Fragment implements RaceView {
     private View view;
 
-    private ArInterfaceListener listener;
+    private Listener listener;
 
     @Override
     public void onConfigurationChanged(final Configuration newConfig) {
@@ -43,7 +43,7 @@ public class ArInterfaceFragment extends Fragment implements ArInterfaceView {
         return this.view;
     }
 
-    public void onSteer(final KartModel.ControlState state) {
+    private void onSteer(final KartModel.ControlState state) {
         if (this.listener != null) {
             this.listener.onSteer(state);
         }
@@ -52,10 +52,10 @@ public class ArInterfaceFragment extends Fragment implements ArInterfaceView {
     @Override
     public void onAttach(final Context context) {
         super.onAttach(context);
-        if (context instanceof ArInterfaceListener) {
-            this.listener = (ArInterfaceListener) context;
+        if (context instanceof Listener) {
+            this.listener = (Listener) context;
         } else {
-            throw new RuntimeException(context.toString() + " must implement OnFragmentInteractionListener");
+            throw new RuntimeException(context + " must implement RaceFragment.Listener");
         }
     }
 
@@ -111,14 +111,7 @@ public class ArInterfaceFragment extends Fragment implements ArInterfaceView {
         countText.startAnimation(anim);
     }
 
-    public static ArInterfaceFragment newInstance() {
-        final ArInterfaceFragment fragment = new ArInterfaceFragment();
-        final Bundle args = new Bundle();
-        fragment.setArguments(args);
-        return fragment;
-    }
-
-    public interface ArInterfaceListener {
+    public interface Listener {
         void onSteer(final KartModel.ControlState state);
     }
 

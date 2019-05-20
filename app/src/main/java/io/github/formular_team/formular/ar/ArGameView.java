@@ -12,7 +12,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import io.github.formular_team.formular.KartNodeFactory;
-import io.github.formular_team.formular.ArInterfaceView;
+import io.github.formular_team.formular.RaceView;
 import io.github.formular_team.formular.R;
 import io.github.formular_team.formular.core.SimpleControlState;
 import io.github.formular_team.formular.core.StateKartView;
@@ -26,7 +26,7 @@ import io.github.formular_team.formular.core.math.Vector2;
 public class ArGameView implements GameView {
     private final Activity activity;
 
-    private final ArInterfaceView overlay;
+    private final RaceView overlay;
 
     private final Scene scene;
 
@@ -38,7 +38,7 @@ public class ArGameView implements GameView {
 
     private final Kart.ControlState controlState = new SimpleControlState();
 
-    private ArGameView(final Activity activity, final ArInterfaceView overlay, final Scene scene, final Node surface, final KartNodeFactory factory, final SparseArray<KartView> karts) {
+    private ArGameView(final Activity activity, final RaceView overlay, final Scene scene, final Node surface, final KartNodeFactory factory, final SparseArray<KartView> karts) {
         this.activity = activity;
         this.overlay = overlay;
         this.scene = scene;
@@ -147,7 +147,7 @@ public class ArGameView implements GameView {
         return this.controlState;
     }
 
-    public static ArGameView create(final Activity activity, final ArInterfaceView overlay, final Scene scene, final Node surface, final KartNodeFactory factory) {
+    public static ArGameView create(final Activity activity, final RaceView overlay, final Scene scene, final Node surface, final KartNodeFactory factory) {
         return new ArGameView(activity, overlay, scene, surface, factory, new SparseArray<>());
     }
 }
