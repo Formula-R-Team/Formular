@@ -9,5 +9,5 @@
         android:name="io.github.formular_team.formular.ToolFragment" />
     <fragment
         android:id="@+id/race_fragment"
-        android:name="io.github.formular_team.formular.ArInterfaceFragment" />
+        android:name="io.github.formular_team.formular.RaceFragment" />
 </navigation>

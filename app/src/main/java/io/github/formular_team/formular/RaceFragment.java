@@ -2,12 +2,11 @@ package io.github.formular_team.formular;
 
 import android.content.Context;
 import android.content.res.Configuration;
-import android.graphics.Point;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.support.annotation.StringRes;
 import android.support.v4.app.Fragment;
-import android.text.Layout;
-import android.view.Display;
+import android.text.format.Formatter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,54 +14,52 @@ import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.widget.TextView;
 
-import io.github.formular_team.formular.core.kart.KartModel;
-
-public class ArInterfaceFragment extends Fragment implements RaceView {
+public class RaceFragment extends Fragment implements RaceView {
     private View view;
 
-    private Listener listener;
+    private ArActivity activity;
 
     @Override
     public void onConfigurationChanged(final Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-        if(this.view.<SteeringWheelView>findViewById(R.id.steering_wheel).getVisibility() == View.VISIBLE){
-            if(getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE){
-                setViewLayout(R.layout.fragment_ar_interface_land, getLap(), getPosition());
-            }
-            else if(getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT){
-                setViewLayout(R.layout.fragment_ar_interface, getLap(), getPosition());
-            }
+        if(getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE){
+            setViewLayout(R.layout.fragment_race_land, getLap(), getPosition());
         }
-
+        else if(getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT){
+            setViewLayout(R.layout.fragment_race, getLap(), getPosition());
+        }
     }
 
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
-        this.view = inflater.inflate(R.layout.fragment_ar_interface, container, false);
-        this.view.<SteeringWheelView>findViewById(R.id.steering_wheel).setSteerListener(this::onSteer);
+        this.view = inflater.inflate(R.layout.fragment_race, container, false);
+        this.view.<SteeringWheelView>findViewById(R.id.steering_wheel).setSteerListener(state -> this.activity.onSteer(state));
+        final WifiManager wifi = this.requireContext().getSystemService(WifiManager.class);
+        final String ip = Formatter.formatIpAddress(wifi.getConnectionInfo().getIpAddress());
+        final TextView ipText = this.view.findViewById(R.id.ip);
+        ipText.setText(ip);
+        ipText.setOnClickListener(v -> {
+            v.setVisibility(View.INVISIBLE);
+            this.activity.startRace();
+        });
         return this.view;
-    }
-
-    private void onSteer(final KartModel.ControlState state) {
-        if (this.listener != null) {
-            this.listener.onSteer(state);
-        }
     }
 
     @Override
     public void onAttach(final Context context) {
         super.onAttach(context);
-        if (context instanceof Listener) {
-            this.listener = (Listener) context;
+        if (context instanceof ArActivity) {
+            this.activity = (ArActivity) context;
         } else {
-            throw new RuntimeException(context + " must implement RaceFragment.Listener");
+            throw new RuntimeException(context + " must implement ArActivity");
         }
+        this.activity.addRaceListener(this);
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
-        this.listener = null;
+        this.activity = null;
     }
 
     @Override
@@ -79,7 +76,7 @@ public class ArInterfaceFragment extends Fragment implements RaceView {
     @Override
     public void setPosition(final int resID, final int position) {
         final TextView posText = this.view.findViewById(R.id.position);
-        posText.setText(resID);
+        posText.setText(this.getString(resID, position));
     }
 
     public String getPosition() {
@@ -88,9 +85,9 @@ public class ArInterfaceFragment extends Fragment implements RaceView {
     }
 
     @Override
-    public void setLap(@StringRes final int resID, final int lap, final int lapCount) {
+    public void setLap(final @StringRes int resID, final int lap, final int lapCount) {
         final TextView lapText = this.view.findViewById(R.id.lap);
-        lapText.setText(resID);
+        lapText.setText(this.getString(resID, lap, lapCount));
     }
 
     public String getLap(){
@@ -111,10 +108,6 @@ public class ArInterfaceFragment extends Fragment implements RaceView {
         countText.startAnimation(anim);
     }
 
-    public interface Listener {
-        void onSteer(final KartModel.ControlState state);
-    }
-
     private void setViewLayout(int id, String lap, String position){
         LayoutInflater inflater = (LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         view = inflater.inflate(id, null);
@@ -122,8 +115,7 @@ public class ArInterfaceFragment extends Fragment implements RaceView {
         rootView.removeAllViews();
         rootView.addView(view);
 
-        this.view.<SteeringWheelView>findViewById(R.id.steering_wheel).setVisibility(View.VISIBLE);
-        this.view.<SteeringWheelView>findViewById(R.id.steering_wheel).setSteerListener(this::onSteer);
+        this.view.<SteeringWheelView>findViewById(R.id.steering_wheel).setSteerListener(state -> this.activity.onSteer(state));
 
         final TextView lapText = this.view.findViewById(R.id.lap);
         lapText.setVisibility(View.VISIBLE);

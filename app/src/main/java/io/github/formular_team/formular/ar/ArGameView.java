@@ -45,7 +45,6 @@ public class ArGameView implements GameView {
         this.surface = surface;
         this.factory = factory;
         this.karts = karts;
-
     }
 
     @Override
