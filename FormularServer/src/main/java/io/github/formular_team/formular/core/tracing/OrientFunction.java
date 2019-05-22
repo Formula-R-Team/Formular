@@ -42,6 +42,7 @@ public final class OrientFunction implements ToFloatMapFunction {
         return this.computeSpreadAngle(d, b, a);
 	}
 
+	// https://www.xarg.org/2018/04/how-to-plot-a-covariance-error-ellipse/
 	private float computeSpreadAngle(final float a, final float b, final float d) {
 		return Mth.atan2(b == 0.0F ? 0.0F : (Mth.sqrt((a - d) * (a - d) + 4.0F * b * b) + a - d) / (2.0F * b), 1.0F);
 	}
