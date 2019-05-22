@@ -63,12 +63,16 @@ public final class Mth {
         return (float) Math.acos(a);
     }
 
-    public static float atan(final double v) {
+    public static float atan(final float v) {
         return (float) Math.atan(v);
     }
 
     public static float atan2(final float a, final float b) {
         return (float) Math.atan2(a, b);
+    }
+
+    public static float hypot(final float v, final float v1) {
+        return (float) Math.hypot(v, v1);
     }
 
     public static float clamp(final float value, final float min, final float max) {

@@ -1,7 +1,5 @@
 package io.github.formular_team.formular.core.tracing;
 
-import io.github.formular_team.formular.core.math.Mth;
-
 public final class OrientFunction implements ToFloatMapFunction {
 	private final int radius;
 
@@ -33,36 +31,6 @@ public final class OrientFunction implements ToFloatMapFunction {
 				}
 			}
 		}
-		if (n == 0) {
-			return Float.NaN;
-		}
-		final float a = cov(this.bufX, this.bufX, this.bufW, n);
-		final float b = cov(this.bufX, this.bufY, this.bufW, n);
-		final float d = cov(this.bufY, this.bufY, this.bufW, n);
-        return this.computeSpreadAngle(d, b, a);
-	}
-
-	// https://www.xarg.org/2018/04/how-to-plot-a-covariance-error-ellipse/
-	private float computeSpreadAngle(final float a, final float b, final float d) {
-		return Mth.atan2(b == 0.0F ? 0.0F : (Mth.sqrt((a - d) * (a - d) + 4.0F * b * b) + a - d) / (2.0F * b), 1.0F);
-	}
-
-	// https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Online
-	private static float cov(final float[] data1, final float[] data2, final float[] data3, final int n) {
-		double meanx = 0.0D, meany = 0.0D;
-		double wsum = 0.0D, wsum2 = 0.0D;
-		double C = 0.0D;
-		for (int i = 0; i < n; i++) {
-			final double x = data1[i];
-			final double y = data2[i];
-			final double w = data3[i];
-			wsum += w;
-			wsum2 += w * w;
-			final double dx = x - meanx;
-			meanx += (w / wsum) * dx;
-			meany += (w / wsum) * (y - meany);
-			C += w * dx * (y - meany);
-		}
-		return (float) (C / (wsum - wsum2 / wsum));
+		return PCA.get(this.bufX, this.bufY, this.bufW, n).getAngle();
 	}
 }

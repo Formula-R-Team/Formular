@@ -359,6 +359,13 @@ public class Vector2 {
         return new Vector2(-this.y, this.x);
     }
 
+    public float angle() {
+        if (this.lengthSq() < 1.0e-6F) {
+            return Float.NaN;
+        }
+        return Mth.atan2(this.y, this.x);
+    }
+
     public Vector2 rotateAround(final Vector2 center, final float angle) {
         final float c = Mth.cos(angle), s = Mth.sin(angle);
         final float x = this.x - center.x;
