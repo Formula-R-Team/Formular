@@ -11,10 +11,9 @@ import android.util.Log;
 import android.view.OrientationEventListener;
 import android.widget.EditText;
 
-import com.google.ar.core.Anchor;
 import com.google.ar.core.Frame;
 import com.google.ar.core.exceptions.NotYetAvailableException;
-import com.google.ar.sceneform.AnchorNode;
+import com.google.ar.sceneform.Node;
 import com.google.ar.sceneform.Scene;
 import com.google.ar.sceneform.rendering.PlaneRenderer;
 import com.google.ar.sceneform.rendering.Texture;
@@ -153,7 +152,7 @@ public class SandboxActivity extends FormularActivity implements ArActivity {
     }
 
     @Override
-    public void createRace(final Anchor anchor, final Course course) {
+    public void createRace(final Node anchor, final Course course) {
         this.createGame(anchor);
         this.startServer();
         this.startClient(new InetSocketAddress(InetAddress.getLoopbackAddress(), Endpoint.DEFAULT_PORT));
@@ -175,7 +174,7 @@ public class SandboxActivity extends FormularActivity implements ArActivity {
     private ArGameView game;
 
     @Override
-    public void joinRace(final Anchor anchor) {
+    public void joinRace(final Node anchor) {
         final AlertDialog dialog = new AlertDialog.Builder(this)
             .setTitle("Connect to server")
             .setView(R.layout.host_address_prompt)
@@ -223,9 +222,7 @@ public class SandboxActivity extends FormularActivity implements ArActivity {
         return new InetSocketAddress(host, port);
     }
 
-    private void createGame(final Anchor anchor) {
-        final AnchorNode node = new AnchorNode(anchor);
-        this.getScene().addChild(node);
+    private void createGame(final Node node) {
         this.game = ArGameView.create(this, new RaceView() {
             private Iterable<RaceView> listeners() {
                 return SandboxActivity.this.listeners;

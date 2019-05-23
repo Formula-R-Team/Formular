@@ -112,7 +112,7 @@ public class CourseNode extends Node {
                 final Node road = new Node();
                 road.setLocalPosition(new com.google.ar.sceneform.math.Vector3(0.0F, roadHeight, 0.0F));
                 final CourseNode node = new CourseNode(road);
-                node.setLocalScale(com.google.ar.sceneform.math.Vector3.one().scaled(course.getWorldScale()));
+                //node.setLocalScale(com.google.ar.sceneform.math.Vector3.one().scaled(course.getWorldScale()));
                 final Node trackNode = new Node();
                 final ModelRenderable trackRenderable = Geometries.toRenderable(ImmutableList.of(roadGeom, wallLeft, wallRight), material);
                 trackNode.setRenderable(trackRenderable);

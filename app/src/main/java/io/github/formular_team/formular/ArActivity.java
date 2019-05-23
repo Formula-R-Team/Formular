@@ -2,7 +2,7 @@ package io.github.formular_team.formular;
 
 import android.support.annotation.Nullable;
 
-import com.google.ar.core.Anchor;
+import com.google.ar.sceneform.Node;
 import com.google.ar.sceneform.Scene;
 import com.google.ar.sceneform.ux.BaseArFragment;
 
@@ -20,11 +20,11 @@ public interface ArActivity {
 
     void setOnTapArPlaneListener(final @Nullable BaseArFragment.OnTapArPlaneListener listener);
 
-    void createRace(final Anchor anchor, final Course course);
+    void createRace(final Node anchor, final Course course);
 
     void startRace();
 
-    void joinRace(final Anchor anchor);
+    void joinRace(final Node anchor);
 
     void addRaceListener(final RaceView view);
 

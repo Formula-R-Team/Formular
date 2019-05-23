@@ -1,5 +1,7 @@
 package io.github.formular_team.formular.core.tracing;
 
+import io.github.formular_team.formular.core.math.Mth;
+
 public final class OrientFunction implements ToFloatMapFunction {
 	private final int radius;
 
@@ -31,6 +33,6 @@ public final class OrientFunction implements ToFloatMapFunction {
 				}
 			}
 		}
-		return PCA.get(this.bufX, this.bufY, this.bufW, n).getAngle();
+		return Mth.PI * 0.5F - PCA.get(this.bufX, this.bufY, this.bufW, n).getAngle();
 	}
 }

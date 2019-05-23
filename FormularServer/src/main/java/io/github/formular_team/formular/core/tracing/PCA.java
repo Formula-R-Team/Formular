@@ -21,8 +21,8 @@ public final class PCA {
         }
         final float tmp = Mth.sqrt((a - d) * (a - d) + 4.0F * b * c);
         return new Ellipse(
-            new Vector2(1.0F, (tmp + a - d) / (2.0F * c)).setLength(Mth.sqrt((a + d + tmp) / 2.0F)),
-            new Vector2(1.0F, -(tmp - a + d) / (2.0F * c)).setLength(Mth.sqrt((a + d - tmp) / 2.0F))
+            new Vector2((tmp + a - d) / (2.0F * c), 1.0F).setLength(Mth.sqrt((a + d + tmp) / 2.0F)),
+            new Vector2(-(tmp - a + d) / (2.0F * c), 1.0F).setLength(Mth.sqrt((a + d - tmp) / 2.0F))
         );
     }
 
