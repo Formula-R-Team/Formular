@@ -8,8 +8,6 @@ import android.widget.Button;
 public class MainActivity extends FormularActivity {
     private Button host, join;
 
-    private Button customize;
-
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -20,8 +18,6 @@ public class MainActivity extends FormularActivity {
     private void setupButtons() {
         this.host = this.findViewById(R.id.button_play);
         /*this.join = this.findViewById(R.id.button_join);*/
-        this.customize = this.findViewById(R.id.button_customize);
-        this.customize.setOnClickListener(this.activityChange(CustomizeActivity.class));
         this.host.setOnClickListener(v -> {
             this.startActivity(new Intent(this, SandboxActivity.class));
         });

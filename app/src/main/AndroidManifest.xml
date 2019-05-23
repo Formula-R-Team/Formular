@@ -1,19 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="io.github.formular_team.formular">
-
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
-
     <uses-feature
         android:name="android.hardware.camera.ar"
         android:required="true" />
-
     <application
         android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
@@ -23,22 +21,14 @@
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
         <activity
-            android:name=".CustomizeActivity"
-            android:configChanges="orientation|screenSize" />
-        <activity
-            android:name=".ArActivity"
-            android:configChanges="orientation|screenSize"
-            android:exported="true" />
-        <activity
             android:name=".SandboxActivity"
             android:configChanges="orientation|screenSize"
             android:exported="true" />
-        <activity android:name=".NewRaceActivity"/>
-
+        <activity
+            android:name=".NewRaceActivity" />
         <meta-data
             android:name="com.google.ar.core"
             android:value="required" />
-
         <activity
             android:name=".MainActivity">
             <intent-filter>
@@ -47,5 +37,4 @@
             </intent-filter>
         </activity>
     </application>
-
 </manifest>

@@ -160,6 +160,19 @@ public class SandboxActivity extends FormularActivity implements ArActivity {
         this.controller.navigate(R.id.race_fragment);
     }
 
+    private Node tmp;
+
+    @Override
+    public Node getAnchor() {
+        return this.tmp;
+    }
+
+    @Override
+    public void customize(final Node anchorNode) {
+        this.tmp = anchorNode;
+        this.controller.navigate(R.id.customize_fragment);
+    }
+
     @Override
     public void startRace() {
         if (this.clientController != null) {

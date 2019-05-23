@@ -10,4 +10,7 @@
     <fragment
         android:id="@+id/race_fragment"
         android:name="io.github.formular_team.formular.RaceFragment" />
+    <fragment
+        android:id="@+id/customize_fragment"
+        android:name="io.github.formular_team.formular.CustomizeFragment" />
 </navigation>

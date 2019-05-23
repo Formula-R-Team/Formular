@@ -29,4 +29,8 @@ public interface ArActivity {
     void addRaceListener(final RaceView view);
 
     void onSteer(final Kart.ControlState state);
+
+    Node getAnchor();
+
+    void customize(final Node anchorNode);
 }

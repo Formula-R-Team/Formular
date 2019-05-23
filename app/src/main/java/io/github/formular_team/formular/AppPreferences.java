@@ -19,6 +19,10 @@ public class AppPreferences {
         return defaultColor;
     }
 
+    public static Color getUserColor(final SharedPreferences preferences) {
+        return AppPreferences.getColor(preferences, "user.color", Color.color(0.9F, 0.2F, 0.1F));
+    }
+
     public static User getUser(final SharedPreferences preferences) {
         final UUID uuid;
         if (preferences.contains(USER_UUID_MOST) &&
@@ -35,7 +39,6 @@ public class AppPreferences {
                 .apply();
         }
         final String name = preferences.getString("user.name", "Player");
-        final Color color = AppPreferences.getColor(preferences, "user.color", Color.color(0.9F, 0.2F, 0.1F));
-        return User.create(uuid, name, color);
+        return User.create(uuid, name, getUserColor(preferences));
     }
 }

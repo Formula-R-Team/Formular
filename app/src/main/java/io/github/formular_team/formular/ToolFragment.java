@@ -40,7 +40,8 @@ public class ToolFragment extends Fragment {
         final BottomNavigationView view = this.view.findViewById(R.id.toolbar);
         view.setOnNavigationItemSelectedListener(item -> {
             switch (item.getItemId()) {
-            case R.id.tool_shop:
+            case R.id.tool_customize:
+                ToolFragment.this.activity.setOnTapArPlaneListener(new CustomizeListener());
                 break;
             case R.id.tool_create:
                 ToolFragment.this.activity.setOnTapArPlaneListener(new CreateListener());
@@ -54,13 +55,16 @@ public class ToolFragment extends Fragment {
         return this.view;
     }
 
-    private float getAngle(final Plane plane) {
-        final Quaternion q = new Quaternion(plane.getCenterPose().qx(), plane.getCenterPose().qy(), plane.getCenterPose().qz(), plane.getCenterPose().qw());
-        final Vector3 x = Vector3.back();
-        final Vector3 xp = Quaternion.rotateVector(q, x);
-        final float a = Mth.toRadians(Vector3.angleBetweenVectors(x, xp));
-        return a;
+    private class CustomizeListener implements BaseArFragment.OnTapArPlaneListener {
+        @Override
+        public void onTapPlane(final HitResult result, final Plane plane, final MotionEvent event) {
+            final Node a = new AnchorNode(result.createAnchor());
+            a.setLocalScale(Vector3.one().scaled(0.075F)); // TODO: scale based on screen space
+            ToolFragment.this.activity.getScene().addChild(a);
+            ToolFragment.this.activity.customize(a);
+        }
     }
+
     private class CreateListener implements BaseArFragment.OnTapArPlaneListener {
         @Override
         public void onTapPlane(final HitResult result, final Plane plane, final MotionEvent event) {
