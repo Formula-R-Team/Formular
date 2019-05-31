@@ -33,4 +33,8 @@ public interface ArActivity {
     Node getAnchor();
 
     void customize(final Node anchorNode);
+
+    boolean isHost();
+
+    void removeAnchor();
 }

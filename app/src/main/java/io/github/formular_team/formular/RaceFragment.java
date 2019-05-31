@@ -34,14 +34,19 @@ public class RaceFragment extends Fragment implements RaceView {
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
         this.view = inflater.inflate(R.layout.fragment_race, container, false);
         this.view.<SteeringWheelView>findViewById(R.id.steering_wheel).setSteerListener(state -> this.activity.onSteer(state));
-        final WifiManager wifi = this.requireContext().getSystemService(WifiManager.class);
-        final String ip = Formatter.formatIpAddress(wifi.getConnectionInfo().getIpAddress());
         final TextView ipText = this.view.findViewById(R.id.ip);
-        ipText.setText(ip);
-        ipText.setOnClickListener(v -> {
-            v.setVisibility(View.INVISIBLE);
-            this.activity.startRace();
-        });
+        if (this.activity.isHost()) {
+            final WifiManager wifi = this.requireContext().getSystemService(WifiManager.class);
+            final String ip = Formatter.formatIpAddress(wifi.getConnectionInfo().getIpAddress());
+            ipText.setText(ip);
+            ipText.setOnClickListener(v -> {
+                v.setVisibility(View.INVISIBLE);
+                this.activity.startRace();
+            });
+            ipText.setVisibility(View.VISIBLE);
+        } else {
+            ipText.setVisibility(View.INVISIBLE);
+        }
         return this.view;
     }
 

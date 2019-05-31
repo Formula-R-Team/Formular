@@ -3,6 +3,7 @@ package io.github.formular_team.formular.core.server.net.clientbound;
 import java.nio.ByteBuffer;
 import java.util.function.Function;
 
+import io.github.formular_team.formular.core.User;
 import io.github.formular_team.formular.core.color.Color;
 import io.github.formular_team.formular.core.game.GameView;
 import io.github.formular_team.formular.core.kart.Kart;
@@ -24,11 +25,14 @@ public class KartAddPacket implements Packet {
 
     private final float rotation;
 
+    private final User user;
+
     public KartAddPacket(final Kart kart) {
         this.uniqueId = kart.getUniqueId();
         this.color = kart.getColor();
         this.position = kart.getPosition();
         this.rotation = kart.getRotation();
+        this.user = kart.getUser();
     }
 
     public KartAddPacket(final ByteBuffer buf) {
@@ -36,6 +40,7 @@ public class KartAddPacket implements Packet {
         this.color = ByteBuffers.getColor(buf);
         this.position = ByteBuffers.getVector2(buf);
         this.rotation = buf.getFloat();
+        this.user = ByteBuffers.getUser(buf);
     }
 
     @Override
@@ -49,13 +54,14 @@ public class KartAddPacket implements Packet {
         ByteBuffers.putColor(buf, this.color);
         ByteBuffers.putVector2(buf, this.position);
         buf.putFloat(this.rotation);
+        ByteBuffers.putUser(buf, this.user);
     }
 
     public static class Handler implements PacketHandler<ClientContext, Context, KartAddPacket> {
         @Override
         public ClientContext apply(final ClientContext context, final KartAddPacket packet) {
             final GameView game = context.getClient().getGame();
-            game.createKart(packet.uniqueId, packet.color, packet.position, packet.rotation);
+            game.createKart(packet.uniqueId, packet.color, packet.position, packet.rotation, packet.user);
             return context;
         }
     }

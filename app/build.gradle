@@ -25,10 +25,13 @@ android {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
+    // https://github.com/google-ar/arcore-android-sdk/issues/777#issuecomment-490951236
+    applicationVariants.all { variant ->
+        variant.getRuntimeConfiguration().exclude group: 'com.google.code.findbugs', module: 'jsr305'
+    }
 }
 
 dependencies {
-    implementation "com.github.skydoves:colorpickerpreference:1.0.7"
     implementation "org.hsluv:hsluv:0.2"
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'com.android.support:appcompat-v7:28.0.0'
@@ -38,8 +41,6 @@ dependencies {
     implementation 'com.google.ar:core:1.7.0'
     implementation 'com.google.ar.sceneform.ux:sceneform-ux:1.7.0'
     implementation 'com.google.ar.sceneform:core:1.7.0'
-    implementation 'com.google.guava:guava:24.1-jre'
-    implementation 'com.google.code.gson:gson:2.8.5'
     implementation project(path: ':FormularServer')
     implementation 'com.android.support:support-v4:28.0.0'
     implementation 'com.android.support:design:28.0.0'

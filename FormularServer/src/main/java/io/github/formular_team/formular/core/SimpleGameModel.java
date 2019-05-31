@@ -60,13 +60,13 @@ public final class SimpleGameModel implements GameModel {
     }
 
     @Override
-    public KartModel createKart() {
-        return this.createKart(new SimpleControlState());
+    public KartModel createKart(final User user) {
+        return this.createKart(new SimpleControlState(), user);
     }
 
     @Override
-    public KartModel createKart(final Kart.ControlState state) {
-        return new KartModel(this.nextKartId++, KartDefinition.createKart2(), state);
+    public KartModel createKart(final Kart.ControlState state, final User user) {
+        return new KartModel(this.nextKartId++, KartDefinition.createKart2(), state, user);
     }
 
     @Override
@@ -123,8 +123,10 @@ public final class SimpleGameModel implements GameModel {
         this.addRace(race);
         final List<? extends Checkpoint> checkpoints = course.getTrack().getCheckpoints();
         for (int i = 0; i < checkpoints.size(); i++) {
-            this.walls.add(new LineCurve(checkpoints.get(i).getP1(), checkpoints.get((i + 1) % checkpoints.size()).getP1()));
-            this.walls.add(new LineCurve(checkpoints.get(i).getP2(), checkpoints.get((i + 1) % checkpoints.size()).getP2()));
+            final LineCurve w1 = new LineCurve(checkpoints.get(i).getP1(), checkpoints.get((i + 1) % checkpoints.size()).getP1());
+            this.walls.add(w1);
+            final LineCurve w2 = new LineCurve(checkpoints.get(i).getP2(), checkpoints.get((i + 1) % checkpoints.size()).getP2());
+            this.walls.add(w2);
         }
         return race;
     }
@@ -136,11 +138,11 @@ public final class SimpleGameModel implements GameModel {
         }
         this.stepPhysics(delta);
         // TODO: good collision
-        /*for (final KartModel kart : this.karts) {
+        for (final KartModel kart : this.karts) {
             for (final LineCurve wall : this.walls) {
                 kart.collide(wall, delta);
             }
-        }*/
+        }
         // TODO: optimized onPoseChange
         for (final KartModel kart : this.karts) {
             for (final OnPoseChangeListener listener : this.changeListeners) {

@@ -2,13 +2,14 @@ package io.github.formular_team.formular.core.game;
 
 import java.util.Optional;
 
-import io.github.formular_team.formular.core.kart.Kart;
+import io.github.formular_team.formular.core.User;
 import io.github.formular_team.formular.core.color.Color;
 import io.github.formular_team.formular.core.course.Course;
+import io.github.formular_team.formular.core.kart.Kart;
 import io.github.formular_team.formular.core.math.Vector2;
 
 public interface GameView extends Game {
-    Kart createKart(final int uniqueId, final Color color, final Vector2 position, final float rotation);
+    Kart createKart(final int uniqueId, final Color color, final Vector2 position, final float rotation, final User user);
 
     void addCourse(final Course course);
 

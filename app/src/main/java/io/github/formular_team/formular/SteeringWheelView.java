@@ -81,7 +81,7 @@ public class SteeringWheelView extends View {
             final float y = Mth.clamp(event.getY() / this.getHeight() * 2.0F - 1.0F, -1.0F, 1.0F);
             final float angle = -Mth.PI / 4.0F * x;
             this.state.setSteeringAngle(angle);
-            this.state.setThrottle(-y * 7.5F);
+            this.state.setThrottle(-y * 6.5F);
             this.state.setBrake(0.0F);
             if (this.listener != null) {
                 this.listener.onSteer(this.state);

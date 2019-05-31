@@ -107,7 +107,7 @@ public class CustomizeFragment extends Fragment {
                 }).orElse(null))
             .thenCombine(SimpleKartNodeFactory.create(context, R.raw.kart_body, R.raw.kart_wheel_front, R.raw.kart_wheel_rear), (platter, factory) -> {
                 frag.ifPresent(f -> {
-                    final KartNode kart = factory.create(new DirectKartView(new KartModel(0, KartDefinition.createKart2(), new SimpleControlState())));
+                    final KartNode kart = factory.create(new DirectKartView(new KartModel(0, KartDefinition.createKart2(), new SimpleControlState(), null)));
                     kart.setColor(new Color(userColor.getHex()));
                     f.kart = kart;
                     platter.addChild(kart);
@@ -140,5 +140,11 @@ public class CustomizeFragment extends Fragment {
     public void onDetach() {
         super.onDetach();
         this.activity = null;
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        this.activity.removeAnchor();
     }
 }

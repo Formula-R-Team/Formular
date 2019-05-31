@@ -1,10 +1,13 @@
 package io.github.formular_team.formular.core.kart;
 
+import io.github.formular_team.formular.core.User;
 import io.github.formular_team.formular.core.color.Color;
 import io.github.formular_team.formular.core.math.Vector2;
 
 public interface Kart {
     KartDefinition getDefinition();
+
+    default User getUser() { return null; }
 
     int getUniqueId();
 

@@ -6,16 +6,18 @@ import android.util.SparseArray;
 
 import com.google.ar.sceneform.Node;
 import com.google.ar.sceneform.Scene;
+import com.google.ar.sceneform.math.Vector3;
 import com.google.ar.sceneform.rendering.Color;
 
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import io.github.formular_team.formular.KartNodeFactory;
-import io.github.formular_team.formular.RaceView;
 import io.github.formular_team.formular.R;
+import io.github.formular_team.formular.RaceView;
 import io.github.formular_team.formular.core.SimpleControlState;
 import io.github.formular_team.formular.core.StateKartView;
+import io.github.formular_team.formular.core.User;
 import io.github.formular_team.formular.core.course.Course;
 import io.github.formular_team.formular.core.game.GameView;
 import io.github.formular_team.formular.core.kart.Kart;
@@ -48,7 +50,7 @@ public class ArGameView implements GameView {
     }
 
     @Override
-    public Kart createKart(final int uniqueId, final io.github.formular_team.formular.core.color.Color color, final Vector2 position, final float rotation) {
+    public Kart createKart(final int uniqueId, final io.github.formular_team.formular.core.color.Color color, final Vector2 position, final float rotation, final User user) {
         final KartView kart = new StateKartView(uniqueId, KartDefinition.createKart2(), position, rotation);
         this.activity.runOnUiThread(() -> {
             final KartNode kn = this.factory.create(kart);
@@ -58,6 +60,10 @@ public class ArGameView implements GameView {
             } else {
                 this.surface.addChild(kn);
             }
+            LabelFactory.create(this.activity, user.getName(), 1.0F).thenAccept(n -> {
+                n.setLocalPosition(Vector3.up().scaled(2.2F));
+                kn.addChild(n);
+            });
         });
         this.karts.put(uniqueId, kart);
         return kart;

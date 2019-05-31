@@ -18,10 +18,11 @@ import com.google.ar.sceneform.Node;
 import com.google.ar.sceneform.rendering.MaterialFactory;
 import com.google.ar.sceneform.rendering.ModelRenderable;
 import com.google.ar.sceneform.rendering.Texture;
-import com.google.common.collect.ImmutableList;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -32,19 +33,19 @@ import io.github.formular_team.formular.core.course.track.Track;
 import io.github.formular_team.formular.core.geom.ExtrudeGeometry;
 import io.github.formular_team.formular.core.geom.Geometry;
 import io.github.formular_team.formular.core.math.Box2;
-import io.github.formular_team.formular.core.math.curve.CubicBezierCurve3;
-import io.github.formular_team.formular.core.math.curve.CurvePath;
-import io.github.formular_team.formular.core.math.curve.LineCurve3;
 import io.github.formular_team.formular.core.math.Matrix3;
 import io.github.formular_team.formular.core.math.Matrix4;
 import io.github.formular_team.formular.core.math.Mth;
-import io.github.formular_team.formular.core.math.curve.Path;
 import io.github.formular_team.formular.core.math.PathOffset;
 import io.github.formular_team.formular.core.math.PathVisitor;
-import io.github.formular_team.formular.core.math.curve.Shape;
 import io.github.formular_team.formular.core.math.TransformingPathVisitor;
 import io.github.formular_team.formular.core.math.Vector2;
 import io.github.formular_team.formular.core.math.Vector3;
+import io.github.formular_team.formular.core.math.curve.CubicBezierCurve3;
+import io.github.formular_team.formular.core.math.curve.CurvePath;
+import io.github.formular_team.formular.core.math.curve.LineCurve3;
+import io.github.formular_team.formular.core.math.curve.Path;
+import io.github.formular_team.formular.core.math.curve.Shape;
 
 public class CourseNode extends Node {
     private static final String TAG = "CourseNode";
@@ -80,7 +81,7 @@ public class CourseNode extends Node {
                 final Box2 bounds = CourseNode.getBounds(course);
                 final Vector2 center = bounds.center();
                 final float courseSize = CourseNode.getSize(bounds);
-                final Geometry roadGeom = new ExtrudeGeometry(ImmutableList.of(roadShape), new ExtrudeGeometry.ExtrudeGeometryParameters() {{
+                final Geometry roadGeom = new ExtrudeGeometry(Collections.singletonList(roadShape), new ExtrudeGeometry.ExtrudeGeometryParameters() {{
                     this.steps = (int) (6 * trackPath3.getLength());
                     this.extrudePath = trackPath3;
                     this.uvGenerator = ExtrudeGeometry.VertexUVGenerator.transform(new Matrix4()
@@ -99,12 +100,12 @@ public class CourseNode extends Node {
                 wallShape.lineTo(-roadHeight - wallHeight, wallWidth * 0.5F);
                 wallShape.lineTo(-roadHeight - wallHeight, -wallWidth * 0.5F);
                 wallShape.closePath();
-                final Geometry wallLeft = new ExtrudeGeometry(ImmutableList.of(wallShape), new ExtrudeGeometry.ExtrudeGeometryParameters() {{
+                final Geometry wallLeft = new ExtrudeGeometry(Collections.singletonList(wallShape), new ExtrudeGeometry.ExtrudeGeometryParameters() {{
                     this.steps = (int) (wallLeftPath.getLength());
                     this.extrudePath = wallLeftPath;
                     this.uvGenerator = new ExtrudeGeometry.VertexUVGenerator(v -> new Vector3(0.0F, 0.0F, 1.0F));
                 }});
-                final Geometry wallRight = new ExtrudeGeometry(ImmutableList.of(wallShape), new ExtrudeGeometry.ExtrudeGeometryParameters() {{
+                final Geometry wallRight = new ExtrudeGeometry(Collections.singletonList(wallShape), new ExtrudeGeometry.ExtrudeGeometryParameters() {{
                     this.steps = (int) (wallRightPath.getLength());
                     this.extrudePath = wallRightPath;
                     this.uvGenerator = new ExtrudeGeometry.VertexUVGenerator(v -> new Vector3(0.0F, 0.0F, 1.0F));
@@ -114,7 +115,7 @@ public class CourseNode extends Node {
                 final CourseNode node = new CourseNode(road);
                 //node.setLocalScale(com.google.ar.sceneform.math.Vector3.one().scaled(course.getWorldScale()));
                 final Node trackNode = new Node();
-                final ModelRenderable trackRenderable = Geometries.toRenderable(ImmutableList.of(roadGeom, wallLeft, wallRight), material);
+                final ModelRenderable trackRenderable = Geometries.toRenderable(Arrays.asList(roadGeom, wallLeft, wallRight), material);
                 trackNode.setRenderable(trackRenderable);
                 node.addChild(trackNode);
                 return node;

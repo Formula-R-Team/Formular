@@ -5,11 +5,13 @@ import com.google.ar.sceneform.rendering.Material;
 import com.google.ar.sceneform.rendering.ModelRenderable;
 import com.google.ar.sceneform.rendering.RenderableDefinition;
 import com.google.ar.sceneform.rendering.Vertex;
-import com.google.common.collect.ImmutableList;
-import com.google.common.util.concurrent.Futures;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import io.github.formular_team.formular.core.geom.Face3;
 import io.github.formular_team.formular.core.geom.Geometry;
@@ -20,8 +22,8 @@ public final class Geometries {
     private Geometries() {}
 
     public static ModelRenderable lines(final List<List<io.github.formular_team.formular.core.math.Vector3>> pointsLists, final float width, final List<Material> materials) {
-        final ImmutableList.Builder<Vertex> vertices = ImmutableList.builder();
-        final ImmutableList.Builder<RenderableDefinition.Submesh> submeshes = ImmutableList.builder();
+        final List<Vertex> vertices = new ArrayList<>();
+        final List<RenderableDefinition.Submesh> submeshes = new ArrayList<>();
         final Iterator<List<io.github.formular_team.formular.core.math.Vector3>> pointsIter = pointsLists.iterator();
         final Iterator<Material> materialIter = materials.iterator();
         int box = 0;
@@ -29,14 +31,18 @@ public final class Geometries {
             box += lines(pointsIter.next(), materialIter.next(), width, vertices, submeshes, box);
         }
         final RenderableDefinition def = RenderableDefinition.builder()
-            .setVertices(vertices.build())
-            .setSubmeshes(submeshes.build())
+            .setVertices(vertices)
+            .setSubmeshes(submeshes)
             .build();
-        return Futures.getUnchecked(ModelRenderable.builder().setSource(def).build());
+        try {
+            return ModelRenderable.builder().setSource(def).build().get();
+        } catch (final ExecutionException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    private static int lines(final List<io.github.formular_team.formular.core.math.Vector3> points, final Material material, final float width, final ImmutableList.Builder<Vertex> vertices, final ImmutableList.Builder<RenderableDefinition.Submesh> submeshs, int box) {
-        final ImmutableList.Builder<Integer> indices = ImmutableList.builder();
+    private static int lines(final List<io.github.formular_team.formular.core.math.Vector3> points, final Material material, final float width, final List<Vertex> vertices, final List<RenderableDefinition.Submesh> submeshs, int box) {
+        final List<Integer> indices = new ArrayList<>();
         final Vector3 worldUp = Vector3.up();
         final Vector3 worldRight = Vector3.right();
         final Vertex.UvCoordinate uv00 = new Vertex.UvCoordinate(0.0F, 0.0F);
@@ -65,7 +71,7 @@ public final class Geometries {
             final Vector3 p4 = Vector3.add(p0, dir);
             final Vector3 p5 = Vector3.add(p1, dir);
             final Vector3 p6 = Vector3.add(p2, dir);
-            vertices.add(
+            vertices.addAll(Arrays.asList(
                 Vertex.builder().setPosition(p0).setNormal(down).setUvCoordinate(uv01).build(),
                 Vertex.builder().setPosition(p1).setNormal(down).setUvCoordinate(uv11).build(),
                 Vertex.builder().setPosition(p2).setNormal(down).setUvCoordinate(uv10).build(),
@@ -95,7 +101,7 @@ public final class Geometries {
                 Vertex.builder().setPosition(p6).setNormal(up).setUvCoordinate(uv11).build(),
                 Vertex.builder().setPosition(p5).setNormal(up).setUvCoordinate(uv10).build(),
                 Vertex.builder().setPosition(p4).setNormal(up).setUvCoordinate(uv00).build()
-            );
+            ));
             for (int j = 0; j < 6; j++) {
                 indices.add(box * 24 + 3 + 4 * j);
                 indices.add(box * 24 + 1 + 4 * j);
@@ -106,15 +112,15 @@ public final class Geometries {
             }
         }
         submeshs.add(RenderableDefinition.Submesh.builder()
-            .setTriangleIndices(indices.build())
+            .setTriangleIndices(indices)
             .setMaterial(material)
             .build());
         return box;
     }
 
     public static ModelRenderable toRenderable(final List<Geometry> geometries, final Material material) {
-        final ImmutableList.Builder<Vertex> vertices = ImmutableList.builder();
-        final ImmutableList.Builder<Integer> indices = ImmutableList.builder();
+        final List<Vertex> vertices = new ArrayList<>();
+        final List<Integer> indices = new ArrayList<>();
         int vertexIndex = 0;
         for (final Geometry geometry : geometries) {
             final Iterator<Face3> faces = geometry.getFaces().iterator();
@@ -135,14 +141,18 @@ public final class Geometries {
             }
         }
         final RenderableDefinition.Submesh mesh = RenderableDefinition.Submesh.builder()
-            .setTriangleIndices(indices.build())
+            .setTriangleIndices(indices)
             .setMaterial(material)
             .build();
         final RenderableDefinition def = RenderableDefinition.builder()
-            .setVertices(vertices.build())
-            .setSubmeshes(ImmutableList.of(mesh))
+            .setVertices(vertices)
+            .setSubmeshes(Collections.singletonList(mesh))
             .build();
-        return Futures.getUnchecked(ModelRenderable.builder().setSource(def).build());
+        try {
+            return ModelRenderable.builder().setSource(def).build().get();
+        } catch (final ExecutionException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private static Vector3 v(final io.github.formular_team.formular.core.math.Vector3 vector) {

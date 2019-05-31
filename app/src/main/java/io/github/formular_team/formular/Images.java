@@ -7,8 +7,6 @@ import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.media.Image;
 
-import com.google.common.base.Preconditions;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.channels.Channels;
@@ -22,7 +20,9 @@ public final class Images {
     }
 
     public static Bitmap yuvToBitmap(final Image image, final Rect rect) {
-        Preconditions.checkArgument(image.getFormat() == ImageFormat.YUV_420_888);
+        if (image.getFormat() != ImageFormat.YUV_420_888) {
+            throw new IllegalArgumentException("wrong format");
+        }
         if (rect.isEmpty()) {
             return null;
         }

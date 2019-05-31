@@ -2,15 +2,15 @@ package io.github.formular_team.formular;
 
 import android.graphics.Bitmap;
 
-import io.github.formular_team.formular.core.tracing.ImageMap;
+import java.util.Objects;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import io.github.formular_team.formular.core.tracing.ImageMap;
 
 public final class BitmapImageMap implements ImageMap {
     private final Bitmap bitmap;
 
     public BitmapImageMap(final Bitmap bitmap) {
-        this.bitmap = checkNotNull(bitmap);
+        this.bitmap = Objects.requireNonNull(bitmap);
     }
 
     @Override

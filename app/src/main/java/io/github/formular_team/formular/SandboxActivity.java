@@ -174,6 +174,19 @@ public class SandboxActivity extends FormularActivity implements ArActivity {
     }
 
     @Override
+    public boolean isHost() {
+        return this.serverController != null;
+    }
+
+    @Override
+    public void removeAnchor() {
+        if (this.tmp != null) {
+            this.getScene().removeChild(this.tmp);
+            this.tmp = null;
+        }
+    }
+
+    @Override
     public void startRace() {
         if (this.clientController != null) {
             this.clientController.submitJob(Endpoint.Job.of(Client::startRace));

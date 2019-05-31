@@ -51,10 +51,10 @@ public final class Race {
         this.state = new RaceState.Start(this);
     }
 
-    public KartModel createKart() {
+    public KartModel createKart(final User user) {
         // this.state.isRacing()
         // TODO: kart with race control state
-        return this.game.createKart();
+        return this.game.createKart(user);
     }
 
     public RaceConfiguration getConfiguration() {

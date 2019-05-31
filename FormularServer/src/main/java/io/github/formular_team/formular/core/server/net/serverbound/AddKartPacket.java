@@ -49,7 +49,7 @@ public class AddKartPacket implements Packet {
         @Override
         public KartContext apply(final UserContext context, final AddKartPacket packet) {
             final GameModel game = context.getServer().getGame();
-            final KartModel kart = game.createKart();
+            final KartModel kart = game.createKart(context.getUser());
             kart.setPosition(packet.position);
             kart.setColor(packet.color);
             final Driver driver = SimpleDriver.create(context.getUser(), kart);

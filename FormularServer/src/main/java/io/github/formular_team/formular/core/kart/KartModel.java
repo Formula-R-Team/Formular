@@ -1,11 +1,11 @@
 package io.github.formular_team.formular.core.kart;
 
-import io.github.formular_team.formular.core.SimpleControlState;
+import io.github.formular_team.formular.core.User;
 import io.github.formular_team.formular.core.color.Color;
 import io.github.formular_team.formular.core.math.Intersections;
-import io.github.formular_team.formular.core.math.curve.LineCurve;
 import io.github.formular_team.formular.core.math.Mth;
 import io.github.formular_team.formular.core.math.Vector2;
+import io.github.formular_team.formular.core.math.curve.LineCurve;
 
 public class KartModel implements Kart {
     private static final float GRAVITY = 9.8F; // m/s^2
@@ -35,15 +35,23 @@ public class KartModel implements Kart {
 
     private Color color = Color.color(0.5F, 0.5F, 0.5F);
 
-    public KartModel(final int uniqueId, final KartDefinition type, final ControlState state) {
+    private final User user;
+
+    public KartModel(final int uniqueId, final KartDefinition type, final ControlState state, final User user) {
         this.uniqueId = uniqueId;
         this.definition = type;
         this.state = state;
+        this.user = user;
     }
 
     @Override
     public KartDefinition getDefinition() {
         return this.definition;
+    }
+
+    @Override
+    public User getUser() {
+        return this.user;
     }
 
     @Override
@@ -188,9 +196,8 @@ public class KartModel implements Kart {
             if (dot > 0.0F) {
                 normal.negate();
             }
-            this.linearVelocity.reflect(normal).multiply(0.8F);
-            this.position.add(this.linearVelocity.clone().multiply(dt));
-            this.angularVelocity = -this.angularVelocity;
+            this.linearVelocity.reflect(normal);//.multiply(0.8F);
+            this.position.add(normal.multiply(0.01F)).add(this.linearVelocity.clone().multiply(dt * 0.5F));
         }
     }
 }
