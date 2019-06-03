@@ -264,11 +264,11 @@ public final class ByteBuffers {
             }
 
             @Override
-            public void bezierCurveTo(final float aCP1x, final float aCP1y, final float aCP2x, final float aCP2y, final float aX, final float aY) {
+            public void bezierCurveTo(final float x1, final float y1, final float x2, final float y2, final float x3, final float y3) {
                 ByteBuffers.putUnsigned(buf, ACTION_CURVE_TO)
-                    .putFloat(aCP1x).putFloat(aCP1y)
-                    .putFloat(aCP2x).putFloat(aCP2y)
-                    .putFloat(aX).putFloat(aY);
+                    .putFloat(x1).putFloat(y1)
+                    .putFloat(x2).putFloat(y2)
+                    .putFloat(x3).putFloat(y3);
             }
 
             @Override

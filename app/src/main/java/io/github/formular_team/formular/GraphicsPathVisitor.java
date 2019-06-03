@@ -26,8 +26,8 @@ public final class GraphicsPathVisitor implements PathVisitor {
     }
 
     @Override
-    public void bezierCurveTo(final float aCP1x, final float aCP1y, final float aCP2x, final float aCP2y, final float aX, final float aY) {
-        this.path.cubicTo(aCP1x, aCP1y, aCP2x, aCP2y, aX, aY);
+    public void bezierCurveTo(final float x1, final float y1, final float x2, final float y2, final float x3, final float y3) {
+        this.path.cubicTo(x1, y1, x2, y2, x3, y3);
     }
 
     @Override

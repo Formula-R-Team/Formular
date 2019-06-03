@@ -87,11 +87,11 @@ public class Path extends CurvePath implements PathVisitor {
 //	}
 
     @Override
-    public void bezierCurveTo(final float aCP1x, final float aCP1y, final float aCP2x, final float aCP2y, final float aX, final float aY) {
+    public void bezierCurveTo(final float x1, final float y1, final float x2, final float y2, final float x3, final float y3) {
         final Action last = this.actions.get(this.actions.size() - 1);
-        final Vector2 v1 = new Vector2(aCP1x, aCP1y);
-        final Vector2 v2 = new Vector2(aCP2x, aCP2y);
-        final Vector2 v3 = new Vector2(aX, aY);
+        final Vector2 v1 = new Vector2(x1, y1);
+        final Vector2 v2 = new Vector2(x2, y2);
+        final Vector2 v3 = new Vector2(x3, y3);
         this.add(new CubicBezierCurve(last.getEnd(), v1, v2, v3));
         this.actions.add(new BezierCurveToAction(v1, v2, v3));
     }
@@ -200,13 +200,13 @@ public class Path extends CurvePath implements PathVisitor {
             }
 
             @Override
-            public void bezierCurveTo(final float aCP1x, final float aCP1y, final float aCP2x, final float aCP2y, final float aX, final float aY) {
+            public void bezierCurveTo(final float x1, final float y1, final float x2, final float y2, final float x3, final float y3) {
                 final float x0 = this.last.getX();
                 final float y0 = this.last.getX();
                 for (int n = 1; n <= divisions; n++) {
                     final float t = n / (float) divisions;
-                    final float tx = ShapeUtils.b3(t, x0, aCP1x, aCP2x, aX);
-                    final float ty = ShapeUtils.b3(t, y0, aCP1y, aCP2y, aY);
+                    final float tx = ShapeUtils.b3(t, x0, x1, x2, x3);
+                    final float ty = ShapeUtils.b3(t, y0, y1, y2, y3);
                     final Vector2 point = new Vector2(tx, ty);
                     this.last.copy(point);
                     points.add(point);
@@ -434,8 +434,8 @@ public class Path extends CurvePath implements PathVisitor {
             }
 
             @Override
-            public void bezierCurveTo(final float aCP1x, final float aCP1y, final float aCP2x, final float aCP2y, final float aX, final float aY) {
-                this.currentPath.bezierCurveTo(aCP1x, aCP1y, aCP2x, aCP2y, aX, aY);
+            public void bezierCurveTo(final float x1, final float y1, final float x2, final float y2, final float x3, final float y3) {
+                this.currentPath.bezierCurveTo(x1, y1, x2, y2, x3, y3);
             }
 
             @Override

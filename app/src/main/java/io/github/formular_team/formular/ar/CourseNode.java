@@ -275,8 +275,8 @@ public class CourseNode extends Node {
             }
 
             @Override
-            public void bezierCurveTo(final float aCP1x, final float aCP1y, final float aCP2x, final float aCP2y, final float aX, final float aY) {
-                curve3.add(new CubicBezierCurve3(this.last, this.map(aCP1x, aCP1y), this.map(aCP2x, aCP2y), this.last = this.map(aX, aY)));
+            public void bezierCurveTo(final float x1, final float y1, final float x2, final float y2, final float x3, final float y3) {
+                curve3.add(new CubicBezierCurve3(this.last, this.map(x1, y1), this.map(x2, y2), this.last = this.map(x3, y3)));
             }
 
             @Override
