@@ -3,16 +3,22 @@ package io.github.formular_team.formular.core.tracing;
 import io.github.formular_team.formular.core.math.PathVisitor;
 import io.github.formular_team.formular.core.math.Vector2;
 
+/**
+ * An implementation of a path tracer which uses a given {@link StepFunction} and {@link OrientFunction} to trace a path in given {@link Mapper}.
+ */
 public class SimplePathTracer implements PathTracer {
 	private final StepFunction stepFunc;
 
-	private final ToFloatMapFunction orientFunc;
+	private final OrientFunction orientFunc;
 
-	public SimplePathTracer(final StepFunction stepFunc, final ToFloatMapFunction orientFunc) {
+	public SimplePathTracer(final StepFunction stepFunc, final OrientFunction orientFunc) {
 		this.stepFunc = stepFunc;
 		this.orientFunc = orientFunc;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public void trace(final Mapper map, final PathVisitor visitor, final ResultConsumer consumer) {
 		final Vector2 pos = new Vector2(0.0F, 0.0F);
@@ -24,7 +30,7 @@ public class SimplePathTracer implements PathTracer {
 				consumer.onFail();
 				break;
 			}
-            final float o = this.orientFunc.orient(view);
+            final float o = this.orientFunc.getOrientation(view);
             if (!Float.isFinite(o)) {
                 consumer.onUnclosed();
 				break;

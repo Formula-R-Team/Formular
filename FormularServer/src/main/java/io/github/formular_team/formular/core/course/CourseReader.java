@@ -8,7 +8,7 @@ import io.github.formular_team.formular.core.math.Mth;
 import io.github.formular_team.formular.core.math.TransformingPathVisitor;
 import io.github.formular_team.formular.core.math.curve.Path;
 import io.github.formular_team.formular.core.tracing.CirclePathLocator;
-import io.github.formular_team.formular.core.tracing.OrientFunction;
+import io.github.formular_team.formular.core.tracing.PCAOrientFunction;
 import io.github.formular_team.formular.core.tracing.PathFinder;
 import io.github.formular_team.formular.core.tracing.SimplePathTracer;
 import io.github.formular_team.formular.core.tracing.SimpleStepFunction;
@@ -29,7 +29,7 @@ public class CourseReader {
             new CirclePathLocator(25),
             new SimplePathTracer(
                 new SimpleStepFunction(7, (0.5F * Mth.PI)),
-                new OrientFunction(3)
+                new PCAOrientFunction(3)
             ))
             .find(capture.getImage(), new PathFinder.ResultConsumer() {
                 @Override
