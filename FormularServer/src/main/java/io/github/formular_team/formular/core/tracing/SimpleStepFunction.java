@@ -24,11 +24,17 @@ public final class SimpleStepFunction implements StepFunction {
 		this.viewHalfLength = (int) Math.ceil(this.viewDistance * this.viewHalfAngle);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public float getSize() {
 		return this.viewDistance;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public Vector2 getStep(final Mapper image) {
 		final Vector2 result = new Vector2();
