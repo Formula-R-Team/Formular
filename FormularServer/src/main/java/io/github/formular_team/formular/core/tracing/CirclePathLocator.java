@@ -3,13 +3,24 @@ package io.github.formular_team.formular.core.tracing;
 import io.github.formular_team.formular.core.math.Mth;
 import io.github.formular_team.formular.core.math.Vector2;
 
+/**
+ * An implementation of a {@link PathLocator} which locates a path that intersects a circle of the specified radius at the origin.
+ */
 public class CirclePathLocator implements PathLocator {
     private final float radius;
 
+    /**
+     * Constructs a {@link CirclePathLocator} with the given radius.
+     *
+     * @param radius radius of circle
+     */
     public CirclePathLocator(final float radius) {
         this.radius = radius;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Vector2 locate(final Mapper map) {
         final Vector2 pos = new Vector2();

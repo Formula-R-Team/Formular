@@ -4,7 +4,7 @@ import io.github.formular_team.formular.core.math.PathVisitor;
 import io.github.formular_team.formular.core.math.Vector2;
 
 /**
- * An implementation of a path tracer which uses a given {@link StepFunction} and {@link OrientFunction} to trace a path in given {@link Mapper}.
+ * An implementation of a {@link PathTracer} which uses a given {@link StepFunction} and {@link OrientFunction} to trace a path in given {@link Mapper}.
  */
 public class SimplePathTracer implements PathTracer {
 	private final StepFunction stepFunc;
@@ -37,7 +37,7 @@ public class SimplePathTracer implements PathTracer {
             }
 			rotation += o;
 			view.setRotation(rotation);
-			final Vector2 step = view.transformVec(this.stepFunc.step(view));
+			final Vector2 step = view.transformVec(this.stepFunc.getStep(view));
 			if (step.length() == 0.0F) {
 				consumer.onUnclosed();
 				break;
