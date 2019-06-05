@@ -2,6 +2,9 @@ package io.github.formular_team.formular.core.tracing;
 
 import io.github.formular_team.formular.core.math.Mth;
 
+/**
+ * An implementation of an orient function which performs a principle component analysis to detect orientation.
+ */
 public final class PCAOrientFunction implements OrientFunction {
 	private final int radius;
 
@@ -11,6 +14,11 @@ public final class PCAOrientFunction implements OrientFunction {
 
 	private final float[] bufW;
 
+	/**
+	 * Constructs a {@link PCAOrientFunction} with the specified radius
+	 *
+	 * @param radius radius to determine orientation within
+	 */
 	public PCAOrientFunction(final int radius) {
 		this.radius = radius;
 		final int count = (2 * this.radius + 1) * (2 * this.radius + 1);
@@ -19,6 +27,9 @@ public final class PCAOrientFunction implements OrientFunction {
 		this.bufW = new float[count];
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public float getOrientation(final Mapper image) {
 		int n = 0;
